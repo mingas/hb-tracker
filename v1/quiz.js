@@ -10,8 +10,9 @@
  * Mounts into: #hb-quiz-root
  * Persists to: localStorage['hb_quiz_state']
  * Injects: Schema.org JSON-LD (WebApplication + FAQPage) into <head>
+ * Tracks: GA4 events (quiz_start, quiz_complete, result_view)
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @license MIT
  */
 
@@ -67,6 +68,21 @@
   function markPrivacySeen() {
     try { localStorage.setItem(PRIVACY_SEEN_KEY, '1'); }
     catch (e) {}
+  }
+
+  /* ============================================================
+     GA4 EVENT TRACKING
+     Fires only if gtag is available (no error if missing)
+     ============================================================ */
+
+  function trackEvent(eventName, params) {
+    try {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', eventName, params || {});
+      }
+    } catch (e) {
+      // silently fail — don't break quiz if analytics fails
+    }
   }
 
   /* ============================================================
@@ -189,6 +205,7 @@
         type: 'button',
         onclick: function() {
           markPrivacySeen();
+          trackEvent('quiz_start');
           state.screen = 'question';
           state.currentIndex = 0;
           saveState();
@@ -447,6 +464,18 @@
     state.result = result;
     state.screen = 'result';
     saveState();
+
+    // GA4 tracking — fires once per quiz completion
+    trackEvent('quiz_complete', {
+      question_count: 12,
+      intensity_score: result.intensityScore
+    });
+    trackEvent('result_view', {
+      hormone_type: result.hormoneType,
+      hormonal_age: result.hormonalAge,
+      intensity_score: result.intensityScore
+    });
+
     renderResult();
   }
 
