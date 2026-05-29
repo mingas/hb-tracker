@@ -1,14 +1,14 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — UI with real heatmap calendar
+ * Daily Tracker — calendar with month labels + click-to-view past days
  *
  * Changelog:
- *   v1.2.0 — Real 5-week heatmap calendar showing actual dates + logged days.
+ *   v1.3.0 — Date range subtitle (month names) + click-to-view past entries.
+ *   v1.2.0 — Real 5-week heatmap calendar with actual dates.
  *   v1.1.0 — Journey Progress card with milestone roadmap.
- *   v1.0.0 — Initial Sprint 2A MVP.
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @license MIT
  */
 
@@ -20,13 +20,18 @@
   var QUIZ_STORAGE_KEY    = 'hb_quiz_state';
   var ROOT_ID             = 'hb-tracker-root';
 
+  var MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var MONTHS_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DAYS_LONG    = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
   var state = {
     today: '',
     entries: {},
     streak: { current: 0, best: 0, last_log_date: null },
     hormoneType: null,
     currentEntry: null,
-    saveJustSucceeded: false
+    saveJustSucceeded: false,
+    selectedDayKey: null
   };
 
   var rootEl = null;
@@ -47,9 +52,13 @@
 
   function getFormattedDate() {
     var d = new Date();
-    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    return days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate();
+    return DAYS_LONG[d.getDay()] + ', ' + MONTHS_LONG[d.getMonth()] + ' ' + d.getDate();
+  }
+
+  function formatDateFromKey(dateKey) {
+    var parts = dateKey.split('-');
+    var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    return DAYS_LONG[d.getDay()] + ', ' + MONTHS_LONG[d.getMonth()] + ' ' + d.getDate();
   }
 
   /* STORAGE */
@@ -134,7 +143,7 @@
     return null;
   }
 
-  /* INJECT EXTRA STYLES (journey + heatmap) */
+  /* INJECT STYLES (heatmap + journey + selected day panel) */
 
   function injectExtraStyles() {
     if (document.getElementById('hb-tracker-extra-styles')) return;
@@ -143,28 +152,48 @@
     style.textContent = ''
       /* Heatmap calendar */
       + '.hb-tracker-heatmap-wrap{background:#FFFFFF;border:1px solid #E8E2D3;border-radius:12px;padding:18px 20px}'
-      + '.hb-tracker-heatmap-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:6px}'
+      + '.hb-tracker-heatmap-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:6px}'
+      + '.hb-tracker-heatmap-title-group{display:flex;flex-direction:column;gap:2px}'
       + '.hb-tracker-heatmap-title{font-family:Newsreader,Georgia,serif;font-size:17px;color:#1A2A4A;margin:0;font-weight:500;letter-spacing:-0.01em}'
-      + '.hb-tracker-heatmap-subtitle{font-size:12px;color:#8B928E;font-weight:500}'
+      + '.hb-tracker-heatmap-daterange{font-size:12px;color:#8B928E;margin:0;font-weight:500}'
+      + '.hb-tracker-heatmap-subtitle{font-size:12px;color:#8B928E;font-weight:500;margin-top:2px}'
       + '.hb-tracker-heatmap-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}'
       + '.hb-tracker-heatmap-labels span{font-size:10px;color:#8B928E;text-align:center;font-weight:600;letter-spacing:0.5px}'
       + '.hb-tracker-heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}'
-      + '.hb-tracker-heatmap-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8B928E;background:#F1EFE8;cursor:default;transition:transform 100ms}'
-      + '.hb-tracker-heatmap-cell:hover{transform:scale(1.08)}'
+      + '.hb-tracker-heatmap-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8B928E;background:#F1EFE8;cursor:default;transition:transform 100ms;border:none;padding:0;font-family:inherit}'
+      + '.hb-tracker-heatmap-cell.is-clickable{cursor:pointer}'
+      + '.hb-tracker-heatmap-cell.is-clickable:hover{transform:scale(1.08)}'
       + '.hb-tracker-heatmap-cell.is-empty{background:#F1EFE8;color:#A8A39A}'
-      + '.hb-tracker-heatmap-cell.is-future{background:#FAF6EE;color:#D9D2C2;cursor:default}'
-      + '.hb-tracker-heatmap-cell.is-future:hover{transform:none}'
+      + '.hb-tracker-heatmap-cell.is-future{background:#FAF6EE;color:#D9D2C2}'
       + '.hb-tracker-heatmap-cell.is-logged-e1{background:#F2C2A8;color:#5A3A1E;font-weight:500}'
       + '.hb-tracker-heatmap-cell.is-logged-e2{background:#EDA98C;color:#FFFFFF;font-weight:500}'
       + '.hb-tracker-heatmap-cell.is-logged-e3{background:#DC9A75;color:#FFFFFF;font-weight:500}'
       + '.hb-tracker-heatmap-cell.is-logged-e4{background:#C97B5C;color:#FFFFFF;font-weight:500}'
       + '.hb-tracker-heatmap-cell.is-logged-e5{background:#B86E51;color:#FFFFFF;font-weight:600}'
       + '.hb-tracker-heatmap-cell.is-today{outline:2.5px solid #1A2A4A;outline-offset:1px;font-weight:600}'
+      + '.hb-tracker-heatmap-cell.is-selected{outline:2.5px dashed #C97B5C;outline-offset:1px;font-weight:600}'
       + '.hb-tracker-heatmap-legend{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:0.5px solid #EBE0CC;flex-wrap:wrap}'
       + '.hb-tracker-heatmap-legend-label{font-size:11px;color:#8B928E;font-weight:500}'
       + '.hb-tracker-heatmap-legend-swatches{display:flex;gap:3px;align-items:center}'
       + '.hb-tracker-heatmap-legend-swatch{width:11px;height:11px;border-radius:2px}'
       + '.hb-tracker-heatmap-legend-text{font-size:10px;color:#8B928E;margin:0 6px 0 4px}'
+      /* Selected day panel */
+      + '.hb-tracker-selected-day{background:#FDFBF6;border:1px solid #E8E2D3;border-radius:12px;padding:18px 20px}'
+      + '.hb-tracker-selected-day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px}'
+      + '.hb-tracker-selected-day-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#C97B5C;margin:0 0 2px 0}'
+      + '.hb-tracker-selected-day-date{font-family:Newsreader,Georgia,serif;font-size:18px;color:#1A2A4A;font-weight:500;margin:0;line-height:1.3}'
+      + '.hb-tracker-selected-day-close{flex-shrink:0;background:#FFFFFF;border:1px solid #E8E2D3;color:#5F5E5A;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;transition:all 150ms}'
+      + '.hb-tracker-selected-day-close:hover{background:#F1EFE8;color:#1A2A4A;border-color:#C9C2AE}'
+      + '.hb-tracker-selected-day-empty{font-size:14px;color:#8B928E;margin:0;text-align:center;padding:14px 0;font-style:italic}'
+      + '.hb-tracker-selected-day-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid #EBE0CC;gap:12px}'
+      + '.hb-tracker-selected-day-row:last-of-type{border-bottom:none}'
+      + '.hb-tracker-selected-day-row.is-vertical{flex-direction:column;align-items:flex-start;gap:6px}'
+      + '.hb-tracker-selected-day-label{font-size:12px;color:#5F5E5A;font-weight:500;flex-shrink:0}'
+      + '.hb-tracker-selected-day-value{font-size:14px;color:#1A2A4A;text-align:right;font-weight:500}'
+      + '.hb-tracker-selected-day-value.is-mono{font-variant-numeric:tabular-nums}'
+      + '.hb-tracker-selected-day-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end}'
+      + '.hb-tracker-selected-day-chip{display:inline-block;font-size:11px;color:#1A2A4A;background:#F4ECDD;border:1px solid #EBE0CC;border-radius:100px;padding:3px 10px;font-weight:500}'
+      + '.hb-tracker-selected-day-notes{font-size:13px;color:#3A4555;line-height:1.55;font-style:italic;padding:8px 12px;background:#FFFFFF;border-left:2px solid #C97B5C;border-radius:0 4px 4px 0;margin:0}'
       /* Journey */
       + '.hb-tracker-journey{background:#F4ECDD;border-radius:12px;padding:20px 22px;border:1px solid #EBE0CC}'
       + '.hb-tracker-journey-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#C97B5C;margin:0 0 6px 0}'
@@ -180,7 +209,9 @@
       + '.hb-tracker-journey-label{font-size:13px;font-weight:500;color:#1A2A4A;margin:0 0 2px 0}'
       + '.hb-tracker-journey-item.is-unlocked .hb-tracker-journey-label{color:#085041}'
       + '.hb-tracker-journey-item.is-active .hb-tracker-journey-label{color:#C97B5C}'
-      + '.hb-tracker-journey-desc{font-size:12px;color:#5F5E5A;margin:0;line-height:1.45}';
+      + '.hb-tracker-journey-desc{font-size:12px;color:#5F5E5A;margin:0;line-height:1.45}'
+      /* Mobile */
+      + '@media(max-width:479px){.hb-tracker-selected-day-row{flex-direction:column;align-items:flex-start;gap:4px}.hb-tracker-selected-day-value{text-align:left}.hb-tracker-selected-day-chips{justify-content:flex-start}}';
     document.head.appendChild(style);
   }
 
@@ -277,23 +308,29 @@
     ]);
   }
 
-  /* HEATMAP CALENDAR (NEW in v1.2.0) */
+  /* HEATMAP CALENDAR (UPDATED in v1.3.0 — month labels + click handler) */
 
   function renderHeatmapCalendar() {
     var today = new Date();
     var todayKey = state.today;
 
-    // Find Monday of current week
-    var dayOfWeek = today.getDay(); // 0=Sun, 1=Mon...6=Sat
+    var dayOfWeek = today.getDay();
     var daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
 
-    // Start: Monday 4 weeks before this week's Monday (28 + daysToMonday days back)
     var startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysToMonday - 28);
+    var endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    // Build date range subtitle
+    var dateRange;
+    if (startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear()) {
+      dateRange = MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ' — ' + endDate.getDate() + ', ' + endDate.getFullYear();
+    } else if (startDate.getFullYear() === endDate.getFullYear()) {
+      dateRange = MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ' — ' + MONTHS_SHORT[endDate.getMonth()] + ' ' + endDate.getDate() + ', ' + endDate.getFullYear();
+    } else {
+      dateRange = MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ', ' + startDate.getFullYear() + ' — ' + MONTHS_SHORT[endDate.getMonth()] + ' ' + endDate.getDate() + ', ' + endDate.getFullYear();
+    }
+
     var grid = el('div', { class: 'hb-tracker-heatmap-grid' });
-
-    // Strip time from today for accurate comparison
     var todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
 
     for (var i = 0; i < 35; i++) {
@@ -303,9 +340,13 @@
       var isToday = cellKey === todayKey;
       var isFuture = cellDate.getTime() > todayMidnight;
       var entry = state.entries[cellKey];
+      var isSelected = state.selectedDayKey === cellKey;
+      var isPastOrToday = !isFuture;
 
       var classes = 'hb-tracker-heatmap-cell';
+      if (isPastOrToday && !isToday) classes += ' is-clickable';
       if (isToday) classes += ' is-today';
+      if (isSelected) classes += ' is-selected';
       if (isFuture) {
         classes += ' is-future';
       } else if (entry && entry.energy) {
@@ -314,16 +355,25 @@
         classes += ' is-empty';
       }
 
-      var tooltipText = months[cellDate.getMonth()] + ' ' + dayNum;
+      var tooltipText = MONTHS_SHORT[cellDate.getMonth()] + ' ' + dayNum;
       if (entry) tooltipText += ' — Energy ' + entry.energy + '/5';
       else if (isToday) tooltipText += ' — Today (no log yet)';
       else if (isFuture) tooltipText += ' — Future';
       else tooltipText += ' — No log';
 
-      grid.appendChild(el('div', {
-        class: classes,
-        title: tooltipText
-      }, String(dayNum)));
+      (function(cellKeyClosure, isPastOrTodayClosure, isTodayClosure) {
+        var props = {
+          class: classes,
+          type: 'button',
+          title: tooltipText
+        };
+        if (isPastOrTodayClosure && !isTodayClosure) {
+          props.onclick = function() { handleDayClick(cellKeyClosure); };
+        } else {
+          props.disabled = true;
+        }
+        grid.appendChild(el('button', props, String(dayNum)));
+      })(cellKey, isPastOrToday, isToday);
     }
 
     var dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -353,13 +403,117 @@
 
     return el('div', { class: 'hb-tracker-heatmap-wrap' }, [
       el('div', { class: 'hb-tracker-heatmap-header' }, [
-        el('h3', { class: 'hb-tracker-heatmap-title' }, 'Your last 5 weeks'),
+        el('div', { class: 'hb-tracker-heatmap-title-group' }, [
+          el('h3', { class: 'hb-tracker-heatmap-title' }, 'Your last 5 weeks'),
+          el('p', { class: 'hb-tracker-heatmap-daterange' }, dateRange)
+        ]),
         el('span', { class: 'hb-tracker-heatmap-subtitle' }, subtitleText)
       ]),
       labelsRow,
       grid,
       legend
     ]);
+  }
+
+  /* DAY CLICK HANDLER (NEW in v1.3.0) */
+
+  function handleDayClick(dateKey) {
+    if (state.selectedDayKey === dateKey) {
+      state.selectedDayKey = null;
+    } else {
+      state.selectedDayKey = dateKey;
+    }
+    renderTracker();
+  }
+
+  /* SELECTED DAY PANEL (NEW in v1.3.0) */
+
+  function renderSelectedDayPanel() {
+    if (!state.selectedDayKey) return null;
+    if (state.selectedDayKey === state.today) return null;
+
+    var entry = state.entries[state.selectedDayKey];
+    var dateStr = formatDateFromKey(state.selectedDayKey);
+
+    var header = el('div', { class: 'hb-tracker-selected-day-header' }, [
+      el('div', null, [
+        el('p', { class: 'hb-tracker-selected-day-eyebrow' }, 'Selected day'),
+        el('h3', { class: 'hb-tracker-selected-day-date' }, dateStr)
+      ]),
+      el('button', {
+        class: 'hb-tracker-selected-day-close',
+        type: 'button',
+        title: 'Close',
+        onclick: function() {
+          state.selectedDayKey = null;
+          renderTracker();
+        }
+      }, '×')
+    ]);
+
+    var content;
+
+    if (!entry) {
+      content = el('p', { class: 'hb-tracker-selected-day-empty' }, 'No log for this day.');
+    } else {
+      var rows = [];
+
+      // Energy
+      var energyEmoji = (HB_TRACKER_DATA.fields.energy.emoji[entry.energy - 1]) || '';
+      var energyLabel = (HB_TRACKER_DATA.fields.energy.labels[entry.energy - 1]) || '';
+      rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
+        el('span', { class: 'hb-tracker-selected-day-label' }, 'Energy'),
+        el('span', { class: 'hb-tracker-selected-day-value is-mono' }, energyEmoji + ' ' + entry.energy + '/5 · ' + energyLabel)
+      ]));
+
+      // Sleep
+      if (entry.sleep != null) {
+        rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
+          el('span', { class: 'hb-tracker-selected-day-label' }, 'Sleep'),
+          el('span', { class: 'hb-tracker-selected-day-value is-mono' }, entry.sleep + 'h')
+        ]));
+      }
+
+      // Cycle day
+      if (typeConfig.cycleVisible) {
+        var cycleDayText = entry.cycle_day != null ? 'Day ' + entry.cycle_day : '—';
+        rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
+          el('span', { class: 'hb-tracker-selected-day-label' }, 'Cycle day'),
+          el('span', { class: 'hb-tracker-selected-day-value is-mono' }, cycleDayText)
+        ]));
+      }
+
+      // Symptoms
+      if (entry.symptoms && entry.symptoms.length > 0) {
+        var chipsEl = el('div', { class: 'hb-tracker-selected-day-chips' });
+        entry.symptoms.forEach(function(symValue) {
+          var symObj = HB_TRACKER_DATA.allSymptoms.filter(function(s) { return s.value === symValue; })[0];
+          var label = symObj ? symObj.label : symValue;
+          chipsEl.appendChild(el('span', { class: 'hb-tracker-selected-day-chip' }, label));
+        });
+        rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
+          el('span', { class: 'hb-tracker-selected-day-label' }, 'Symptoms'),
+          chipsEl
+        ]));
+      } else {
+        rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
+          el('span', { class: 'hb-tracker-selected-day-label' }, 'Symptoms'),
+          el('span', { class: 'hb-tracker-selected-day-value' }, 'None logged')
+        ]));
+      }
+
+      // Notes
+      if (entry.notes && entry.notes.length > 0) {
+        rows.push(el('div', { class: 'hb-tracker-selected-day-row is-vertical' }, [
+          el('span', { class: 'hb-tracker-selected-day-label' }, 'Notes'),
+          el('p', { class: 'hb-tracker-selected-day-notes' }, entry.notes)
+        ]));
+      }
+
+      content = el('div', null, rows);
+    }
+
+    return el('div', { class: 'hb-tracker-selected-day' }, [header, content]);
   }
 
   /* JOURNEY PROGRESS */
@@ -697,13 +851,14 @@
       children.push(renderLoggedTodayBanner());
     }
 
-    // NEW in v1.2.0: Real heatmap calendar
     children.push(renderHeatmapCalendar());
 
-    // Journey Progress (motivation/why)
+    // NEW in v1.3.0: Selected day panel (only if a past day is selected)
+    var selectedPanel = renderSelectedDayPanel();
+    if (selectedPanel) children.push(selectedPanel);
+
     children.push(renderJourneyProgress());
 
-    // Form fields
     children.push(renderEnergyField());
     children.push(renderSleepField());
 
@@ -772,7 +927,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.2.0',
+    version: '1.3.0',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
