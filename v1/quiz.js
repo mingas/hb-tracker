@@ -3,23 +3,12 @@
  *
  * Hormone Type Quiz — UI rendering & flow logic
  *
- * Depends on:
- *   - window.HB_QUIZ_DATA  (questions.js)
- *   - window.HB_QUIZ_SCORE (scoring.js)
- *
- * Mounts into: #hb-quiz-root
- * Persists to: localStorage['hb_quiz_state']
- * Injects: Schema.org JSON-LD (WebApplication + FAQPage) into <head>
- * Tracks: GA4 events (journey_preview_view, quiz_start, quiz_complete, result_view)
- *
  * Changelog:
+ *   v1.5.0 — "Start Daily Tracker" CTA on result + auto-mount tracker on finish.
  *   v1.4.0 — Journey Preview screen between privacy onboarding and Q1.
- *            Sets expectations + reduces drop-off + previews Daily Tracker.
  *   v1.3.0 — Welcome Back banner for returning users.
- *   v1.2.0 — Start over link in questions.
- *   v1.1.0 — GA4 event tracking.
  *
- * @version 1.4.0
+ * @version 1.5.0
  * @license MIT
  */
 
@@ -102,18 +91,35 @@
     } catch (e) {}
   }
 
-  /* INLINE STYLES — restart link, welcome back, journey preview */
+  /* TRIGGER TRACKER MOUNT (new in v1.5.0) */
+
+  function triggerTrackerMount(scrollTo) {
+    try {
+      if (window.HB_TRACKER && typeof window.HB_TRACKER.mount === 'function') {
+        window.HB_TRACKER.mount();
+      }
+    } catch (e) { console.warn('HB Quiz: could not mount tracker', e); }
+
+    if (scrollTo) {
+      setTimeout(function() {
+        var trackerEl = document.getElementById('hb-tracker-root');
+        if (trackerEl && typeof trackerEl.scrollIntoView === 'function') {
+          trackerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 120);
+    }
+  }
+
+  /* INLINE STYLES */
 
   function injectRestartStyles() {
     if (document.getElementById('hb-quiz-restart-styles')) return;
     var style = document.createElement('style');
     style.id = 'hb-quiz-restart-styles';
     style.textContent = ''
-      /* Restart link */
       + '.hb-quiz-restart-row{display:flex;justify-content:flex-end;margin-bottom:4px}'
       + '.hb-quiz-restart-link{background:none;border:none;color:#8B928E;font-size:12px;cursor:pointer;padding:4px 0;text-decoration:underline;font-family:inherit;transition:color 150ms}'
       + '.hb-quiz-restart-link:hover{color:#1A2A4A}'
-      /* Welcome back */
       + '.hb-quiz-welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 8px;gap:18px}'
       + '.hb-quiz-welcome-icon{width:56px;height:56px;border-radius:50%;background:#F4ECDD;display:flex;align-items:center;justify-content:center;color:#C97B5C;font-size:28px;line-height:1}'
       + '.hb-quiz-welcome-title{font-family:Newsreader,Georgia,serif;font-size:26px;font-weight:500;color:#1A2A4A;margin:0;letter-spacing:-0.01em}'
@@ -123,7 +129,6 @@
       + '.hb-quiz-welcome-primary:hover{background:#B86E51}'
       + '.hb-quiz-welcome-secondary{background:transparent;color:#5F5E5A;border:1px solid #E8E2D3;border-radius:10px;padding:13px 24px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:all 150ms}'
       + '.hb-quiz-welcome-secondary:hover{color:#1A2A4A;border-color:#C9C2AE}'
-      /* Journey preview */
       + '.hb-quiz-journey{display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px 4px;gap:10px}'
       + '.hb-quiz-journey-eyebrow{color:#C97B5C;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin:0}'
       + '.hb-quiz-journey-title{font-family:Newsreader,Georgia,serif;font-size:26px;font-weight:500;color:#1A2A4A;margin:0;letter-spacing:-0.01em;line-height:1.2}'
@@ -139,11 +144,13 @@
       + '.hb-quiz-journey-step-desc{font-size:13px;color:#5F5E5A;margin:0;line-height:1.5}'
       + '.hb-quiz-journey-footnote{font-size:12px;color:#8B928E;margin:6px 0 4px 0;max-width:320px}'
       + '.hb-quiz-journey-cta{background:#C97B5C;color:#FFFFFF;border:none;border-radius:10px;padding:14px 28px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:background-color 150ms;margin-top:6px;width:100%;max-width:280px}'
-      + '.hb-quiz-journey-cta:hover{background:#B86E51}';
+      + '.hb-quiz-journey-cta:hover{background:#B86E51}'
+      + '.hb-quiz-tracker-cta-btn{background:#FFFFFF;color:#085041;border:none;border-radius:10px;padding:14px 24px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all 150ms;width:100%;max-width:280px}'
+      + '.hb-quiz-tracker-cta-btn:hover{background:#E1F5EE;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}';
     document.head.appendChild(style);
   }
 
-  /* JSON-LD INJECTION (SEO) */
+  /* JSON-LD INJECTION */
 
   function injectJsonLd() {
     if (document.querySelector('script[data-hb-jsonld]')) return;
@@ -152,28 +159,21 @@
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "Hormone Type Quiz",
-      "alternateName": "The Hormone Blueprint Quiz",
       "url": "https://testosteroneblueprintguide.com/hormone-quiz",
       "applicationCategory": "HealthApplication",
       "operatingSystem": "Any",
-      "browserRequirements": "Requires JavaScript enabled",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "description": "Free 12-question hormone type assessment using STRAW+10 clinical framework. Identifies one of 5 hormone types: Cycle Surfer, Estrogen Dominant, Progesterone Deficient, Perimenopause Transitioner, or Postmenopause Renewer.",
-      "audience": { "@type": "Audience", "audienceType": "Women aged 18-65" },
-      "publisher": { "@type": "Organization", "name": "The Hormone Blueprint", "url": "https://hormoneblueprintguide.com" },
-      "inLanguage": "en"
+      "description": "Free 12-question hormone type assessment using STRAW+10 clinical framework.",
+      "audience": { "@type": "Audience", "audienceType": "Women aged 18-65" }
     };
 
     var faqPage = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "What is a hormone type quiz?", "acceptedAnswer": { "@type": "Answer", "text": "A science-based questionnaire identifying your dominant hormonal profile based on age, cycle status, symptoms, and lifestyle. Uses the STRAW+10 framework for clinical grounding." } },
-        { "@type": "Question", "name": "Is this hormone test free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, completely free. No signup, no email required, no credit card. The Daily Tracker that follows is also free." } },
-        { "@type": "Question", "name": "Is my data private?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. All answers and results are stored only in your browser local storage on your device. No backend server, no database of users. Data never reaches us." } },
-        { "@type": "Question", "name": "Can this replace a doctor's diagnosis?", "acceptedAnswer": { "@type": "Answer", "text": "No. This is a self-assessment tool, not a medical diagnosis. Only a licensed healthcare provider can diagnose specific conditions like PCOS, perimenopause, or thyroid disorders." } },
-        { "@type": "Question", "name": "What are the 5 hormone types?", "acceptedAnswer": { "@type": "Answer", "text": "Cycle Surfer (regular cycles), Estrogen Dominant (PMS, breast tenderness), Progesterone Deficient (anxiety, sleep issues), Perimenopause Transitioner (hot flashes, brain fog), and Postmenopause Renewer (post-menopausal stability)." } },
-        { "@type": "Question", "name": "What is STRAW+10?", "acceptedAnswer": { "@type": "Answer", "text": "Stages of Reproductive Aging Workshop, 10-year update. Clinical framework by Harlow et al. 2012. Endorsed by NIH, ASRM, and the International Menopause Society. Defines seven stages of female reproductive lifespan." } }
+        { "@type": "Question", "name": "What is a hormone type quiz?", "acceptedAnswer": { "@type": "Answer", "text": "A science-based questionnaire identifying your dominant hormonal profile. Uses the STRAW+10 framework." } },
+        { "@type": "Question", "name": "Is this hormone test free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, completely free. No signup, no email required." } },
+        { "@type": "Question", "name": "Is my data private?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. All data is stored only in your browser local storage. No backend, no database." } }
       ]
     };
 
@@ -273,6 +273,9 @@
             state.screen = resumeScreen;
             saveState();
             render();
+            if (resumeScreen === 'result') {
+              triggerTrackerMount(false);
+            }
           }
         }, continueLabel),
         el('button', {
@@ -291,7 +294,7 @@
     rootEl.appendChild(el('div', { class: 'hb-quiz' }, [welcome]));
   }
 
-  /* ONBOARDING (PRIVACY PROMISE) */
+  /* ONBOARDING */
 
   function renderOnboarding() {
     clearRoot();
@@ -301,7 +304,7 @@
 
     var promises = [
       { title: 'Stays on your phone', desc: 'All your answers are saved only on this device — never uploaded to a server.' },
-      { title: 'No servers, no cloud', desc: 'There is no backend. We don\'t have a database of users.' },
+      { title: 'No servers, no cloud', desc: "There is no backend. We don't have a database of users." },
       { title: "Even we can't see it", desc: 'Your hormone data is yours alone. We have no way to access it.' }
     ];
 
@@ -335,47 +338,21 @@
     rootEl.appendChild(el('div', { class: 'hb-quiz' }, [onboarding]));
   }
 
-  /* JOURNEY PREVIEW SCREEN (NEW in v1.4.0) */
+  /* JOURNEY PREVIEW */
 
   function renderJourneyPreview() {
     clearRoot();
     trackEvent('journey_preview_view');
 
     var steps = [
-      {
-        num: '1',
-        label: 'NOW · 3 min',
-        title: 'Hormone type quiz',
-        desc: '12 questions to identify your hormone profile.',
-        active: true
-      },
-      {
-        num: '2',
-        label: 'Right after',
-        title: 'Your personalized result',
-        desc: 'Your hormone type, Hormonal Age, and top 3 priorities.',
-        active: false
-      },
-      {
-        num: '3',
-        label: 'Tomorrow & beyond',
-        title: 'Daily Tracker',
-        desc: '1 minute a day. See clear patterns within a week.',
-        active: false
-      },
-      {
-        num: '4',
-        label: "When you're ready",
-        title: 'The Hormone Blueprint book',
-        desc: 'Chapters chosen specifically for your hormone type.',
-        active: false
-      }
+      { num: '1', label: 'NOW · 3 min', title: 'Hormone type quiz', desc: '12 questions to identify your hormone profile.', active: true },
+      { num: '2', label: 'Right after', title: 'Your personalized result', desc: 'Your hormone type, Hormonal Age, and top 3 priorities.', active: false },
+      { num: '3', label: 'Tomorrow & beyond', title: 'Daily Tracker', desc: '1 minute a day. See clear patterns within a week.', active: false },
+      { num: '4', label: "When you're ready", title: 'The Hormone Blueprint book', desc: 'Chapters chosen specifically for your hormone type.', active: false }
     ];
 
     var stepEls = steps.map(function(s) {
-      return el('div', {
-        class: 'hb-quiz-journey-item' + (s.active ? ' is-active' : '')
-      }, [
+      return el('div', { class: 'hb-quiz-journey-item' + (s.active ? ' is-active' : '') }, [
         el('div', { class: 'hb-quiz-journey-num' }, s.num),
         el('div', { class: 'hb-quiz-journey-content' }, [
           el('p', { class: 'hb-quiz-journey-label' }, s.label),
@@ -647,7 +624,7 @@
     return el('div', { class: 'hb-quiz-nav' }, [backBtn, nextBtn]);
   }
 
-  /* FINISH & RESULT */
+  /* FINISH & RESULT (UPDATED in v1.5.0 — auto-trigger tracker mount) */
 
   function finish() {
     var result = HB_QUIZ_SCORE.score(state.answers);
@@ -655,10 +632,7 @@
     state.screen = 'result';
     saveState();
 
-    trackEvent('quiz_complete', {
-      question_count: 12,
-      intensity_score: result.intensityScore
-    });
+    trackEvent('quiz_complete', { question_count: 12, intensity_score: result.intensityScore });
     trackEvent('result_view', {
       hormone_type: result.hormoneType,
       hormonal_age: result.hormonalAge,
@@ -666,6 +640,9 @@
     });
 
     renderResult();
+
+    // NEW in v1.5.0: auto-trigger tracker mount with new hormone type
+    triggerTrackerMount(false);
   }
 
   function renderResult() {
@@ -687,8 +664,8 @@
       el('p', { style: 'font-size:13px;color:#5F5E5A;margin:8px 0 0 0;' }, 'years (biological + lifestyle)')
     ]);
 
-    var prioritiesEl = el('div', { style: 'margin-bottom:24px;' }, [
-      el('h3', { style: 'font-family:Newsreader,Georgia,serif;font-size:20px;color:#1A2A4A;margin:0 0 12px 0;font-weight:500;' }, 'Your top 3 priorities'),
+    var prioritiesEl = el('div', { style: 'margin-bottom:24px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto;' }, [
+      el('h3', { style: 'font-family:Newsreader,Georgia,serif;font-size:20px;color:#1A2A4A;margin:0 0 12px 0;font-weight:500;text-align:center;' }, 'Your top 3 priorities'),
       el('ol', { style: 'margin:0;padding-left:20px;color:#3A4555;font-size:15px;line-height:1.7;' },
         typeData.topPriorities.map(function(p) {
           return el('li', { style: 'margin-bottom:8px;' }, p);
@@ -696,7 +673,7 @@
       )
     ]);
 
-    var bookCTA = el('div', { style: 'background:#1A2A4A;color:#FAF6EE;border-radius:12px;padding:24px;text-align:center;' }, [
+    var bookCTA = el('div', { style: 'background:#1A2A4A;color:#FAF6EE;border-radius:12px;padding:24px;text-align:center;margin-bottom:16px;' }, [
       el('p', { style: 'font-size:13px;color:rgba(250,246,238,0.7);margin:0 0 8px 0;' }, 'Want the full framework?'),
       el('p', {
         style: 'font-family:Newsreader,Georgia,serif;font-size:18px;margin:0;line-height:1.4;',
@@ -704,10 +681,24 @@
       })
     ]);
 
+    // NEW in v1.5.0: Prominent Daily Tracker CTA
+    var trackerCTA = el('div', { style: 'background:#085041;color:#FFFFFF;border-radius:12px;padding:28px 24px;text-align:center;margin-bottom:24px;' }, [
+      el('p', { style: 'font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.7);font-weight:600;margin:0 0 10px 0;' }, 'Your next step'),
+      el('h3', { style: 'font-family:Newsreader,Georgia,serif;font-size:24px;color:#FFFFFF;margin:0 0 8px 0;font-weight:500;line-height:1.3;' }, 'Start tracking daily'),
+      el('p', { style: 'font-size:14px;color:rgba(255,255,255,0.9);margin:0 0 20px 0;line-height:1.55;max-width:360px;margin-left:auto;margin-right:auto;' }, '1 minute a day. See patterns within a week. Personalized to your hormone type.'),
+      el('button', {
+        class: 'hb-quiz-tracker-cta-btn',
+        type: 'button',
+        onclick: function() {
+          triggerTrackerMount(true);
+        }
+      }, ['Start Daily Tracker →'])
+    ]);
+
     var retakeBtn = el('button', {
       class: 'hb-quiz-btn is-secondary',
       type: 'button',
-      style: 'margin:24px auto 0;display:block;',
+      style: 'margin:8px auto 0;display:block;',
       onclick: function() {
         if (confirm('Start the quiz over? This will clear your current result.')) {
           fullReset();
@@ -718,7 +709,7 @@
 
     rootEl.appendChild(el('div', { class: 'hb-quiz', style: 'text-align:center;' }, [
       eyebrow, emoji, name, tagline, description,
-      hormonalAgeBox, prioritiesEl, bookCTA, retakeBtn
+      hormonalAgeBox, prioritiesEl, bookCTA, trackerCTA, retakeBtn
     ]));
   }
 
@@ -735,11 +726,11 @@
 
   function init() {
     if (typeof window.HB_QUIZ_DATA === 'undefined') {
-      console.error('HB Quiz: HB_QUIZ_DATA not loaded — check questions.js loads before quiz.js');
+      console.error('HB Quiz: HB_QUIZ_DATA not loaded');
       return;
     }
     if (typeof window.HB_QUIZ_SCORE === 'undefined') {
-      console.error('HB Quiz: HB_QUIZ_SCORE not loaded — check scoring.js loads before quiz.js');
+      console.error('HB Quiz: HB_QUIZ_SCORE not loaded');
       return;
     }
 
@@ -754,11 +745,6 @@
 
     loadState();
 
-    // Decision logic for initial screen:
-    // 1. In-progress state (started or completed) → Welcome Back banner
-    // 2. Never seen privacy → first-time Privacy Onboarding
-    // 3. Seen privacy but never journey → Journey Preview (new step)
-    // 4. Onboarded fully → straight to questions
     if (hasInProgressState()) {
       state.screen = 'welcome_back';
     } else if (!hasSeenPrivacy()) {
