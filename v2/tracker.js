@@ -1,14 +1,15 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — calendar with month labels + click-to-view past days
+ * Daily Tracker — two-mode UI (Today / Past View)
  *
  * Changelog:
+ *   v1.4.0 — Two-mode UX: clicking past day swaps form for read-only panel; today clickable to return.
  *   v1.3.0 — Date range subtitle (month names) + click-to-view past entries.
  *   v1.2.0 — Real 5-week heatmap calendar with actual dates.
  *   v1.1.0 — Journey Progress card with milestone roadmap.
  *
- * @version 1.3.0
+ * @version 1.4.0
  * @license MIT
  */
 
@@ -143,7 +144,7 @@
     return null;
   }
 
-  /* INJECT STYLES (heatmap + journey + selected day panel) */
+  /* INJECT STYLES */
 
   function injectExtraStyles() {
     if (document.getElementById('hb-tracker-extra-styles')) return;
@@ -177,15 +178,18 @@
       + '.hb-tracker-heatmap-legend-swatches{display:flex;gap:3px;align-items:center}'
       + '.hb-tracker-heatmap-legend-swatch{width:11px;height:11px;border-radius:2px}'
       + '.hb-tracker-heatmap-legend-text{font-size:10px;color:#8B928E;margin:0 6px 0 4px}'
+      /* Past-view hint above calendar */
+      + '.hb-tracker-pastview-hint{font-size:12px;color:#5F5E5A;text-align:center;margin:0 0 -4px 0;padding:6px 12px;background:#FDFBF6;border:1px dashed #C97B5C;border-radius:8px}'
+      + '.hb-tracker-pastview-hint strong{color:#C97B5C}'
       /* Selected day panel */
-      + '.hb-tracker-selected-day{background:#FDFBF6;border:1px solid #E8E2D3;border-radius:12px;padding:18px 20px}'
+      + '.hb-tracker-selected-day{background:#FDFBF6;border:1px solid #E8E2D3;border-radius:12px;padding:20px 22px}'
       + '.hb-tracker-selected-day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px}'
-      + '.hb-tracker-selected-day-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#C97B5C;margin:0 0 2px 0}'
-      + '.hb-tracker-selected-day-date{font-family:Newsreader,Georgia,serif;font-size:18px;color:#1A2A4A;font-weight:500;margin:0;line-height:1.3}'
-      + '.hb-tracker-selected-day-close{flex-shrink:0;background:#FFFFFF;border:1px solid #E8E2D3;color:#5F5E5A;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;transition:all 150ms}'
+      + '.hb-tracker-selected-day-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#C97B5C;margin:0 0 4px 0}'
+      + '.hb-tracker-selected-day-date{font-family:Newsreader,Georgia,serif;font-size:20px;color:#1A2A4A;font-weight:500;margin:0;line-height:1.3}'
+      + '.hb-tracker-selected-day-close{flex-shrink:0;background:#FFFFFF;border:1px solid #E8E2D3;color:#5F5E5A;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;transition:all 150ms}'
       + '.hb-tracker-selected-day-close:hover{background:#F1EFE8;color:#1A2A4A;border-color:#C9C2AE}'
-      + '.hb-tracker-selected-day-empty{font-size:14px;color:#8B928E;margin:0;text-align:center;padding:14px 0;font-style:italic}'
-      + '.hb-tracker-selected-day-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:0.5px solid #EBE0CC;gap:12px}'
+      + '.hb-tracker-selected-day-empty{font-size:14px;color:#8B928E;margin:14px 0;text-align:center;padding:24px 0;font-style:italic;background:#FFFFFF;border-radius:8px;border:1px dashed #E8E2D3}'
+      + '.hb-tracker-selected-day-row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:0.5px solid #EBE0CC;gap:12px}'
       + '.hb-tracker-selected-day-row:last-of-type{border-bottom:none}'
       + '.hb-tracker-selected-day-row.is-vertical{flex-direction:column;align-items:flex-start;gap:6px}'
       + '.hb-tracker-selected-day-label{font-size:12px;color:#5F5E5A;font-weight:500;flex-shrink:0}'
@@ -194,6 +198,8 @@
       + '.hb-tracker-selected-day-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end}'
       + '.hb-tracker-selected-day-chip{display:inline-block;font-size:11px;color:#1A2A4A;background:#F4ECDD;border:1px solid #EBE0CC;border-radius:100px;padding:3px 10px;font-weight:500}'
       + '.hb-tracker-selected-day-notes{font-size:13px;color:#3A4555;line-height:1.55;font-style:italic;padding:8px 12px;background:#FFFFFF;border-left:2px solid #C97B5C;border-radius:0 4px 4px 0;margin:0}'
+      + '.hb-tracker-selected-day-return{margin-top:18px;padding:12px 18px;background:#1A2A4A;color:#FFFFFF;border:none;border-radius:100px;font-size:13px;font-weight:500;cursor:pointer;width:100%;font-family:inherit;transition:background 150ms}'
+      + '.hb-tracker-selected-day-return:hover{background:#0A1A3A}'
       /* Journey */
       + '.hb-tracker-journey{background:#F4ECDD;border-radius:12px;padding:20px 22px;border:1px solid #EBE0CC}'
       + '.hb-tracker-journey-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#C97B5C;margin:0 0 6px 0}'
@@ -308,7 +314,17 @@
     ]);
   }
 
-  /* HEATMAP CALENDAR (UPDATED in v1.3.0 — month labels + click handler) */
+  /* PAST-VIEW HINT (NEW in v1.4.0) */
+
+  function renderPastViewHint() {
+    return el('p', { class: 'hb-tracker-pastview-hint' }, [
+      'Viewing past day. ',
+      el('strong', null, 'Click today'),
+      ' to return.'
+    ]);
+  }
+
+  /* HEATMAP CALENDAR (UPDATED in v1.4.0 — today is now clickable) */
 
   function renderHeatmapCalendar() {
     var today = new Date();
@@ -320,7 +336,6 @@
     var startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysToMonday - 28);
     var endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    // Build date range subtitle
     var dateRange;
     if (startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear()) {
       dateRange = MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ' — ' + endDate.getDate() + ', ' + endDate.getFullYear();
@@ -344,7 +359,7 @@
       var isPastOrToday = !isFuture;
 
       var classes = 'hb-tracker-heatmap-cell';
-      if (isPastOrToday && !isToday) classes += ' is-clickable';
+      if (isPastOrToday) classes += ' is-clickable';
       if (isToday) classes += ' is-today';
       if (isSelected) classes += ' is-selected';
       if (isFuture) {
@@ -361,19 +376,19 @@
       else if (isFuture) tooltipText += ' — Future';
       else tooltipText += ' — No log';
 
-      (function(cellKeyClosure, isPastOrTodayClosure, isTodayClosure) {
+      (function(cellKeyClosure, isPastOrTodayClosure) {
         var props = {
           class: classes,
           type: 'button',
           title: tooltipText
         };
-        if (isPastOrTodayClosure && !isTodayClosure) {
+        if (isPastOrTodayClosure) {
           props.onclick = function() { handleDayClick(cellKeyClosure); };
         } else {
           props.disabled = true;
         }
         grid.appendChild(el('button', props, String(dayNum)));
-      })(cellKey, isPastOrToday, isToday);
+      })(cellKey, isPastOrToday);
     }
 
     var dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -385,7 +400,6 @@
     var totalLogs = Object.keys(state.entries).length;
     var subtitleText = totalLogs + ' day' + (totalLogs === 1 ? '' : 's') + ' logged';
 
-    // Legend
     var legendSwatches = el('div', { class: 'hb-tracker-heatmap-legend-swatches' }, [
       el('div', { class: 'hb-tracker-heatmap-legend-swatch', style: 'background:#F1EFE8' }),
       el('span', { class: 'hb-tracker-heatmap-legend-text' }, 'none'),
@@ -415,18 +429,34 @@
     ]);
   }
 
-  /* DAY CLICK HANDLER (NEW in v1.3.0) */
+  /* DAY CLICK HANDLER (UPDATED in v1.4.0) */
 
   function handleDayClick(dateKey) {
-    if (state.selectedDayKey === dateKey) {
+    if (dateKey === state.today) {
+      // Today clicked: close any selected past day, return to form view
       state.selectedDayKey = null;
     } else {
-      state.selectedDayKey = dateKey;
+      // Past day clicked: toggle selection
+      if (state.selectedDayKey === dateKey) {
+        state.selectedDayKey = null;
+      } else {
+        state.selectedDayKey = dateKey;
+      }
     }
     renderTracker();
+
+    // Auto-scroll to panel if past day shown
+    if (state.selectedDayKey && state.selectedDayKey !== state.today) {
+      setTimeout(function() {
+        var panel = rootEl.querySelector('.hb-tracker-selected-day');
+        if (panel && panel.scrollIntoView) {
+          panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
+    }
   }
 
-  /* SELECTED DAY PANEL (NEW in v1.3.0) */
+  /* SELECTED DAY PANEL */
 
   function renderSelectedDayPanel() {
     if (!state.selectedDayKey) return null;
@@ -435,21 +465,32 @@
     var entry = state.entries[state.selectedDayKey];
     var dateStr = formatDateFromKey(state.selectedDayKey);
 
+    var closeBtn = el('button', {
+      class: 'hb-tracker-selected-day-close',
+      type: 'button',
+      title: 'Close (return to today)',
+      onclick: function() {
+        state.selectedDayKey = null;
+        renderTracker();
+      }
+    }, '×');
+
     var header = el('div', { class: 'hb-tracker-selected-day-header' }, [
       el('div', null, [
         el('p', { class: 'hb-tracker-selected-day-eyebrow' }, 'Selected day'),
         el('h3', { class: 'hb-tracker-selected-day-date' }, dateStr)
       ]),
-      el('button', {
-        class: 'hb-tracker-selected-day-close',
-        type: 'button',
-        title: 'Close',
-        onclick: function() {
-          state.selectedDayKey = null;
-          renderTracker();
-        }
-      }, '×')
+      closeBtn
     ]);
+
+    var returnBtn = el('button', {
+      class: 'hb-tracker-selected-day-return',
+      type: 'button',
+      onclick: function() {
+        state.selectedDayKey = null;
+        renderTracker();
+      }
+    }, '← Return to today');
 
     var content;
 
@@ -458,7 +499,6 @@
     } else {
       var rows = [];
 
-      // Energy
       var energyEmoji = (HB_TRACKER_DATA.fields.energy.emoji[entry.energy - 1]) || '';
       var energyLabel = (HB_TRACKER_DATA.fields.energy.labels[entry.energy - 1]) || '';
       rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
@@ -466,7 +506,6 @@
         el('span', { class: 'hb-tracker-selected-day-value is-mono' }, energyEmoji + ' ' + entry.energy + '/5 · ' + energyLabel)
       ]));
 
-      // Sleep
       if (entry.sleep != null) {
         rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
           el('span', { class: 'hb-tracker-selected-day-label' }, 'Sleep'),
@@ -474,7 +513,6 @@
         ]));
       }
 
-      // Cycle day
       if (typeConfig.cycleVisible) {
         var cycleDayText = entry.cycle_day != null ? 'Day ' + entry.cycle_day : '—';
         rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
@@ -483,7 +521,6 @@
         ]));
       }
 
-      // Symptoms
       if (entry.symptoms && entry.symptoms.length > 0) {
         var chipsEl = el('div', { class: 'hb-tracker-selected-day-chips' });
         entry.symptoms.forEach(function(symValue) {
@@ -502,7 +539,6 @@
         ]));
       }
 
-      // Notes
       if (entry.notes && entry.notes.length > 0) {
         rows.push(el('div', { class: 'hb-tracker-selected-day-row is-vertical' }, [
           el('span', { class: 'hb-tracker-selected-day-label' }, 'Notes'),
@@ -513,7 +549,7 @@
       content = el('div', null, rows);
     }
 
-    return el('div', { class: 'hb-tracker-selected-day' }, [header, content]);
+    return el('div', { class: 'hb-tracker-selected-day' }, [header, content, returnBtn]);
   }
 
   /* JOURNEY PROGRESS */
@@ -838,36 +874,37 @@
     }, 2200);
   }
 
-  /* MAIN TRACKER RENDER */
+  /* MAIN TRACKER RENDER (UPDATED in v1.4.0 — two-mode UX) */
 
   function renderTracker() {
     clearRoot();
 
     var hasLoggedToday = !!state.entries[state.today];
+    var isViewingPastDay = state.selectedDayKey && state.selectedDayKey !== state.today;
 
     var children = [renderHeader()];
 
-    if (hasLoggedToday) {
-      children.push(renderLoggedTodayBanner());
+    if (isViewingPastDay) {
+      // PAST VIEW MODE: hint + calendar + read-only panel
+      children.push(renderPastViewHint());
+      children.push(renderHeatmapCalendar());
+      var selectedPanel = renderSelectedDayPanel();
+      if (selectedPanel) children.push(selectedPanel);
+    } else {
+      // TODAY MODE: banner + calendar + journey + form
+      if (hasLoggedToday) {
+        children.push(renderLoggedTodayBanner());
+      }
+      children.push(renderHeatmapCalendar());
+      children.push(renderJourneyProgress());
+      children.push(renderEnergyField());
+      children.push(renderSleepField());
+      var cycleField = renderCycleDayField();
+      if (cycleField) children.push(cycleField);
+      children.push(renderSymptomsField());
+      children.push(renderNotesField());
+      children.push(renderSaveButton());
     }
-
-    children.push(renderHeatmapCalendar());
-
-    // NEW in v1.3.0: Selected day panel (only if a past day is selected)
-    var selectedPanel = renderSelectedDayPanel();
-    if (selectedPanel) children.push(selectedPanel);
-
-    children.push(renderJourneyProgress());
-
-    children.push(renderEnergyField());
-    children.push(renderSleepField());
-
-    var cycleField = renderCycleDayField();
-    if (cycleField) children.push(cycleField);
-
-    children.push(renderSymptomsField());
-    children.push(renderNotesField());
-    children.push(renderSaveButton());
 
     rootEl.appendChild(el('div', { class: 'hb-tracker' }, children));
   }
@@ -927,7 +964,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.3.0',
+    version: '1.4.0',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
