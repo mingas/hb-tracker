@@ -10,9 +10,16 @@
  * Mounts into: #hb-quiz-root
  * Persists to: localStorage['hb_quiz_state']
  * Injects: Schema.org JSON-LD (WebApplication + FAQPage) into <head>
- * Tracks: GA4 events (quiz_start, quiz_complete, result_view)
+ * Tracks: GA4 events (journey_preview_view, quiz_start, quiz_complete, result_view)
  *
- * @version 1.3.0
+ * Changelog:
+ *   v1.4.0 — Journey Preview screen between privacy onboarding and Q1.
+ *            Sets expectations + reduces drop-off + previews Daily Tracker.
+ *   v1.3.0 — Welcome Back banner for returning users.
+ *   v1.2.0 — Start over link in questions.
+ *   v1.1.0 — GA4 event tracking.
+ *
+ * @version 1.4.0
  * @license MIT
  */
 
@@ -21,6 +28,7 @@
 
   var STORAGE_KEY = 'hb_quiz_state';
   var PRIVACY_SEEN_KEY = 'hb_privacy_seen';
+  var JOURNEY_SEEN_KEY = 'hb_journey_seen';
   var ROOT_ID = 'hb-quiz-root';
 
   var state = {
@@ -58,12 +66,22 @@
     try { localStorage.setItem(PRIVACY_SEEN_KEY, '1'); } catch (e) {}
   }
 
+  function hasSeenJourney() {
+    try { return localStorage.getItem(JOURNEY_SEEN_KEY) === '1'; }
+    catch (e) { return false; }
+  }
+
+  function markJourneySeen() {
+    try { localStorage.setItem(JOURNEY_SEEN_KEY, '1'); } catch (e) {}
+  }
+
   function fullReset() {
     state.screen = 'onboarding';
     state.currentIndex = 0;
     state.answers = {};
     state.result = null;
     try { localStorage.removeItem(PRIVACY_SEEN_KEY); } catch (e) {}
+    try { localStorage.removeItem(JOURNEY_SEEN_KEY) ; } catch (e) {}
     saveState();
   }
 
@@ -84,16 +102,18 @@
     } catch (e) {}
   }
 
-  /* RESTART + WELCOME BACK STYLES (inline injection) */
+  /* INLINE STYLES — restart link, welcome back, journey preview */
 
   function injectRestartStyles() {
     if (document.getElementById('hb-quiz-restart-styles')) return;
     var style = document.createElement('style');
     style.id = 'hb-quiz-restart-styles';
     style.textContent = ''
+      /* Restart link */
       + '.hb-quiz-restart-row{display:flex;justify-content:flex-end;margin-bottom:4px}'
       + '.hb-quiz-restart-link{background:none;border:none;color:#8B928E;font-size:12px;cursor:pointer;padding:4px 0;text-decoration:underline;font-family:inherit;transition:color 150ms}'
       + '.hb-quiz-restart-link:hover{color:#1A2A4A}'
+      /* Welcome back */
       + '.hb-quiz-welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 8px;gap:18px}'
       + '.hb-quiz-welcome-icon{width:56px;height:56px;border-radius:50%;background:#F4ECDD;display:flex;align-items:center;justify-content:center;color:#C97B5C;font-size:28px;line-height:1}'
       + '.hb-quiz-welcome-title{font-family:Newsreader,Georgia,serif;font-size:26px;font-weight:500;color:#1A2A4A;margin:0;letter-spacing:-0.01em}'
@@ -102,7 +122,24 @@
       + '.hb-quiz-welcome-primary{background:#C97B5C;color:#FFFFFF;border:none;border-radius:10px;padding:14px 24px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:background-color 150ms}'
       + '.hb-quiz-welcome-primary:hover{background:#B86E51}'
       + '.hb-quiz-welcome-secondary{background:transparent;color:#5F5E5A;border:1px solid #E8E2D3;border-radius:10px;padding:13px 24px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:all 150ms}'
-      + '.hb-quiz-welcome-secondary:hover{color:#1A2A4A;border-color:#C9C2AE}';
+      + '.hb-quiz-welcome-secondary:hover{color:#1A2A4A;border-color:#C9C2AE}'
+      /* Journey preview */
+      + '.hb-quiz-journey{display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px 4px;gap:10px}'
+      + '.hb-quiz-journey-eyebrow{color:#C97B5C;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin:0}'
+      + '.hb-quiz-journey-title{font-family:Newsreader,Georgia,serif;font-size:26px;font-weight:500;color:#1A2A4A;margin:0;letter-spacing:-0.01em;line-height:1.2}'
+      + '.hb-quiz-journey-subtitle{font-size:14px;color:#5F5E5A;margin:0 0 8px 0;max-width:380px;line-height:1.55}'
+      + '.hb-quiz-journey-list{display:flex;flex-direction:column;gap:6px;width:100%;max-width:420px;margin:4px 0 8px 0;text-align:left}'
+      + '.hb-quiz-journey-item{display:flex;align-items:flex-start;gap:14px;padding:10px 0}'
+      + '.hb-quiz-journey-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:#FFFFFF;border:1.5px solid #E8E2D3;display:flex;align-items:center;justify-content:center;font-family:Newsreader,Georgia,serif;font-size:16px;font-weight:500;color:#8B928E;line-height:1}'
+      + '.hb-quiz-journey-item.is-active .hb-quiz-journey-num{background:#C97B5C;border-color:#C97B5C;color:#FFFFFF}'
+      + '.hb-quiz-journey-content{flex:1;min-width:0}'
+      + '.hb-quiz-journey-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#8B928E;margin:3px 0 4px 0}'
+      + '.hb-quiz-journey-item.is-active .hb-quiz-journey-label{color:#C97B5C}'
+      + '.hb-quiz-journey-step-title{font-family:Newsreader,Georgia,serif;font-size:17px;font-weight:500;color:#1A2A4A;margin:0 0 3px 0;line-height:1.3}'
+      + '.hb-quiz-journey-step-desc{font-size:13px;color:#5F5E5A;margin:0;line-height:1.5}'
+      + '.hb-quiz-journey-footnote{font-size:12px;color:#8B928E;margin:6px 0 4px 0;max-width:320px}'
+      + '.hb-quiz-journey-cta{background:#C97B5C;color:#FFFFFF;border:none;border-radius:10px;padding:14px 28px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:background-color 150ms;margin-top:6px;width:100%;max-width:280px}'
+      + '.hb-quiz-journey-cta:hover{background:#B86E51}';
     document.head.appendChild(style);
   }
 
@@ -203,7 +240,7 @@
     ]);
   }
 
-  /* WELCOME BACK SCREEN (NEW in v1.3.0) */
+  /* WELCOME BACK SCREEN */
 
   function renderWelcomeBack() {
     clearRoot();
@@ -213,12 +250,10 @@
     var resumeScreen = 'question';
 
     if (state.result) {
-      // Quiz already finished — offer to view result again
       subtitle = 'Your hormone type result is ready to view again.';
       continueLabel = 'View my result →';
       resumeScreen = 'result';
     } else if (state.currentIndex > 0 || Object.keys(state.answers).length > 0) {
-      // In the middle of the quiz
       var qNum = state.currentIndex + 1;
       var total = HB_QUIZ_DATA.meta.totalQuestions;
       subtitle = "You were on question " + qNum + " of " + total + ". Pick up where you left off, or start fresh.";
@@ -256,7 +291,7 @@
     rootEl.appendChild(el('div', { class: 'hb-quiz' }, [welcome]));
   }
 
-  /* ONBOARDING */
+  /* ONBOARDING (PRIVACY PROMISE) */
 
   function renderOnboarding() {
     clearRoot();
@@ -290,16 +325,87 @@
         type: 'button',
         onclick: function() {
           markPrivacySeen();
+          state.screen = 'journey_preview';
+          saveState();
+          render();
+        }
+      }, ["Got it, what's next →"])
+    ]);
+
+    rootEl.appendChild(el('div', { class: 'hb-quiz' }, [onboarding]));
+  }
+
+  /* JOURNEY PREVIEW SCREEN (NEW in v1.4.0) */
+
+  function renderJourneyPreview() {
+    clearRoot();
+    trackEvent('journey_preview_view');
+
+    var steps = [
+      {
+        num: '1',
+        label: 'NOW · 3 min',
+        title: 'Hormone type quiz',
+        desc: '12 questions to identify your hormone profile.',
+        active: true
+      },
+      {
+        num: '2',
+        label: 'Right after',
+        title: 'Your personalized result',
+        desc: 'Your hormone type, Hormonal Age, and top 3 priorities.',
+        active: false
+      },
+      {
+        num: '3',
+        label: 'Tomorrow & beyond',
+        title: 'Daily Tracker',
+        desc: '1 minute a day. See clear patterns within a week.',
+        active: false
+      },
+      {
+        num: '4',
+        label: "When you're ready",
+        title: 'The Hormone Blueprint book',
+        desc: 'Chapters chosen specifically for your hormone type.',
+        active: false
+      }
+    ];
+
+    var stepEls = steps.map(function(s) {
+      return el('div', {
+        class: 'hb-quiz-journey-item' + (s.active ? ' is-active' : '')
+      }, [
+        el('div', { class: 'hb-quiz-journey-num' }, s.num),
+        el('div', { class: 'hb-quiz-journey-content' }, [
+          el('p', { class: 'hb-quiz-journey-label' }, s.label),
+          el('p', { class: 'hb-quiz-journey-step-title' }, s.title),
+          el('p', { class: 'hb-quiz-journey-step-desc' }, s.desc)
+        ])
+      ]);
+    });
+
+    var journey = el('div', { class: 'hb-quiz-journey' }, [
+      el('p', { class: 'hb-quiz-journey-eyebrow' }, "What's ahead"),
+      el('h2', { class: 'hb-quiz-journey-title' }, 'Your hormone health journey'),
+      el('p', { class: 'hb-quiz-journey-subtitle' }, 'Four steps from confusion to clarity. Free at every step.'),
+      el('div', { class: 'hb-quiz-journey-list' }, stepEls),
+      el('p', { class: 'hb-quiz-journey-footnote' }, '🔒 Your data stays on this device. We never see it.'),
+      el('button', {
+        class: 'hb-quiz-journey-cta',
+        type: 'button',
+        onclick: function() {
+          markJourneySeen();
           trackEvent('quiz_start');
           state.screen = 'question';
           state.currentIndex = 0;
           saveState();
           render();
         }
-      }, ["Got it, let's start →"])
+      }, ['Start the quiz →'])
     ]);
 
-    rootEl.appendChild(el('div', { class: 'hb-quiz' }, [onboarding]));
+    rootEl.appendChild(el('div', { class: 'hb-quiz' }, [journey]));
   }
 
   /* QUESTION RENDERING */
@@ -622,6 +728,7 @@
     if (!rootEl) return;
     if (state.screen === 'welcome_back') renderWelcomeBack();
     else if (state.screen === 'onboarding') renderOnboarding();
+    else if (state.screen === 'journey_preview') renderJourneyPreview();
     else if (state.screen === 'question') renderQuestion();
     else if (state.screen === 'result') renderResult();
   }
@@ -648,15 +755,18 @@
     loadState();
 
     // Decision logic for initial screen:
-    // 1. If user has in-progress quiz state → show Welcome Back banner
-    // 2. Else if user has already accepted privacy → go to questions
-    // 3. Else → show onboarding (first-time visitor)
+    // 1. In-progress state (started or completed) → Welcome Back banner
+    // 2. Never seen privacy → first-time Privacy Onboarding
+    // 3. Seen privacy but never journey → Journey Preview (new step)
+    // 4. Onboarded fully → straight to questions
     if (hasInProgressState()) {
       state.screen = 'welcome_back';
-    } else if (hasSeenPrivacy()) {
-      state.screen = 'question';
-    } else {
+    } else if (!hasSeenPrivacy()) {
       state.screen = 'onboarding';
+    } else if (!hasSeenJourney()) {
+      state.screen = 'journey_preview';
+    } else {
+      state.screen = 'question';
     }
 
     render();
