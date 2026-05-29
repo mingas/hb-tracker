@@ -12,7 +12,7 @@
  * Injects: Schema.org JSON-LD (WebApplication + FAQPage) into <head>
  * Tracks: GA4 events (quiz_start, quiz_complete, result_view)
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @license MIT
  */
 
@@ -23,10 +23,6 @@
   var PRIVACY_SEEN_KEY = 'hb_privacy_seen';
   var ROOT_ID = 'hb-quiz-root';
 
-  /* ============================================================
-     STATE
-     ============================================================ */
-
   var state = {
     screen: 'onboarding',
     currentIndex: 0,
@@ -36,9 +32,7 @@
 
   var rootEl = null;
 
-  /* ============================================================
-     STORAGE (with incognito-mode safety)
-     ============================================================ */
+  /* STORAGE */
 
   function loadState() {
     try {
@@ -47,17 +41,12 @@
         var parsed = JSON.parse(stored);
         Object.keys(parsed).forEach(function(k) { state[k] = parsed[k]; });
       }
-    } catch (e) {
-      console.warn('HB Quiz: could not load state', e);
-    }
+    } catch (e) { console.warn('HB Quiz: could not load state', e); }
   }
 
   function saveState() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.warn('HB Quiz: could not save state', e);
-    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch (e) { console.warn('HB Quiz: could not save state', e); }
   }
 
   function hasSeenPrivacy() {
@@ -66,28 +55,39 @@
   }
 
   function markPrivacySeen() {
-    try { localStorage.setItem(PRIVACY_SEEN_KEY, '1'); }
-    catch (e) {}
+    try { localStorage.setItem(PRIVACY_SEEN_KEY, '1'); } catch (e) {}
   }
 
-  /* ============================================================
-     GA4 EVENT TRACKING
-     Fires only if gtag is available (no error if missing)
-     ============================================================ */
+  function fullReset() {
+    state.screen = 'onboarding';
+    state.currentIndex = 0;
+    state.answers = {};
+    state.result = null;
+    try { localStorage.removeItem(PRIVACY_SEEN_KEY); } catch (e) {}
+    saveState();
+  }
+
+  /* GA4 TRACKING */
 
   function trackEvent(eventName, params) {
     try {
       if (typeof window.gtag === 'function') {
         window.gtag('event', eventName, params || {});
       }
-    } catch (e) {
-      // silently fail — don't break quiz if analytics fails
-    }
+    } catch (e) {}
   }
 
-  /* ============================================================
-     JSON-LD INJECTION (SEO)
-     ============================================================ */
+  /* RESTART STYLES (inline injection) */
+
+  function injectRestartStyles() {
+    if (document.getElementById('hb-quiz-restart-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-quiz-restart-styles';
+    style.textContent = '.hb-quiz-restart-row{display:flex;justify-content:flex-end;margin-bottom:4px}.hb-quiz-restart-link{background:none;border:none;color:#8B928E;font-size:12px;cursor:pointer;padding:4px 0;text-decoration:underline;font-family:inherit;transition:color 150ms}.hb-quiz-restart-link:hover{color:#1A2A4A}';
+    document.head.appendChild(style);
+  }
+
+  /* JSON-LD INJECTION (SEO) */
 
   function injectJsonLd() {
     if (document.querySelector('script[data-hb-jsonld]')) return;
@@ -130,9 +130,7 @@
     });
   }
 
-  /* ============================================================
-     DOM HELPER
-     ============================================================ */
+  /* DOM HELPER */
 
   function el(tag, props, children) {
     var node = document.createElement(tag);
@@ -169,9 +167,24 @@
     while (rootEl.firstChild) rootEl.removeChild(rootEl.firstChild);
   }
 
-  /* ============================================================
-     ONBOARDING (PRIVACY PROMISE)
-     ============================================================ */
+  /* RESTART LINK (NEW in v1.2.0) */
+
+  function renderRestartLink() {
+    return el('div', { class: 'hb-quiz-restart-row' }, [
+      el('button', {
+        class: 'hb-quiz-restart-link',
+        type: 'button',
+        onclick: function() {
+          if (confirm('Start over? Your current answers will be cleared.')) {
+            fullReset();
+            render();
+          }
+        }
+      }, ['↻ Start over'])
+    ]);
+  }
+
+  /* ONBOARDING */
 
   function renderOnboarding() {
     clearRoot();
@@ -217,9 +230,7 @@
     rootEl.appendChild(el('div', { class: 'hb-quiz' }, [onboarding]));
   }
 
-  /* ============================================================
-     QUESTION RENDERING
-     ============================================================ */
+  /* QUESTION RENDERING */
 
   function renderQuestion() {
     clearRoot();
@@ -246,7 +257,12 @@
       renderInput(q)
     ]);
 
-    rootEl.appendChild(el('div', { class: 'hb-quiz' }, [progress, questionEl, renderNav(q)]));
+    rootEl.appendChild(el('div', { class: 'hb-quiz' }, [
+      renderRestartLink(),
+      progress,
+      questionEl,
+      renderNav(q)
+    ]));
   }
 
   function renderInput(q) {
@@ -407,9 +423,7 @@
     return wrapper;
   }
 
-  /* ============================================================
-     NAVIGATION
-     ============================================================ */
+  /* NAVIGATION */
 
   function isAnswered(q) {
     var a = state.answers[q.id];
@@ -455,9 +469,7 @@
     return el('div', { class: 'hb-quiz-nav' }, [backBtn, nextBtn]);
   }
 
-  /* ============================================================
-     FINISH & RESULT
-     ============================================================ */
+  /* FINISH & RESULT */
 
   function finish() {
     var result = HB_QUIZ_SCORE.score(state.answers);
@@ -465,7 +477,6 @@
     state.screen = 'result';
     saveState();
 
-    // GA4 tracking — fires once per quiz completion
     trackEvent('quiz_complete', {
       question_count: 12,
       intensity_score: result.intensityScore
@@ -521,11 +532,7 @@
       style: 'margin:24px auto 0;display:block;',
       onclick: function() {
         if (confirm('Start the quiz over? This will clear your current result.')) {
-          state.screen = 'question';
-          state.currentIndex = 0;
-          state.answers = {};
-          state.result = null;
-          saveState();
+          fullReset();
           render();
         }
       }
@@ -537,9 +544,7 @@
     ]));
   }
 
-  /* ============================================================
-     MAIN RENDER & INIT
-     ============================================================ */
+  /* MAIN RENDER & INIT */
 
   function render() {
     if (!rootEl) return;
@@ -559,6 +564,7 @@
     }
 
     injectJsonLd();
+    injectRestartStyles();
 
     rootEl = document.getElementById(ROOT_ID);
     if (!rootEl) {
