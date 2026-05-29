@@ -1,13 +1,14 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — UI rendering + state + localStorage logic
+ * Daily Tracker — UI with real heatmap calendar
  *
  * Changelog:
- *   v1.1.0 — Journey Progress card with milestone roadmap (post-save clarity).
+ *   v1.2.0 — Real 5-week heatmap calendar showing actual dates + logged days.
+ *   v1.1.0 — Journey Progress card with milestone roadmap.
  *   v1.0.0 — Initial Sprint 2A MVP.
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @license MIT
  */
 
@@ -133,13 +134,38 @@
     return null;
   }
 
-  /* INJECT JOURNEY STYLES (NEW in v1.1.0) */
+  /* INJECT EXTRA STYLES (journey + heatmap) */
 
-  function injectJourneyStyles() {
-    if (document.getElementById('hb-tracker-journey-styles')) return;
+  function injectExtraStyles() {
+    if (document.getElementById('hb-tracker-extra-styles')) return;
     var style = document.createElement('style');
-    style.id = 'hb-tracker-journey-styles';
+    style.id = 'hb-tracker-extra-styles';
     style.textContent = ''
+      /* Heatmap calendar */
+      + '.hb-tracker-heatmap-wrap{background:#FFFFFF;border:1px solid #E8E2D3;border-radius:12px;padding:18px 20px}'
+      + '.hb-tracker-heatmap-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:6px}'
+      + '.hb-tracker-heatmap-title{font-family:Newsreader,Georgia,serif;font-size:17px;color:#1A2A4A;margin:0;font-weight:500;letter-spacing:-0.01em}'
+      + '.hb-tracker-heatmap-subtitle{font-size:12px;color:#8B928E;font-weight:500}'
+      + '.hb-tracker-heatmap-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}'
+      + '.hb-tracker-heatmap-labels span{font-size:10px;color:#8B928E;text-align:center;font-weight:600;letter-spacing:0.5px}'
+      + '.hb-tracker-heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}'
+      + '.hb-tracker-heatmap-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8B928E;background:#F1EFE8;cursor:default;transition:transform 100ms}'
+      + '.hb-tracker-heatmap-cell:hover{transform:scale(1.08)}'
+      + '.hb-tracker-heatmap-cell.is-empty{background:#F1EFE8;color:#A8A39A}'
+      + '.hb-tracker-heatmap-cell.is-future{background:#FAF6EE;color:#D9D2C2;cursor:default}'
+      + '.hb-tracker-heatmap-cell.is-future:hover{transform:none}'
+      + '.hb-tracker-heatmap-cell.is-logged-e1{background:#F2C2A8;color:#5A3A1E;font-weight:500}'
+      + '.hb-tracker-heatmap-cell.is-logged-e2{background:#EDA98C;color:#FFFFFF;font-weight:500}'
+      + '.hb-tracker-heatmap-cell.is-logged-e3{background:#DC9A75;color:#FFFFFF;font-weight:500}'
+      + '.hb-tracker-heatmap-cell.is-logged-e4{background:#C97B5C;color:#FFFFFF;font-weight:500}'
+      + '.hb-tracker-heatmap-cell.is-logged-e5{background:#B86E51;color:#FFFFFF;font-weight:600}'
+      + '.hb-tracker-heatmap-cell.is-today{outline:2.5px solid #1A2A4A;outline-offset:1px;font-weight:600}'
+      + '.hb-tracker-heatmap-legend{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:0.5px solid #EBE0CC;flex-wrap:wrap}'
+      + '.hb-tracker-heatmap-legend-label{font-size:11px;color:#8B928E;font-weight:500}'
+      + '.hb-tracker-heatmap-legend-swatches{display:flex;gap:3px;align-items:center}'
+      + '.hb-tracker-heatmap-legend-swatch{width:11px;height:11px;border-radius:2px}'
+      + '.hb-tracker-heatmap-legend-text{font-size:10px;color:#8B928E;margin:0 6px 0 4px}'
+      /* Journey */
       + '.hb-tracker-journey{background:#F4ECDD;border-radius:12px;padding:20px 22px;border:1px solid #EBE0CC}'
       + '.hb-tracker-journey-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#C97B5C;margin:0 0 6px 0}'
       + '.hb-tracker-journey-title{font-family:Newsreader,Georgia,serif;font-size:20px;color:#1A2A4A;margin:0 0 10px 0;font-weight:500;letter-spacing:-0.01em;line-height:1.3}'
@@ -251,7 +277,92 @@
     ]);
   }
 
-  /* JOURNEY PROGRESS (NEW in v1.1.0) */
+  /* HEATMAP CALENDAR (NEW in v1.2.0) */
+
+  function renderHeatmapCalendar() {
+    var today = new Date();
+    var todayKey = state.today;
+
+    // Find Monday of current week
+    var dayOfWeek = today.getDay(); // 0=Sun, 1=Mon...6=Sat
+    var daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+    // Start: Monday 4 weeks before this week's Monday (28 + daysToMonday days back)
+    var startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysToMonday - 28);
+
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var grid = el('div', { class: 'hb-tracker-heatmap-grid' });
+
+    // Strip time from today for accurate comparison
+    var todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+
+    for (var i = 0; i < 35; i++) {
+      var cellDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i);
+      var cellKey = cellDate.getFullYear() + '-' + pad2(cellDate.getMonth() + 1) + '-' + pad2(cellDate.getDate());
+      var dayNum = cellDate.getDate();
+      var isToday = cellKey === todayKey;
+      var isFuture = cellDate.getTime() > todayMidnight;
+      var entry = state.entries[cellKey];
+
+      var classes = 'hb-tracker-heatmap-cell';
+      if (isToday) classes += ' is-today';
+      if (isFuture) {
+        classes += ' is-future';
+      } else if (entry && entry.energy) {
+        classes += ' is-logged-e' + entry.energy;
+      } else {
+        classes += ' is-empty';
+      }
+
+      var tooltipText = months[cellDate.getMonth()] + ' ' + dayNum;
+      if (entry) tooltipText += ' — Energy ' + entry.energy + '/5';
+      else if (isToday) tooltipText += ' — Today (no log yet)';
+      else if (isFuture) tooltipText += ' — Future';
+      else tooltipText += ' — No log';
+
+      grid.appendChild(el('div', {
+        class: classes,
+        title: tooltipText
+      }, String(dayNum)));
+    }
+
+    var dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    var labelsRow = el('div', { class: 'hb-tracker-heatmap-labels' });
+    dayLabels.forEach(function(label) {
+      labelsRow.appendChild(el('span', null, label));
+    });
+
+    var totalLogs = Object.keys(state.entries).length;
+    var subtitleText = totalLogs + ' day' + (totalLogs === 1 ? '' : 's') + ' logged';
+
+    // Legend
+    var legendSwatches = el('div', { class: 'hb-tracker-heatmap-legend-swatches' }, [
+      el('div', { class: 'hb-tracker-heatmap-legend-swatch', style: 'background:#F1EFE8' }),
+      el('span', { class: 'hb-tracker-heatmap-legend-text' }, 'none'),
+      el('div', { class: 'hb-tracker-heatmap-legend-swatch', style: 'background:#F2C2A8' }),
+      el('div', { class: 'hb-tracker-heatmap-legend-swatch', style: 'background:#DC9A75' }),
+      el('div', { class: 'hb-tracker-heatmap-legend-swatch', style: 'background:#C97B5C' }),
+      el('div', { class: 'hb-tracker-heatmap-legend-swatch', style: 'background:#B86E51' }),
+      el('span', { class: 'hb-tracker-heatmap-legend-text' }, 'high energy')
+    ]);
+
+    var legend = el('div', { class: 'hb-tracker-heatmap-legend' }, [
+      el('span', { class: 'hb-tracker-heatmap-legend-label' }, 'Energy:'),
+      legendSwatches
+    ]);
+
+    return el('div', { class: 'hb-tracker-heatmap-wrap' }, [
+      el('div', { class: 'hb-tracker-heatmap-header' }, [
+        el('h3', { class: 'hb-tracker-heatmap-title' }, 'Your last 5 weeks'),
+        el('span', { class: 'hb-tracker-heatmap-subtitle' }, subtitleText)
+      ]),
+      labelsRow,
+      grid,
+      legend
+    ]);
+  }
+
+  /* JOURNEY PROGRESS */
 
   function renderJourneyProgress() {
     var totalLogs = Object.keys(state.entries).length;
@@ -586,9 +697,13 @@
       children.push(renderLoggedTodayBanner());
     }
 
-    // NEW in v1.1.0: Journey Progress always visible
+    // NEW in v1.2.0: Real heatmap calendar
+    children.push(renderHeatmapCalendar());
+
+    // Journey Progress (motivation/why)
     children.push(renderJourneyProgress());
 
+    // Form fields
     children.push(renderEnergyField());
     children.push(renderSleepField());
 
@@ -613,7 +728,7 @@
     rootEl = document.getElementById(ROOT_ID);
     if (!rootEl) return;
 
-    injectJourneyStyles();
+    injectExtraStyles();
 
     state.today = getTodayKey();
     loadEntries();
@@ -657,7 +772,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.1.0',
+    version: '1.2.0',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
