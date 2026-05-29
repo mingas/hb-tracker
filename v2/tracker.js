@@ -3,15 +3,11 @@
  *
  * Daily Tracker — UI rendering + state + localStorage logic
  *
- * Depends on:
- *   - window.HB_TRACKER_DATA (tracker-data.js)
- *   - localStorage hb_quiz_state (read-only, for hormoneType)
+ * Changelog:
+ *   v1.1.0 — Journey Progress card with milestone roadmap (post-save clarity).
+ *   v1.0.0 — Initial Sprint 2A MVP.
  *
- * Mounts into: #hb-tracker-root (gracefully skips if absent)
- * Persists to: localStorage[hb_tracker_entries], localStorage[hb_tracker_streak]
- * Tracks: GA4 events (log_complete, log_update, streak_milestone)
- *
- * @version 1.0.0
+ * @version 1.1.0
  * @license MIT
  */
 
@@ -35,9 +31,7 @@
   var rootEl = null;
   var typeConfig = null;
 
-  /* ============================================================
-     DATE HELPERS (LOCAL timezone — NOT UTC)
-     ============================================================ */
+  /* DATE HELPERS */
 
   function pad2(n) { return n < 10 ? '0' + n : String(n); }
 
@@ -57,9 +51,7 @@
     return days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate();
   }
 
-  /* ============================================================
-     STORAGE (incognito-safe with try/catch)
-     ============================================================ */
+  /* STORAGE */
 
   function loadEntries() {
     try {
@@ -104,9 +96,7 @@
     } catch (e) { console.warn('HB Tracker: could not load quiz state', e); }
   }
 
-  /* ============================================================
-     GA4 TRACKING
-     ============================================================ */
+  /* GA4 TRACKING */
 
   function trackEvent(name, params) {
     try {
@@ -116,17 +106,13 @@
     } catch (e) {}
   }
 
-  /* ============================================================
-     STREAK LOGIC
-     ============================================================ */
+  /* STREAK LOGIC */
 
   function maybeUpdateStreakOnNewLog() {
     var today = state.today;
     var yesterday = getYesterdayKey();
 
-    if (state.streak.last_log_date === today) {
-      return null; // Already counted today
-    }
+    if (state.streak.last_log_date === today) return null;
 
     if (state.streak.last_log_date === yesterday) {
       state.streak.current = (state.streak.current || 0) + 1;
@@ -147,9 +133,32 @@
     return null;
   }
 
-  /* ============================================================
-     DOM HELPER
-     ============================================================ */
+  /* INJECT JOURNEY STYLES (NEW in v1.1.0) */
+
+  function injectJourneyStyles() {
+    if (document.getElementById('hb-tracker-journey-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-tracker-journey-styles';
+    style.textContent = ''
+      + '.hb-tracker-journey{background:#F4ECDD;border-radius:12px;padding:20px 22px;border:1px solid #EBE0CC}'
+      + '.hb-tracker-journey-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#C97B5C;margin:0 0 6px 0}'
+      + '.hb-tracker-journey-title{font-family:Newsreader,Georgia,serif;font-size:20px;color:#1A2A4A;margin:0 0 10px 0;font-weight:500;letter-spacing:-0.01em;line-height:1.3}'
+      + '.hb-tracker-journey-explainer{font-size:13px;color:#5F5E5A;margin:0 0 18px 0;line-height:1.55}'
+      + '.hb-tracker-journey-list{display:flex;flex-direction:column;gap:10px;position:relative;padding-left:2px}'
+      + '.hb-tracker-journey-list::before{content:"";position:absolute;left:11px;top:14px;bottom:14px;width:1.5px;background:#D9CFB5;z-index:0}'
+      + '.hb-tracker-journey-item{display:flex;align-items:flex-start;gap:12px;position:relative;z-index:1}'
+      + '.hb-tracker-journey-dot{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#FFFFFF;border:1.5px solid #C9C2AE;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8B928E;font-weight:600;margin-top:0}'
+      + '.hb-tracker-journey-item.is-unlocked .hb-tracker-journey-dot{background:#085041;border-color:#085041;color:#FFFFFF}'
+      + '.hb-tracker-journey-item.is-active .hb-tracker-journey-dot{background:#C97B5C;border-color:#C97B5C;color:#FFFFFF}'
+      + '.hb-tracker-journey-text{flex:1;padding-top:1px}'
+      + '.hb-tracker-journey-label{font-size:13px;font-weight:500;color:#1A2A4A;margin:0 0 2px 0}'
+      + '.hb-tracker-journey-item.is-unlocked .hb-tracker-journey-label{color:#085041}'
+      + '.hb-tracker-journey-item.is-active .hb-tracker-journey-label{color:#C97B5C}'
+      + '.hb-tracker-journey-desc{font-size:12px;color:#5F5E5A;margin:0;line-height:1.45}';
+    document.head.appendChild(style);
+  }
+
+  /* DOM HELPER */
 
   function el(tag, props, children) {
     var node = document.createElement(tag);
@@ -186,9 +195,7 @@
     while (rootEl.firstChild) rootEl.removeChild(rootEl.firstChild);
   }
 
-  /* ============================================================
-     NO-QUIZ PROMPT
-     ============================================================ */
+  /* NO-QUIZ PROMPT */
 
   function renderNoQuizPrompt() {
     clearRoot();
@@ -201,15 +208,9 @@
     rootEl.appendChild(el('div', { class: 'hb-tracker' }, [prompt]));
   }
 
-  /* ============================================================
-     CHECK ICON SVG
-     ============================================================ */
-
   var CHECK_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 
-  /* ============================================================
-     HEADER (date + welcome + streak)
-     ============================================================ */
+  /* HEADER */
 
   function renderHeader() {
     var current = state.streak.current || 0;
@@ -234,14 +235,12 @@
     ]);
   }
 
-  /* ============================================================
-     ALREADY LOGGED TODAY BANNER
-     ============================================================ */
+  /* LOGGED TODAY BANNER */
 
   function renderLoggedTodayBanner() {
     var title = state.saveJustSucceeded ? 'Logged for today ✓' : "You've already logged today";
     var desc = state.saveJustSucceeded
-      ? 'Your entry is saved. Come back tomorrow to keep the streak.'
+      ? 'Your entry is saved. Come back tomorrow to keep building your data.'
       : 'Your entry below shows what you logged. You can update it any time today.';
     return el('div', { class: 'hb-tracker-logged-today' }, [
       el('div', { class: 'hb-tracker-logged-icon', html: CHECK_ICON_SVG }),
@@ -252,9 +251,63 @@
     ]);
   }
 
-  /* ============================================================
-     FIELD: ENERGY SCALE
-     ============================================================ */
+  /* JOURNEY PROGRESS (NEW in v1.1.0) */
+
+  function renderJourneyProgress() {
+    var totalLogs = Object.keys(state.entries).length;
+
+    var milestones = [
+      { day: 1,  label: 'Day 1',  desc: 'Get started' },
+      { day: 3,  label: 'Day 3',  desc: 'First patterns appear' },
+      { day: 7,  label: 'Day 7',  desc: 'Weekly insights' },
+      { day: 14, label: 'Day 14', desc: 'Cycle pattern detection' },
+      { day: 30, label: 'Day 30', desc: 'Full hormone roadmap' }
+    ];
+
+    var nextMilestone = null;
+    for (var i = 0; i < milestones.length; i++) {
+      if (totalLogs < milestones[i].day) {
+        nextMilestone = milestones[i];
+        break;
+      }
+    }
+
+    var headerText = '';
+    if (totalLogs === 0) {
+      headerText = 'Why do this every day?';
+    } else if (nextMilestone) {
+      var diff = nextMilestone.day - totalLogs;
+      headerText = diff + ' more day' + (diff === 1 ? '' : 's') + ' to ' + nextMilestone.desc.toLowerCase();
+    } else {
+      headerText = 'Your full picture is unlocked';
+    }
+
+    var stepEls = milestones.map(function(m) {
+      var unlocked = totalLogs >= m.day;
+      var active = nextMilestone && m.day === nextMilestone.day;
+
+      var classes = 'hb-tracker-journey-item';
+      if (unlocked) classes += ' is-unlocked';
+      if (active) classes += ' is-active';
+
+      return el('div', { class: classes }, [
+        el('div', { class: 'hb-tracker-journey-dot' }, unlocked ? '✓' : ''),
+        el('div', { class: 'hb-tracker-journey-text' }, [
+          el('p', { class: 'hb-tracker-journey-label' }, m.label),
+          el('p', { class: 'hb-tracker-journey-desc' }, m.desc)
+        ])
+      ]);
+    });
+
+    return el('div', { class: 'hb-tracker-journey' }, [
+      el('p', { class: 'hb-tracker-journey-eyebrow' }, 'YOUR JOURNEY'),
+      el('h3', { class: 'hb-tracker-journey-title' }, headerText),
+      el('p', { class: 'hb-tracker-journey-explainer' }, "Each log adds evidence about how your hormones actually behave. Patterns emerge in 1–4 weeks. You'll see what triggers symptoms — and what doesn't."),
+      el('div', { class: 'hb-tracker-journey-list' }, stepEls)
+    ]);
+  }
+
+  /* FIELD: ENERGY SCALE */
 
   function renderEnergyField() {
     var fieldDef = HB_TRACKER_DATA.fields.energy;
@@ -295,9 +348,7 @@
     ]);
   }
 
-  /* ============================================================
-     FIELD: SLEEP SLIDER
-     ============================================================ */
+  /* FIELD: SLEEP SLIDER */
 
   function renderSleepField() {
     var fieldDef = HB_TRACKER_DATA.fields.sleep;
@@ -334,9 +385,7 @@
     ]);
   }
 
-  /* ============================================================
-     FIELD: CYCLE DAY (hidden for postmenopause)
-     ============================================================ */
+  /* FIELD: CYCLE DAY */
 
   function renderCycleDayField() {
     if (!typeConfig.cycleVisible) return null;
@@ -371,9 +420,7 @@
     ]);
   }
 
-  /* ============================================================
-     FIELD: SYMPTOMS CHIPS (emphasized first per type)
-     ============================================================ */
+  /* FIELD: SYMPTOMS */
 
   function renderSymptomsField() {
     var fieldDef = HB_TRACKER_DATA.fields.symptoms;
@@ -381,7 +428,6 @@
     var emphasized = typeConfig.emphasizedSymptoms || [];
     var max = fieldDef.maxSelections || 5;
 
-    // Sort: emphasized first (in their defined order), then rest alphabetically
     var sortedSymptoms = HB_TRACKER_DATA.allSymptoms.slice().sort(function(a, b) {
       var ai = emphasized.indexOf(a.value);
       var bi = emphasized.indexOf(b.value);
@@ -434,9 +480,7 @@
     ]);
   }
 
-  /* ============================================================
-     FIELD: NOTES TEXTAREA WITH CHAR COUNTER
-     ============================================================ */
+  /* FIELD: NOTES */
 
   function renderNotesField() {
     var fieldDef = HB_TRACKER_DATA.fields.notes;
@@ -466,9 +510,7 @@
     ]);
   }
 
-  /* ============================================================
-     SAVE BUTTON
-     ============================================================ */
+  /* SAVE BUTTON */
 
   function renderSaveButton() {
     var existingEntry = state.entries[state.today];
@@ -478,8 +520,8 @@
 
     var btnLabel;
     if (state.saveJustSucceeded) btnLabel = 'Saved ✓';
-    else if (isUpdate) btnLabel = 'Update today\'s entry';
-    else btnLabel = 'Save today\'s entry';
+    else if (isUpdate) btnLabel = "Update today's entry";
+    else btnLabel = "Save today's entry";
 
     var btn = el('button', {
       class: 'hb-tracker-save-btn' + (state.saveJustSucceeded ? ' is-success' : ''),
@@ -494,9 +536,7 @@
     return el('div', { class: 'hb-tracker-save-row' }, [btn]);
   }
 
-  /* ============================================================
-     SAVE FLOW
-     ============================================================ */
+  /* SAVE FLOW */
 
   function save(isUpdate) {
     state.entries[state.today] = {
@@ -533,9 +573,7 @@
     }, 2200);
   }
 
-  /* ============================================================
-     MAIN TRACKER RENDER
-     ============================================================ */
+  /* MAIN TRACKER RENDER */
 
   function renderTracker() {
     clearRoot();
@@ -547,6 +585,9 @@
     if (hasLoggedToday) {
       children.push(renderLoggedTodayBanner());
     }
+
+    // NEW in v1.1.0: Journey Progress always visible
+    children.push(renderJourneyProgress());
 
     children.push(renderEnergyField());
     children.push(renderSleepField());
@@ -561,28 +602,24 @@
     rootEl.appendChild(el('div', { class: 'hb-tracker' }, children));
   }
 
-  /* ============================================================
-     INIT
-     ============================================================ */
+  /* INIT */
 
   function init() {
     if (typeof window.HB_TRACKER_DATA === 'undefined') {
-      console.error('HB Tracker: HB_TRACKER_DATA not loaded — check tracker-data.js loads before tracker.js');
+      console.error('HB Tracker: HB_TRACKER_DATA not loaded');
       return;
     }
 
     rootEl = document.getElementById(ROOT_ID);
-    if (!rootEl) {
-      // Mount point not on this page — graceful skip
-      return;
-    }
+    if (!rootEl) return;
+
+    injectJourneyStyles();
 
     state.today = getTodayKey();
     loadEntries();
     loadStreak();
     loadQuizHormoneType();
 
-    // No quiz result → prompt user to take quiz first
     if (!state.hormoneType) {
       renderNoQuizPrompt();
       return;
@@ -595,7 +632,6 @@
       return;
     }
 
-    // Initialize currentEntry from today's saved entry (if exists) or blank
     var existingEntry = state.entries[state.today];
     if (existingEntry) {
       state.currentEntry = {
@@ -618,21 +654,15 @@
     renderTracker();
   }
 
-  /* ============================================================
-     EXPORT GLOBAL (for debugging + future integrations)
-     ============================================================ */
+  /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.0.0',
+    version: '1.1.0',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
     getAllEntries: function() { return state.entries; }
   };
-
-  /* ============================================================
-     AUTO-INIT
-     ============================================================ */
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
