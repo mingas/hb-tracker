@@ -1,0 +1,676 @@
+/**
+ * hb-tracker / v2 / tracker-styles.css
+ *
+ * Daily Tracker — UI styles
+ *
+ * All classes prefixed with `hb-tracker-` for namespace isolation
+ * from quiz styles (hb-quiz-*) and existing TB site styles (tb-*).
+ *
+ * Brand colors:
+ *   #FAF6EE   cream (page bg)
+ *   #1A2A4A   navy (text, accents)
+ *   #C97B5C   coral (CTAs, streak)
+ *   #085041   forest (success, completed states)
+ *
+ * @version 1.0.0
+ * @license MIT
+ */
+
+/* ============================================================
+   CONTAINER & RESET
+   ============================================================ */
+
+#hb-tracker-root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #1A2A4A;
+  line-height: 1.5;
+}
+
+#hb-tracker-root *,
+#hb-tracker-root *::before,
+#hb-tracker-root *::after {
+  box-sizing: border-box;
+}
+
+.hb-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ============================================================
+   HEADER — welcome + streak
+   ============================================================ */
+
+.hb-tracker-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hb-tracker-date {
+  font-size: 12px;
+  color: #8B928E;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 0;
+}
+
+.hb-tracker-welcome {
+  font-family: Newsreader, Georgia, serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: #1A2A4A;
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.hb-tracker-subtitle {
+  font-size: 14px;
+  color: #5F5E5A;
+  margin: 0;
+}
+
+/* ============================================================
+   STREAK BADGE
+   ============================================================ */
+
+.hb-tracker-streak-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.hb-tracker-streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #C97B5C 0%, #B86E51 100%);
+  color: #FFFFFF;
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.hb-tracker-streak-badge.is-zero {
+  background: #EDE7D8;
+  color: #5F5E5A;
+}
+
+.hb-tracker-streak-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.hb-tracker-streak-best {
+  font-size: 12px;
+  color: #8B928E;
+}
+
+/* ============================================================
+   ALREADY LOGGED TODAY STATE
+   ============================================================ */
+
+.hb-tracker-logged-today {
+  background: #E1F5EE;
+  border: 1px solid #085041;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.hb-tracker-logged-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #085041;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.hb-tracker-logged-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.hb-tracker-logged-text {
+  flex: 1;
+}
+
+.hb-tracker-logged-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #085041;
+  margin: 0 0 2px 0;
+}
+
+.hb-tracker-logged-desc {
+  font-size: 13px;
+  color: #1A2A4A;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   FIELD WRAPPER (common to all field types)
+   ============================================================ */
+
+.hb-tracker-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hb-tracker-field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A2A4A;
+  margin: 0;
+}
+
+.hb-tracker-field-label.is-optional::after {
+  content: ' (optional)';
+  color: #8B928E;
+  font-weight: 400;
+}
+
+.hb-tracker-field-help {
+  font-size: 12px;
+  color: #8B928E;
+  margin: -4px 0 0 0;
+}
+
+/* ============================================================
+   ENERGY SCALE (1-5)
+   ============================================================ */
+
+.hb-tracker-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hb-tracker-scale-emoji-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 26px;
+  padding: 0 10px;
+}
+
+.hb-tracker-scale-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.hb-tracker-scale-btn {
+  flex: 1;
+  padding: 14px 0;
+  background: #FFFFFF;
+  border: 1px solid #E8E2D3;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A2A4A;
+  cursor: pointer;
+  transition: all 150ms;
+  min-height: 44px;
+}
+
+.hb-tracker-scale-btn:hover {
+  border-color: #C9C2AE;
+  background: #FDFBF6;
+}
+
+.hb-tracker-scale-btn.is-selected {
+  background: #C97B5C;
+  border-color: #C97B5C;
+  color: #FFFFFF;
+}
+
+.hb-tracker-scale-label {
+  text-align: center;
+  font-size: 13px;
+  color: #5F5E5A;
+  margin: 2px 0 0 0;
+  min-height: 18px;
+}
+
+/* ============================================================
+   SLEEP SLIDER
+   ============================================================ */
+
+.hb-tracker-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0;
+}
+
+.hb-tracker-slider-value {
+  font-family: Newsreader, Georgia, serif;
+  font-size: 40px;
+  font-weight: 500;
+  color: #1A2A4A;
+  line-height: 1;
+  text-align: center;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hb-tracker-slider-unit {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8B928E;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+.hb-tracker-slider-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #EDE7D8;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.hb-tracker-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #C97B5C;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 1px 4px rgba(26, 42, 74, 0.2);
+  transition: transform 100ms;
+}
+
+.hb-tracker-slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.hb-tracker-slider-input::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: #C97B5C;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 1px 4px rgba(26, 42, 74, 0.2);
+}
+
+.hb-tracker-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #8B928E;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   CYCLE DAY (number input)
+   ============================================================ */
+
+.hb-tracker-number-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 200px;
+}
+
+.hb-tracker-number-input {
+  flex: 1;
+  padding: 14px 16px;
+  background: #FFFFFF;
+  border: 1px solid #E8E2D3;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 16px;
+  color: #1A2A4A;
+  outline: none;
+  transition: border-color 150ms;
+  font-variant-numeric: tabular-nums;
+  min-height: 44px;
+}
+
+.hb-tracker-number-input:focus {
+  border-color: #C97B5C;
+  border-width: 2px;
+  padding: 13px 15px;
+}
+
+.hb-tracker-number-input::-webkit-inner-spin-button,
+.hb-tracker-number-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ============================================================
+   SYMPTOM CHIPS (multi-select)
+   ============================================================ */
+
+.hb-tracker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hb-tracker-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 16px;
+  background: #FFFFFF;
+  border: 1px solid #E8E2D3;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1A2A4A;
+  cursor: pointer;
+  transition: all 150ms;
+  line-height: 1.3;
+  min-height: 44px;
+}
+
+.hb-tracker-chip.is-emphasized {
+  border-color: #C9C2AE;
+  background: #FDFBF6;
+}
+
+.hb-tracker-chip:hover {
+  border-color: #C9C2AE;
+  background: #FDFBF6;
+}
+
+.hb-tracker-chip.is-selected {
+  background: #C97B5C;
+  border-color: #C97B5C;
+  color: #FFFFFF;
+}
+
+.hb-tracker-chip.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.hb-tracker-chips-counter {
+  font-size: 12px;
+  color: #8B928E;
+  margin-top: 4px;
+}
+
+.hb-tracker-chips-counter strong {
+  color: #C97B5C;
+  font-weight: 600;
+}
+
+/* ============================================================
+   NOTES TEXTAREA
+   ============================================================ */
+
+.hb-tracker-textarea-wrapper {
+  position: relative;
+}
+
+.hb-tracker-textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 14px 16px;
+  background: #FFFFFF;
+  border: 1px solid #E8E2D3;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1A2A4A;
+  line-height: 1.55;
+  outline: none;
+  resize: vertical;
+  transition: border-color 150ms;
+}
+
+.hb-tracker-textarea:focus {
+  border-color: #C97B5C;
+  border-width: 2px;
+  padding: 13px 15px;
+}
+
+.hb-tracker-textarea::placeholder {
+  color: #8B928E;
+}
+
+.hb-tracker-textarea-counter {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: #8B928E;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.hb-tracker-textarea-counter.is-over {
+  color: #B23E1E;
+}
+
+/* ============================================================
+   SAVE BUTTON
+   ============================================================ */
+
+.hb-tracker-save-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.hb-tracker-save-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: #C97B5C;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms;
+  min-height: 48px;
+}
+
+.hb-tracker-save-btn:hover:not(:disabled) {
+  background: #B86E51;
+}
+
+.hb-tracker-save-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hb-tracker-save-btn.is-success {
+  background: #085041;
+}
+
+/* ============================================================
+   QUIZ REDIRECT (when no quiz result found)
+   ============================================================ */
+
+.hb-tracker-quiz-prompt {
+  background: #F4ECDD;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.hb-tracker-quiz-prompt-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.hb-tracker-quiz-prompt-title {
+  font-family: Newsreader, Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: #1A2A4A;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.hb-tracker-quiz-prompt-desc {
+  font-size: 14px;
+  color: #5F5E5A;
+  margin: 0;
+  max-width: 380px;
+  line-height: 1.55;
+}
+
+.hb-tracker-quiz-prompt-cta {
+  background: #C97B5C;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 22px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms;
+  margin-top: 4px;
+}
+
+.hb-tracker-quiz-prompt-cta:hover {
+  background: #B86E51;
+}
+
+/* ============================================================
+   30-DAY HEATMAP (Sprint 2B preview — base styles)
+   ============================================================ */
+
+.hb-tracker-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hb-tracker-heatmap-title {
+  font-family: Newsreader, Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #1A2A4A;
+  margin: 0;
+}
+
+.hb-tracker-heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  max-width: 280px;
+}
+
+.hb-tracker-heatmap-cell {
+  aspect-ratio: 1;
+  background: #EDE7D8;
+  border-radius: 4px;
+  position: relative;
+}
+
+.hb-tracker-heatmap-cell.is-logged-low    { background: #F2C2A8; }
+.hb-tracker-heatmap-cell.is-logged-mid    { background: #DC9A75; }
+.hb-tracker-heatmap-cell.is-logged-high   { background: #C97B5C; }
+.hb-tracker-heatmap-cell.is-logged-peak   { background: #B86E51; }
+.hb-tracker-heatmap-cell.is-today {
+  outline: 2px solid #1A2A4A;
+  outline-offset: 1px;
+}
+
+/* ============================================================
+   ENTRY FADE-IN ANIMATION
+   ============================================================ */
+
+@keyframes hbTrackerFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hb-tracker {
+  animation: hbTrackerFadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+   FOCUS STATES (accessibility)
+   ============================================================ */
+
+.hb-tracker-scale-btn:focus-visible,
+.hb-tracker-chip:focus-visible,
+.hb-tracker-save-btn:focus-visible,
+.hb-tracker-quiz-prompt-cta:focus-visible,
+.hb-tracker-number-input:focus-visible,
+.hb-tracker-textarea:focus-visible {
+  outline: 2px solid #1A2A4A;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   RESPONSIVE — TABLET (≤991px)
+   ============================================================ */
+
+@media screen and (max-width: 991px) {
+  .hb-tracker-welcome    { font-size: 24px; }
+  .hb-tracker-slider-value { font-size: 36px; }
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE LANDSCAPE (≤767px)
+   ============================================================ */
+
+@media screen and (max-width: 767px) {
+  .hb-tracker { gap: 24px; }
+  .hb-tracker-welcome    { font-size: 22px; }
+  .hb-tracker-scale-emoji-row { font-size: 22px; padding: 0 6px; }
+  .hb-tracker-scale-btn  { font-size: 13px; }
+  .hb-tracker-chip       { font-size: 13px; padding: 10px 14px; }
+  .hb-tracker-slider-value { font-size: 32px; }
+  .hb-tracker-quiz-prompt-title { font-size: 20px; }
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE PORTRAIT (≤479px)
+   ============================================================ */
+
+@media screen and (max-width: 479px) {
+  .hb-tracker-welcome { font-size: 20px; }
+  .hb-tracker-scale-emoji-row { font-size: 20px; padding: 0 4px; }
+  .hb-tracker-scale-buttons { gap: 4px; }
+  .hb-tracker-scale-btn { font-size: 12px; }
+  .hb-tracker-slider-value { font-size: 28px; }
+}
