@@ -12,7 +12,7 @@
  * Injects: Schema.org JSON-LD (WebApplication + FAQPage) into <head>
  * Tracks: GA4 events (quiz_start, quiz_complete, result_view)
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @license MIT
  */
 
@@ -67,6 +67,13 @@
     saveState();
   }
 
+  function hasInProgressState() {
+    if (state.result) return true;
+    if (state.currentIndex > 0) return true;
+    if (state.answers && Object.keys(state.answers).length > 0) return true;
+    return false;
+  }
+
   /* GA4 TRACKING */
 
   function trackEvent(eventName, params) {
@@ -77,13 +84,25 @@
     } catch (e) {}
   }
 
-  /* RESTART STYLES (inline injection) */
+  /* RESTART + WELCOME BACK STYLES (inline injection) */
 
   function injectRestartStyles() {
     if (document.getElementById('hb-quiz-restart-styles')) return;
     var style = document.createElement('style');
     style.id = 'hb-quiz-restart-styles';
-    style.textContent = '.hb-quiz-restart-row{display:flex;justify-content:flex-end;margin-bottom:4px}.hb-quiz-restart-link{background:none;border:none;color:#8B928E;font-size:12px;cursor:pointer;padding:4px 0;text-decoration:underline;font-family:inherit;transition:color 150ms}.hb-quiz-restart-link:hover{color:#1A2A4A}';
+    style.textContent = ''
+      + '.hb-quiz-restart-row{display:flex;justify-content:flex-end;margin-bottom:4px}'
+      + '.hb-quiz-restart-link{background:none;border:none;color:#8B928E;font-size:12px;cursor:pointer;padding:4px 0;text-decoration:underline;font-family:inherit;transition:color 150ms}'
+      + '.hb-quiz-restart-link:hover{color:#1A2A4A}'
+      + '.hb-quiz-welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 8px;gap:18px}'
+      + '.hb-quiz-welcome-icon{width:56px;height:56px;border-radius:50%;background:#F4ECDD;display:flex;align-items:center;justify-content:center;color:#C97B5C;font-size:28px;line-height:1}'
+      + '.hb-quiz-welcome-title{font-family:Newsreader,Georgia,serif;font-size:26px;font-weight:500;color:#1A2A4A;margin:0;letter-spacing:-0.01em}'
+      + '.hb-quiz-welcome-subtitle{font-size:14px;color:#5F5E5A;margin:0;max-width:380px;line-height:1.55}'
+      + '.hb-quiz-welcome-buttons{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;margin-top:8px}'
+      + '.hb-quiz-welcome-primary{background:#C97B5C;color:#FFFFFF;border:none;border-radius:10px;padding:14px 24px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:background-color 150ms}'
+      + '.hb-quiz-welcome-primary:hover{background:#B86E51}'
+      + '.hb-quiz-welcome-secondary{background:transparent;color:#5F5E5A;border:1px solid #E8E2D3;border-radius:10px;padding:13px 24px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:all 150ms}'
+      + '.hb-quiz-welcome-secondary:hover{color:#1A2A4A;border-color:#C9C2AE}';
     document.head.appendChild(style);
   }
 
@@ -167,7 +186,7 @@
     while (rootEl.firstChild) rootEl.removeChild(rootEl.firstChild);
   }
 
-  /* RESTART LINK (NEW in v1.2.0) */
+  /* RESTART LINK */
 
   function renderRestartLink() {
     return el('div', { class: 'hb-quiz-restart-row' }, [
@@ -182,6 +201,59 @@
         }
       }, ['↻ Start over'])
     ]);
+  }
+
+  /* WELCOME BACK SCREEN (NEW in v1.3.0) */
+
+  function renderWelcomeBack() {
+    clearRoot();
+
+    var subtitle = '';
+    var continueLabel = '';
+    var resumeScreen = 'question';
+
+    if (state.result) {
+      // Quiz already finished — offer to view result again
+      subtitle = 'Your hormone type result is ready to view again.';
+      continueLabel = 'View my result →';
+      resumeScreen = 'result';
+    } else if (state.currentIndex > 0 || Object.keys(state.answers).length > 0) {
+      // In the middle of the quiz
+      var qNum = state.currentIndex + 1;
+      var total = HB_QUIZ_DATA.meta.totalQuestions;
+      subtitle = "You were on question " + qNum + " of " + total + ". Pick up where you left off, or start fresh.";
+      continueLabel = 'Continue (question ' + qNum + ') →';
+      resumeScreen = 'question';
+    }
+
+    var welcome = el('div', { class: 'hb-quiz-welcome' }, [
+      el('div', { class: 'hb-quiz-welcome-icon' }, '👋'),
+      el('h2', { class: 'hb-quiz-welcome-title' }, 'Welcome back'),
+      el('p', { class: 'hb-quiz-welcome-subtitle' }, subtitle),
+      el('div', { class: 'hb-quiz-welcome-buttons' }, [
+        el('button', {
+          class: 'hb-quiz-welcome-primary',
+          type: 'button',
+          onclick: function() {
+            state.screen = resumeScreen;
+            saveState();
+            render();
+          }
+        }, continueLabel),
+        el('button', {
+          class: 'hb-quiz-welcome-secondary',
+          type: 'button',
+          onclick: function() {
+            if (confirm('Start over? Your previous answers will be cleared.')) {
+              fullReset();
+              render();
+            }
+          }
+        }, '↻ Start over')
+      ])
+    ]);
+
+    rootEl.appendChild(el('div', { class: 'hb-quiz' }, [welcome]));
   }
 
   /* ONBOARDING */
@@ -548,7 +620,8 @@
 
   function render() {
     if (!rootEl) return;
-    if (state.screen === 'onboarding') renderOnboarding();
+    if (state.screen === 'welcome_back') renderWelcomeBack();
+    else if (state.screen === 'onboarding') renderOnboarding();
     else if (state.screen === 'question') renderQuestion();
     else if (state.screen === 'result') renderResult();
   }
@@ -574,9 +647,17 @@
 
     loadState();
 
-    if (state.result) state.screen = 'result';
-    else if (hasSeenPrivacy()) state.screen = 'question';
-    else state.screen = 'onboarding';
+    // Decision logic for initial screen:
+    // 1. If user has in-progress quiz state → show Welcome Back banner
+    // 2. Else if user has already accepted privacy → go to questions
+    // 3. Else → show onboarding (first-time visitor)
+    if (hasInProgressState()) {
+      state.screen = 'welcome_back';
+    } else if (hasSeenPrivacy()) {
+      state.screen = 'question';
+    } else {
+      state.screen = 'onboarding';
+    }
 
     render();
   }
