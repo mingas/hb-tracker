@@ -1,15 +1,16 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — two-mode UI (Today / Past View)
+ * Daily Tracker — bug fixes for midnight transition + cycle history
  *
  * Changelog:
+ *   v1.4.1 — Fix midnight transition (state.today refresh), fix cycle_day history display, add aria-label.
  *   v1.4.0 — Two-mode UX: clicking past day swaps form for read-only panel; today clickable to return.
  *   v1.3.0 — Date range subtitle (month names) + click-to-view past entries.
  *   v1.2.0 — Real 5-week heatmap calendar with actual dates.
  *   v1.1.0 — Journey Progress card with milestone roadmap.
  *
- * @version 1.4.0
+ * @version 1.4.1
  * @license MIT
  */
 
@@ -20,6 +21,7 @@
   var STORAGE_KEY_STREAK  = 'hb_tracker_streak';
   var QUIZ_STORAGE_KEY    = 'hb_quiz_state';
   var ROOT_ID             = 'hb-tracker-root';
+  var DATE_CHECK_INTERVAL_MS = 60000; // 60s — for midnight transition
 
   var MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var MONTHS_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -37,6 +39,7 @@
 
   var rootEl = null;
   var typeConfig = null;
+  var dateCheckTimer = null;
 
   /* DATE HELPERS */
 
@@ -60,6 +63,40 @@
     var parts = dateKey.split('-');
     var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
     return DAYS_LONG[d.getDay()] + ', ' + MONTHS_LONG[d.getMonth()] + ' ' + d.getDate();
+  }
+
+  /* MIDNIGHT DETECTION (NEW in v1.4.1) */
+
+  function buildCurrentEntryForToday() {
+    var existingEntry = state.entries[state.today];
+    if (existingEntry) {
+      state.currentEntry = {
+        energy: existingEntry.energy,
+        sleep: existingEntry.sleep,
+        cycle_day: existingEntry.cycle_day,
+        symptoms: (existingEntry.symptoms || []).slice(),
+        notes: existingEntry.notes || ''
+      };
+    } else {
+      state.currentEntry = {
+        energy: null,
+        sleep: null,
+        cycle_day: null,
+        symptoms: [],
+        notes: ''
+      };
+    }
+  }
+
+  function checkDateChange() {
+    var newToday = getTodayKey();
+    if (newToday !== state.today) {
+      state.today = newToday;
+      state.selectedDayKey = null;
+      state.saveJustSucceeded = false;
+      buildCurrentEntryForToday();
+      renderTracker();
+    }
   }
 
   /* STORAGE */
@@ -314,7 +351,7 @@
     ]);
   }
 
-  /* PAST-VIEW HINT (NEW in v1.4.0) */
+  /* PAST-VIEW HINT */
 
   function renderPastViewHint() {
     return el('p', { class: 'hb-tracker-pastview-hint' }, [
@@ -324,7 +361,7 @@
     ]);
   }
 
-  /* HEATMAP CALENDAR (UPDATED in v1.4.0 — today is now clickable) */
+  /* HEATMAP CALENDAR */
 
   function renderHeatmapCalendar() {
     var today = new Date();
@@ -429,14 +466,12 @@
     ]);
   }
 
-  /* DAY CLICK HANDLER (UPDATED in v1.4.0) */
+  /* DAY CLICK HANDLER */
 
   function handleDayClick(dateKey) {
     if (dateKey === state.today) {
-      // Today clicked: close any selected past day, return to form view
       state.selectedDayKey = null;
     } else {
-      // Past day clicked: toggle selection
       if (state.selectedDayKey === dateKey) {
         state.selectedDayKey = null;
       } else {
@@ -445,7 +480,6 @@
     }
     renderTracker();
 
-    // Auto-scroll to panel if past day shown
     if (state.selectedDayKey && state.selectedDayKey !== state.today) {
       setTimeout(function() {
         var panel = rootEl.querySelector('.hb-tracker-selected-day');
@@ -456,7 +490,7 @@
     }
   }
 
-  /* SELECTED DAY PANEL */
+  /* SELECTED DAY PANEL (UPDATED in v1.4.1 — Bug #3 fix + aria-label) */
 
   function renderSelectedDayPanel() {
     if (!state.selectedDayKey) return null;
@@ -469,6 +503,7 @@
       class: 'hb-tracker-selected-day-close',
       type: 'button',
       title: 'Close (return to today)',
+      'aria-label': 'Close past day view and return to today',
       onclick: function() {
         state.selectedDayKey = null;
         renderTracker();
@@ -513,11 +548,11 @@
         ]));
       }
 
-      if (typeConfig.cycleVisible) {
-        var cycleDayText = entry.cycle_day != null ? 'Day ' + entry.cycle_day : '—';
+      // Bug #3 fix: show cycle_day if entry HAS it, regardless of current type config
+      if (entry.cycle_day != null) {
         rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
           el('span', { class: 'hb-tracker-selected-day-label' }, 'Cycle day'),
-          el('span', { class: 'hb-tracker-selected-day-value is-mono' }, cycleDayText)
+          el('span', { class: 'hb-tracker-selected-day-value is-mono' }, 'Day ' + entry.cycle_day)
         ]));
       }
 
@@ -874,7 +909,7 @@
     }, 2200);
   }
 
-  /* MAIN TRACKER RENDER (UPDATED in v1.4.0 — two-mode UX) */
+  /* MAIN TRACKER RENDER */
 
   function renderTracker() {
     clearRoot();
@@ -885,13 +920,11 @@
     var children = [renderHeader()];
 
     if (isViewingPastDay) {
-      // PAST VIEW MODE: hint + calendar + read-only panel
       children.push(renderPastViewHint());
       children.push(renderHeatmapCalendar());
       var selectedPanel = renderSelectedDayPanel();
       if (selectedPanel) children.push(selectedPanel);
     } else {
-      // TODAY MODE: banner + calendar + journey + form
       if (hasLoggedToday) {
         children.push(renderLoggedTodayBanner());
       }
@@ -909,7 +942,7 @@
     rootEl.appendChild(el('div', { class: 'hb-tracker' }, children));
   }
 
-  /* INIT */
+  /* INIT (UPDATED in v1.4.1 — start date-change interval) */
 
   function init() {
     if (typeof window.HB_TRACKER_DATA === 'undefined') {
@@ -939,32 +972,18 @@
       return;
     }
 
-    var existingEntry = state.entries[state.today];
-    if (existingEntry) {
-      state.currentEntry = {
-        energy: existingEntry.energy,
-        sleep: existingEntry.sleep,
-        cycle_day: existingEntry.cycle_day,
-        symptoms: (existingEntry.symptoms || []).slice(),
-        notes: existingEntry.notes || ''
-      };
-    } else {
-      state.currentEntry = {
-        energy: null,
-        sleep: null,
-        cycle_day: null,
-        symptoms: [],
-        notes: ''
-      };
-    }
-
+    buildCurrentEntryForToday();
     renderTracker();
+
+    // Start date-change watcher (Bug #1 + Bug #2 fix)
+    if (dateCheckTimer) clearInterval(dateCheckTimer);
+    dateCheckTimer = setInterval(checkDateChange, DATE_CHECK_INTERVAL_MS);
   }
 
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.4.0',
+    version: '1.4.1',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
