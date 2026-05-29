@@ -15,7 +15,12 @@
  *   - Symptom clustering (Q5-Q7 → hormone profile)
  *   - Lifestyle modifiers (Q9-Q12 → intensity)
  *
- * @version 1.0.0
+ * Changelog:
+ *   v1.1.0 — clinical gates: ED requires estrogen symptoms;
+ *            Peri & Postmeno require age >= 35 (STRAW+10).
+ *   v1.0.0 — initial.
+ *
+ * @version 1.1.0
  * @license MIT
  */
 
@@ -77,7 +82,7 @@
 
     // No severe symptom clustering
     const symptoms = a.q5_top_symptoms || [];
-    if (symptoms.length === 0 || symptoms.length <= 1) score += 2;
+    if (symptoms.length <= 1) score += 2;
 
     // Feels better after period
     if (a.q7_post_period === 'much_better') score += 2;
@@ -91,19 +96,30 @@
   /* ============================================================
      TYPE 2: ESTROGEN DOMINANT
      PMS symptoms, breast tenderness, cravings — relative excess
+     
+     CLINICAL GATE (v1.1.0): requires at least one estrogen-pattern
+     symptom. Timing/cycle bonuses alone cannot trigger this type —
+     otherwise users with random symptoms could be misclassified.
      ============================================================ */
 
   function scoreEstrogenDominant(a) {
-    let score = 0;
-
     const symptoms = a.q5_top_symptoms || [];
 
+    // GATE: must have at least one estrogen-pattern symptom
+    const estrogenSymptoms = ['breast_tenderness', 'cravings', 'mood_swings', 'weight_gain', 'acne'];
+    const hasEstrogenSymptom = symptoms.some(function(s) {
+      return estrogenSymptoms.indexOf(s) !== -1;
+    });
+    if (!hasEstrogenSymptom) return 0;
+
+    let score = 0;
+
     // Classic estrogen dominance symptoms
-    if (symptoms.includes('breast_tenderness')) score += 4;
-    if (symptoms.includes('cravings')) score += 3;
-    if (symptoms.includes('mood_swings')) score += 2;
-    if (symptoms.includes('weight_gain')) score += 2;
-    if (symptoms.includes('acne')) score += 1;
+    if (symptoms.indexOf('breast_tenderness') !== -1) score += 4;
+    if (symptoms.indexOf('cravings') !== -1) score += 3;
+    if (symptoms.indexOf('mood_swings') !== -1) score += 2;
+    if (symptoms.indexOf('weight_gain') !== -1) score += 2;
+    if (symptoms.indexOf('acne') !== -1) score += 1;
 
     // Symptoms peak BEFORE period — classic PMS pattern
     if (a.q6_symptom_timing === 'before_period') score += 4;
@@ -131,10 +147,10 @@
     const symptoms = a.q5_top_symptoms || [];
 
     // Classic low-progesterone symptoms
-    if (symptoms.includes('anxiety')) score += 4;
-    if (symptoms.includes('sleep_issues')) score += 3;
-    if (symptoms.includes('mood_swings')) score += 2;
-    if (symptoms.includes('low_libido')) score += 1;
+    if (symptoms.indexOf('anxiety') !== -1) score += 4;
+    if (symptoms.indexOf('sleep_issues') !== -1) score += 3;
+    if (symptoms.indexOf('mood_swings') !== -1) score += 2;
+    if (symptoms.indexOf('low_libido') !== -1) score += 1;
 
     // Irregular cycles (progesterone insufficiency → ovulation issues)
     if (a.q3_cycle_change === 'sometimes_skip' || a.q3_cycle_change === 'getting_longer') score += 3;
@@ -147,9 +163,9 @@
 
     // Family thyroid history (often co-occurs)
     const family = a.q8_family_history || [];
-    if (family.includes('thyroid')) score += 1;
+    if (family.indexOf('thyroid') !== -1) score += 1;
 
-    // Symptoms get worse — random or all the time (not just before period)
+    // Symptoms get worse — random or all the time
     if (a.q6_symptom_timing === 'random' || a.q6_symptom_timing === 'all_the_time') score += 2;
 
     return score;
@@ -158,24 +174,30 @@
   /* ============================================================
      TYPE 4: PERIMENOPAUSE TRANSITIONER
      Hot flashes starting, hormones fluctuating wildly, age 38-52
+     
+     CLINICAL GATE (v1.1.0): requires age >= 35. STRAW+10 staging
+     does not apply below this age. Younger women with similar
+     symptoms are more likely PCOS, thyroid, or POI.
      ============================================================ */
 
   function scorePerimenopauseTransitioner(a) {
-    let score = 0;
+    // GATE: clinical perimenopause begins at ~35+
+    if (!a.q1_age || a.q1_age < 35) return 0;
 
+    let score = 0;
     const symptoms = a.q5_top_symptoms || [];
 
     // Hot flashes is THE perimenopause marker
-    if (symptoms.includes('hot_flashes')) score += 5;
-    if (symptoms.includes('brain_fog')) score += 3;
-    if (symptoms.includes('mood_swings')) score += 2;
-    if (symptoms.includes('sleep_issues')) score += 2;
-    if (symptoms.includes('hair_thinning')) score += 1;
-    if (symptoms.includes('weight_gain')) score += 1;
-    if (symptoms.includes('low_libido')) score += 1;
+    if (symptoms.indexOf('hot_flashes') !== -1) score += 5;
+    if (symptoms.indexOf('brain_fog') !== -1) score += 3;
+    if (symptoms.indexOf('mood_swings') !== -1) score += 2;
+    if (symptoms.indexOf('sleep_issues') !== -1) score += 2;
+    if (symptoms.indexOf('hair_thinning') !== -1) score += 1;
+    if (symptoms.indexOf('weight_gain') !== -1) score += 1;
+    if (symptoms.indexOf('low_libido') !== -1) score += 1;
 
     // Age 38-55 typical perimenopause window
-    if (a.q1_age && a.q1_age >= 38 && a.q1_age <= 55) score += 3;
+    if (a.q1_age >= 38 && a.q1_age <= 55) score += 3;
 
     // Cycle changes (STRAW+10 staging)
     if (a.q3_cycle_change === 'getting_shorter' || a.q3_cycle_change === 'getting_longer') score += 3;
@@ -186,7 +208,7 @@
 
     // Family history of early menopause
     const family = a.q8_family_history || [];
-    if (family.includes('early_menopause')) score += 2;
+    if (family.indexOf('early_menopause') !== -1) score += 2;
 
     // Cannot become pregnant easily
     if (a.q4_fertility === 'probably_not' || a.q4_fertility === 'not_sure') score += 1;
@@ -197,17 +219,24 @@
   /* ============================================================
      TYPE 5: POSTMENOPAUSE RENEWER
      No period 12+ months, new hormonal baseline
+     
+     CLINICAL GATE (v1.1.0): requires age >= 35. Amenorrhea under
+     this age has different causes (POI, hypothalamic, eating
+     disorders, PCOS) — not standard postmenopause.
      ============================================================ */
 
   function scorePostmenopauseRenewer(a) {
+    // GATE: postmenopause is clinically rare before 35
+    if (!a.q1_age || a.q1_age < 35) return 0;
+
     let score = 0;
 
     // No period for more than 1 year — definitive marker
     if (a.q2_last_period === 'over_1_year') score += 10;
 
     // Age 50+ typical
-    if (a.q1_age && a.q1_age >= 50) score += 3;
-    if (a.q1_age && a.q1_age >= 55) score += 2;
+    if (a.q1_age >= 50) score += 3;
+    if (a.q1_age >= 55) score += 2;
 
     // Cannot become pregnant
     if (a.q4_fertility === 'no' || a.q4_fertility === 'not_relevant') score += 2;
@@ -265,7 +294,6 @@
 
     if (a.q10_alcohol === '8_plus') hormonalAge += 4;
     else if (a.q10_alcohol === '4_7') hormonalAge += 2;
-    else if (a.q10_alcohol === '1_3') hormonalAge += 0;
 
     if (a.q11_sleep === 'terrible') hormonalAge += 4;
     else if (a.q11_sleep === 'poor') hormonalAge += 2;
@@ -328,7 +356,7 @@
      ============================================================ */
 
   window.HB_QUIZ_SCORE = {
-    version: '1.0.0',
+    version: '1.1.0',
     score: score,
 
     // Exposed for debugging / testing
