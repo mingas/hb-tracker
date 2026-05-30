@@ -1,11 +1,11 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.6.1
- *   v1.6.1 — Webflow-specific selectors: hide hero via body.hb-returning class targeting
- *            actual Webflow classes (.hb-eyebrow, .hb-quiz-title, .hb-quiz-subtitle, #hb-quiz-root).
- *            Compact bar moved inside tracker. Smart hormone type fallback (title-case).
- *            About/FAQ collapse uses .hb-seo-title and .hb-faq-title selectors.
+ * Daily Tracker — v1.6.2
+ *   v1.6.2 — Fix About/FAQ collapse for Webflow's nested container structure.
+ *            Use compareDocumentPosition to find paragraphs/Q&A across container divs
+ *            instead of nextElementSibling which stops at container boundaries.
+ *   v1.6.1 — Webflow-specific selectors.
  *   v1.6.0 — Returning user UX (compact bar + About/FAQ collapse + form-first)
  *   v1.5.2 — Past Month mode.
  *   v1.5.1 — True calendar month grid.
@@ -366,16 +366,50 @@
     }
   }
 
-  // Collapse About section: keep heading + first <p> visible, hide rest of <p> siblings
-  function collapseAboutSection(heading) {
+  // Helper: check if element B comes AFTER element A in DOM order
+  function isAfter(a, b) {
+    if (!a || !b || !a.compareDocumentPosition) return false;
+    return !!(a.compareDocumentPosition(b) & 4); // DOCUMENT_POSITION_FOLLOWING
+  }
+
+  // Helper: check if element B comes BEFORE element A in DOM order
+  function isBefore(a, b) {
+    if (!a || !b || !a.compareDocumentPosition) return false;
+    return !!(a.compareDocumentPosition(b) & 2); // DOCUMENT_POSITION_PRECEDING
+  }
+
+  // Helper: skip elements inside tracker or quiz roots
+  function isInsideAppRoots(el) {
+    if (rootEl && rootEl.contains(el)) return true;
+    var quizRoot = document.getElementById('hb-quiz-root');
+    if (quizRoot && quizRoot.contains(el)) return true;
+    return false;
+  }
+
+  // Collapse About section: keep heading + first <p> visible, hide rest
+  // Uses DOM position comparison to find <p> elements across container divs
+  function collapseAboutSection(heading, faqHeading) {
     if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
+
+    // Find all <p> elements AFTER heading (and BEFORE faq heading if exists)
+    var allParas = document.querySelectorAll('p');
     var paragraphs = [];
-    var current = heading.nextElementSibling;
-    while (current) {
-      if (current.tagName === 'P') paragraphs.push(current);
-      current = current.nextElementSibling;
+    for (var i = 0; i < allParas.length; i++) {
+      var p = allParas[i];
+      if (!isAfter(heading, p)) continue;
+      if (faqHeading && !isBefore(faqHeading, p)) continue;
+      // Skip eyebrows, FAQ answers, tracker/quiz internals
+      if (p.classList.contains('hb-seo-eyebrow')) continue;
+      if (p.classList.contains('hb-faq-eyebrow')) continue;
+      if (p.classList.contains('hb-faq-answer')) continue;
+      if (p.classList.contains('hb-footer-brand')) continue;
+      if (p.classList.contains('hb-footer-tagline')) continue;
+      if (isInsideAppRoots(p)) continue;
+      paragraphs.push(p);
     }
+
     if (paragraphs.length <= 1) return false;
+
     var hidden = paragraphs.slice(1);
     hidden.forEach(function(p) { p.classList.add('hb-collapsed'); });
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
@@ -386,21 +420,22 @@
   // Collapse FAQ section: keep heading + first Q+A pair visible, hide rest
   function collapseFAQSection(heading) {
     if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
+
+    // Find all Q+A items AFTER heading in DOM order
+    var allItems = document.querySelectorAll('.hb-faq-question, .hb-faq-answer');
     var items = [];
-    var current = heading.nextElementSibling;
-    while (current) {
-      if (current.classList && (
-          current.classList.contains('hb-faq-question') ||
-          current.classList.contains('hb-faq-answer'))) {
-        items.push(current);
-      }
-      current = current.nextElementSibling;
+    for (var i = 0; i < allItems.length; i++) {
+      var el = allItems[i];
+      if (!isAfter(heading, el)) continue;
+      if (isInsideAppRoots(el)) continue;
+      items.push(el);
     }
+
     if (items.length <= 2) return false;
+
     var hidden = items.slice(2);
     hidden.forEach(function(el) { el.classList.add('hb-collapsed'); });
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
-    // Anchor toggle after the first answer (items[1])
     addCollapseToggle(items[1], hidden, 'FAQ');
     return true;
   }
@@ -427,7 +462,7 @@
 
     var collapsed = 0;
     if (aboutHeading) {
-      if (collapseAboutSection(aboutHeading)) collapsed++;
+      if (collapseAboutSection(aboutHeading, faqHeading)) collapsed++;
     }
     if (faqHeading) {
       if (collapseFAQSection(faqHeading)) collapsed++;
@@ -1325,7 +1360,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.6.1',
+    version: '1.6.2',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
