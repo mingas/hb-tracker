@@ -1,12 +1,13 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.6.5
- *   v1.6.5 — COMMON ANCESTOR strategy: instead of walking up parents looking for
- *            "empty" wrappers, find the common ancestor of first-kept and last-hidden
- *            items, then hide EVERY descendant between them in DOM order.
- *            This kills border-bottom dividers, hr lines, and any wrapper artifacts.
- *   v1.6.4 — Aggressive wrapper hiding + debug logging.
+ * Daily Tracker — v1.6.6
+ *   v1.6.6 — ROLLBACK from v1.6.5 common-ancestor strategy (broke Show more toggle
+ *            and compact bar). Back to v1.6.3 hideEmptyParents + tracked-wrappers list:
+ *            now Show more toggle reveals BOTH Q+A items AND their hidden wrappers.
+ *            Adds CSS :has() rule to hide empty .hb-faq-item wrappers as belt-and-suspenders.
+ *   v1.6.5 — REVERTED. Common ancestor strategy broke toggle.
+ *   v1.6.4 — REVERTED. Aggressive wrapper hiding.
  *   v1.6.3 — Hide .hb-quiz-placeholder wrapper and FAQ item wrappers.
  *   v1.6.2 — Fix About/FAQ collapse for nested container structure.
  *   v1.6.1 — Webflow-specific selectors.
@@ -309,62 +310,6 @@
       return;
     }
     document.body.classList.add('hb-returning');
-
-    // Walk up DOM from #hb-quiz-root to hide its section/container wrapper
-    // (the white empty card with rounded corners)
-    var quizRoot = document.getElementById('hb-quiz-root');
-    if (quizRoot) {
-      console.log('[HB v1.6.4] #hb-quiz-root found, walking up to hide wrapper');
-      console.log('[HB v1.6.4] quiz-root parent chain:');
-      var node = quizRoot;
-      var chain = [];
-      for (var i = 0; i < 6 && node; i++) {
-        chain.push({
-          tag: node.tagName,
-          id: node.id || '',
-          classes: node.className || '',
-          childCount: node.children ? node.children.length : 0
-        });
-        node = node.parentElement;
-      }
-      console.log(JSON.stringify(chain, null, 2));
-
-      // Walk up and hide the closest meaningful wrapper:
-      // - Stop at SECTION/MAIN/BODY
-      // - Hide if parent only contains quizRoot or placeholder-related children
-      var current = quizRoot;
-      for (var j = 0; j < 4; j++) {
-        var parent = current.parentElement;
-        if (!parent) break;
-        var ptag = parent.tagName;
-        // Stop at major boundaries
-        if (ptag === 'BODY' || ptag === 'MAIN' || ptag === 'HTML') break;
-        // Hide this wrapper if it has ≤1 visible non-tracker children
-        var visibleNonTracker = 0;
-        for (var k = 0; k < parent.children.length; k++) {
-          var ch = parent.children[k];
-          if (ch.id === 'hb-tracker-root') continue;
-          // Section/div wrapping tracker — that's our own added section, skip
-          if (ch.contains && ch.contains(document.getElementById('hb-tracker-root'))) continue;
-          if (!ch.classList.contains('hb-collapsed')) visibleNonTracker++;
-        }
-        // If parent's only non-tracker visible child is what we're walking up from, hide parent
-        if (visibleNonTracker <= 1) {
-          current.classList.add('hb-collapsed');
-          console.log('[HB v1.6.4] Hidden wrapper:', current.tagName, current.className || '(no class)');
-          current = parent;
-          // Stop if we reached a SECTION (don't hide the section itself, just nested wrappers)
-          if (ptag === 'SECTION') break;
-        } else {
-          // Parent has other visible content — hide just current, not parent
-          current.classList.add('hb-collapsed');
-          console.log('[HB v1.6.4] Hidden current only:', current.tagName, current.className || '(no class)');
-          break;
-        }
-      }
-    } else {
-      console.log('[HB v1.6.4] #hb-quiz-root not found');
-    }
   }
 
   function renderCompactBar() {
@@ -449,12 +394,13 @@
 
   // Helper: after hiding elements, walk up and hide empty parent wrappers
   // (those whose all element-children are now hb-collapsed or display:none)
-  // This removes leftover border-bottom dividers and white card backgrounds.
-  // Stops at: section, article, aside, main, body, or wrappers with allow-list classes.
+  // Returns array of wrappers that were hidden — caller passes these to toggle so
+  // Show more can re-show them along with their children.
   function hideEmptyParents(startEl, maxDepth) {
     maxDepth = maxDepth || 4;
     var parent = startEl.parentElement;
     var depth = 0;
+    var hiddenWrappers = [];
     while (parent && depth < maxDepth) {
       // Don't climb past major section boundaries
       var tag = parent.tagName;
@@ -471,14 +417,15 @@
       }
       if (hasVisibleChild) break;
       parent.classList.add('hb-collapsed');
+      hiddenWrappers.push(parent);
       parent = parent.parentElement;
       depth++;
     }
+    return hiddenWrappers;
   }
 
   // Collapse About section: keep heading + first <p> visible, hide rest
-  // STRATEGY: same common-ancestor approach as FAQ — hide everything in DOM order
-  // after first paragraph, within the smallest common container.
+  // Uses DOM position comparison to find <p> elements across container divs
   function collapseAboutSection(heading, faqHeading) {
     if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
 
@@ -489,7 +436,7 @@
       var p = allParas[i];
       if (!isAfter(heading, p)) continue;
       if (faqHeading && !isBefore(faqHeading, p)) continue;
-      // Skip eyebrows, FAQ answers, tracker/quiz internals, footer
+      // Skip eyebrows, FAQ answers, tracker/quiz internals
       if (p.classList.contains('hb-seo-eyebrow')) continue;
       if (p.classList.contains('hb-faq-eyebrow')) continue;
       if (p.classList.contains('hb-faq-answer')) continue;
@@ -501,70 +448,21 @@
 
     if (paragraphs.length <= 1) return false;
 
-    console.log('[HB v1.6.5] About: found ' + paragraphs.length + ' paragraphs');
-
-    var firstP = paragraphs[0];           // keep visible
-    var toHide = paragraphs.slice(1);
-    var lastHidden = toHide[toHide.length - 1];
-
-    var commonAncestor = findCommonAncestor(firstP, lastHidden);
-    if (!commonAncestor) {
-      // Fallback to simple hide
-      toHide.forEach(function(p) { p.classList.add('hb-collapsed'); });
-      if (heading.dataset) heading.dataset.hbCollapsed = '1';
-      addCollapseToggle(firstP, toHide, 'About');
-      return true;
-    }
-
-    // Safety: if commonAncestor is too broad (body/main/html), constrain to firstP's parent
-    var tag = commonAncestor.tagName;
-    if (tag === 'BODY' || tag === 'HTML' || tag === 'MAIN') {
-      commonAncestor = firstP.parentElement || commonAncestor;
-    }
-
-    console.log('[HB v1.6.5] About common ancestor:',
-      commonAncestor.tagName, commonAncestor.className || '(no class)');
-
-    // Hide every descendant of commonAncestor that appears AFTER firstP
-    // BUT must come BEFORE faqHeading (don't bleed into FAQ section)
-    var hiddenCount = 0;
-    var allDescendants = commonAncestor.querySelectorAll('*');
-    for (var j = 0; j < allDescendants.length; j++) {
-      var node = allDescendants[j];
-      if (!isAfter(firstP, node)) continue;
-      if (faqHeading && !isBefore(faqHeading, node)) continue;
-      if (node.contains(firstP)) continue;
-      if (node.classList.contains('hb-collapsed')) continue;
-      if (node === firstP) continue;
-      if (node.tagName === 'FOOTER' || node.closest('footer')) continue;
-      if (isInsideAppRoots(node)) continue;
-      // Don't hide the FAQ heading or its content
-      if (faqHeading && (node === faqHeading || node.contains(faqHeading))) continue;
-      node.classList.add('hb-collapsed');
-      hiddenCount++;
-    }
-
-    console.log('[HB v1.6.5] About hidden ' + hiddenCount + ' elements after first paragraph');
-
+    var hidden = paragraphs.slice(1);
+    // allHidden = paragraphs + wrappers (everything toggle needs to manage)
+    var allHidden = hidden.slice();
+    hidden.forEach(function(p) { p.classList.add('hb-collapsed'); });
+    // Hide empty parent wrappers and collect them
+    hidden.forEach(function(p) {
+      var wrappers = hideEmptyParents(p, 4);
+      wrappers.forEach(function(w) { allHidden.push(w); });
+    });
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
-    addCollapseToggle(firstP, toHide, 'About');
+    addCollapseToggle(paragraphs[0], allHidden, 'About');
     return true;
   }
 
-  // Helper: find the closest common ancestor of two elements
-  function findCommonAncestor(a, b) {
-    if (!a || !b) return null;
-    var ancestor = a;
-    while (ancestor && !ancestor.contains(b)) {
-      ancestor = ancestor.parentElement;
-    }
-    return ancestor;
-  }
-
-  // Collapse FAQ section: keep heading + first Q+A pair visible, hide rest.
-  // STRATEGY: find common ancestor of first answer and last Q/A, then hide every
-  // descendant element between them in DOM order. This kills all wrappers, hr lines,
-  // border-bottom dividers, and any other visual artifacts.
+  // Collapse FAQ section: keep heading + first Q+A pair visible, hide rest
   function collapseFAQSection(heading) {
     if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
 
@@ -580,53 +478,32 @@
 
     if (items.length <= 2) return false;
 
-    console.log('[HB v1.6.5] FAQ: found ' + items.length + ' Q/A items');
+    console.log('[HB v1.6.6] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
 
-    var firstQ = items[0];           // h3 - keep visible
-    var firstA = items[1];           // p  - keep visible
-    var toHide = items.slice(2);     // 4×Q + 4×A = 8 items typically
-    var lastHidden = toHide[toHide.length - 1];
-
-    // Find common ancestor of firstA and lastHidden — that's the FAQ container
-    var commonAncestor = findCommonAncestor(firstA, lastHidden);
-    if (!commonAncestor) {
-      console.log('[HB v1.6.5] FAQ: no common ancestor, fallback to simple hide');
-      toHide.forEach(function(el) { el.classList.add('hb-collapsed'); });
-      addCollapseToggle(firstA, toHide, 'FAQ');
-      if (heading.dataset) heading.dataset.hbCollapsed = '1';
-      return true;
+    var hidden = items.slice(2);
+    var allHidden = hidden.slice();
+    hidden.forEach(function(el) { el.classList.add('hb-collapsed'); });
+    // Hide empty parent wrappers and collect them so toggle can re-show
+    hidden.forEach(function(el) {
+      var wrappers = hideEmptyParents(el, 5);
+      wrappers.forEach(function(w) { allHidden.push(w); });
+    });
+    // Also hide <hr> dividers AFTER first answer (between collapsed items)
+    var firstAnswer = items[1];
+    var allHRs = document.querySelectorAll('hr');
+    for (var h = 0; h < allHRs.length; h++) {
+      var hr = allHRs[h];
+      if (isAfter(firstAnswer, hr) && !isInsideAppRoots(hr) && !hr.closest('footer')) {
+        // Only hide if it's near FAQ items (in same section as FAQ heading)
+        var faqSection = heading.closest('section, [class*="faq"]');
+        if (faqSection && faqSection.contains(hr)) {
+          hr.classList.add('hb-collapsed');
+          allHidden.push(hr);
+        }
+      }
     }
-
-    console.log('[HB v1.6.5] FAQ common ancestor:',
-      commonAncestor.tagName, commonAncestor.className || '(no class)');
-
-    // Walk descendants of commonAncestor in DOM order; hide every element
-    // that appears AFTER firstA (and is not the firstA itself or its ancestors)
-    var hiddenCount = 0;
-    var allDescendants = commonAncestor.querySelectorAll('*');
-    for (var j = 0; j < allDescendants.length; j++) {
-      var node = allDescendants[j];
-      // Must come strictly after firstA in DOM order
-      if (!isAfter(firstA, node)) continue;
-      // Skip firstA's ancestors (we don't want to hide a parent of firstA)
-      if (node.contains(firstA)) continue;
-      // Skip if already collapsed
-      if (node.classList.contains('hb-collapsed')) continue;
-      // Skip if it IS firstA (shouldn't happen but defensive)
-      if (node === firstA) continue;
-      // Skip footer-related (in case commonAncestor is body)
-      if (node.tagName === 'FOOTER' || node.closest('footer')) continue;
-      // Skip app roots
-      if (isInsideAppRoots(node)) continue;
-      // Hide this node
-      node.classList.add('hb-collapsed');
-      hiddenCount++;
-    }
-
-    console.log('[HB v1.6.5] FAQ hidden ' + hiddenCount + ' elements after first Q+A');
-
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
-    addCollapseToggle(firstA, toHide, 'FAQ');
+    addCollapseToggle(items[1], allHidden, 'FAQ');
     return true;
   }
 
@@ -1550,7 +1427,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.6.5',
+    version: '1.6.6',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
