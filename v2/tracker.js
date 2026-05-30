@@ -1,9 +1,13 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — three-mode UX (Today / Past Day / Past Month)
+ * Daily Tracker — v1.6.0
+ *   Phase 1 (Returning user mode): Compact bar instead of full hero/welcome
+ *   Phase 2 (About/FAQ collapse): Sections show 1 paragraph + "Show more" button
+ *   Phase 3 (Form-first reorder): Today mode shows form before calendar
  *
  * Changelog:
+ *   v1.6.0 — Returning user UX (compact bar + About/FAQ collapse + form-first)
  *   v1.5.2 — Past Month mode (no form when navigating past months) + × keeps month context.
  *   v1.5.1 — True calendar month grid (fixes overlap bug).
  *   v1.5.0 — Month navigator (had overlap bug).
@@ -12,7 +16,7 @@
  *   v1.3.0 — Click-to-view past entries.
  *   v1.2.0 — 5-week heatmap calendar.
  *
- * @version 1.5.2
+ * @version 1.6.0
  * @license MIT
  */
 
@@ -29,6 +33,14 @@
   var MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var MONTHS_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var DAYS_LONG    = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  var HORMONE_TYPE_DISPLAY = {
+    'cycle_surfer':              'Cycle Surfer',
+    'estrogen_dominant':         'Estrogen Dominant',
+    'progesterone_deficient':    'Progesterone Deficient',
+    'perimenopause_transitioner':'Perimenopause Transitioner',
+    'postmenopause_renewer':     'Postmenopause Renewer'
+  };
 
   var state = {
     today: '',
@@ -109,17 +121,9 @@
     return cells;
   }
 
-  function isViewingCurrentMonth() {
-    return state.viewMonthOffset === 0;
-  }
-
-  function canNavigateBackward() {
-    return state.viewMonthOffset > MAX_BACKWARD_OFFSET;
-  }
-
-  function canNavigateForward() {
-    return state.viewMonthOffset < 0;
-  }
+  function isViewingCurrentMonth() { return state.viewMonthOffset === 0; }
+  function canNavigateBackward()   { return state.viewMonthOffset > MAX_BACKWARD_OFFSET; }
+  function canNavigateForward()    { return state.viewMonthOffset < 0; }
 
   function navigateBackward() {
     if (!canNavigateBackward()) return;
@@ -155,11 +159,7 @@
       };
     } else {
       state.currentEntry = {
-        energy: null,
-        sleep: null,
-        cycle_day: null,
-        symptoms: [],
-        notes: ''
+        energy: null, sleep: null, cycle_day: null, symptoms: [], notes: ''
       };
     }
   }
@@ -258,6 +258,210 @@
     return null;
   }
 
+  /* ========================================
+     PHASE 1: RETURNING USER MODE (NEW v1.6.0)
+     ======================================== */
+
+  function injectReturningUserStyles() {
+    if (document.getElementById('hb-returning-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-returning-styles';
+    style.textContent = ''
+      + '.hb-compact-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#F4ECDD;border:1px solid #EBE0CC;border-radius:10px;margin:0 auto 24px auto;max-width:640px;font-family:inherit;gap:12px;box-sizing:border-box}'
+      + '.hb-compact-bar-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden}'
+      + '.hb-compact-bar-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#5F5E5A;font-weight:600;flex-shrink:0}'
+      + '.hb-compact-bar-type{font-size:14px;color:#1A2A4A;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+      + '.hb-compact-bar-right{display:flex;gap:2px;flex-shrink:0;align-items:center}'
+      + '.hb-compact-bar-link{background:transparent;border:none;color:#C97B5C;font-size:12px;font-weight:500;cursor:pointer;padding:6px 10px;border-radius:6px;font-family:inherit;transition:background 150ms;white-space:nowrap}'
+      + '.hb-compact-bar-link:hover{background:rgba(201,123,92,0.1)}'
+      + '.hb-compact-bar-divider{color:#C9C2AE;font-size:11px;margin:0 2px}'
+      + '@media (max-width:479px){.hb-compact-bar{padding:10px 12px;margin-bottom:16px}.hb-compact-bar-label{display:none}.hb-compact-bar-type{font-size:13px}.hb-compact-bar-link{font-size:11px;padding:6px 8px}}'
+      + '.hb-quiz-hidden-wrapper{display:none}';
+    document.head.appendChild(style);
+  }
+
+  function applyReturningUserMode(retries) {
+    retries = retries || 0;
+    if (document.querySelector('.hb-compact-bar')) return;
+
+    var quizRoot = document.getElementById('hb-quiz-root');
+    if (!quizRoot) {
+      if (retries < 20) setTimeout(function() { applyReturningUserMode(retries + 1); }, 100);
+      return;
+    }
+    if (quizRoot.children.length === 0) {
+      if (retries < 20) setTimeout(function() { applyReturningUserMode(retries + 1); }, 100);
+      return;
+    }
+
+    var hiddenWrapper = document.createElement('div');
+    hiddenWrapper.className = 'hb-quiz-hidden-wrapper';
+    while (quizRoot.firstChild) {
+      hiddenWrapper.appendChild(quizRoot.firstChild);
+    }
+    quizRoot.appendChild(hiddenWrapper);
+
+    var typeName = HORMONE_TYPE_DISPLAY[state.hormoneType] || 'Quiz result';
+
+    var labelSpan = document.createElement('span');
+    labelSpan.className = 'hb-compact-bar-label';
+    labelSpan.textContent = 'Hormone Type';
+
+    var typeSpan = document.createElement('span');
+    typeSpan.className = 'hb-compact-bar-type';
+    typeSpan.textContent = typeName;
+
+    var leftDiv = document.createElement('div');
+    leftDiv.className = 'hb-compact-bar-left';
+    leftDiv.appendChild(labelSpan);
+    leftDiv.appendChild(typeSpan);
+
+    var viewBtn = document.createElement('button');
+    viewBtn.type = 'button';
+    viewBtn.className = 'hb-compact-bar-link';
+    viewBtn.textContent = 'View result';
+    viewBtn.setAttribute('aria-label', 'View full quiz result');
+    viewBtn.addEventListener('click', function() {
+      hiddenWrapper.style.display = '';
+      bar.style.display = 'none';
+      try { if (hiddenWrapper.scrollIntoView) hiddenWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      trackEvent('compact_bar_view_result', { hormone_type: state.hormoneType });
+    });
+
+    var divider = document.createElement('span');
+    divider.className = 'hb-compact-bar-divider';
+    divider.textContent = '·';
+
+    var retakeBtn = document.createElement('button');
+    retakeBtn.type = 'button';
+    retakeBtn.className = 'hb-compact-bar-link';
+    retakeBtn.textContent = 'Retake';
+    retakeBtn.setAttribute('aria-label', 'Retake the quiz, clears current result');
+    retakeBtn.addEventListener('click', function() {
+      var confirmMsg = 'Retake the quiz? Your current hormone type result will be replaced (your tracker entries stay).';
+      var ok = typeof window.confirm === 'function' ? window.confirm(confirmMsg) : true;
+      if (!ok) return;
+      try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
+      trackEvent('compact_bar_retake', { hormone_type: state.hormoneType });
+      location.reload();
+    });
+
+    var rightDiv = document.createElement('div');
+    rightDiv.className = 'hb-compact-bar-right';
+    rightDiv.appendChild(viewBtn);
+    rightDiv.appendChild(divider);
+    rightDiv.appendChild(retakeBtn);
+
+    var bar = document.createElement('div');
+    bar.className = 'hb-compact-bar';
+    bar.appendChild(leftDiv);
+    bar.appendChild(rightDiv);
+
+    quizRoot.insertBefore(bar, quizRoot.firstChild);
+  }
+
+  /* ========================================
+     PHASE 2: ABOUT / FAQ COLLAPSE (NEW v1.6.0)
+     ======================================== */
+
+  function injectCollapseStyles() {
+    if (document.getElementById('hb-collapse-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-collapse-styles';
+    style.textContent = ''
+      + '.hb-collapsed{display:none !important}'
+      + '.hb-collapse-toggle{display:inline-block;margin:14px 0 4px 0;background:transparent;border:1px solid #C9C2AE;color:#1A2A4A;font-size:12px;font-weight:500;padding:7px 16px;border-radius:100px;cursor:pointer;font-family:inherit;transition:all 150ms;letter-spacing:0.2px}'
+      + '.hb-collapse-toggle:hover{background:#F4ECDD;border-color:#1A2A4A}'
+      + '.hb-collapse-toggle:focus-visible{outline:2px solid #C97B5C;outline-offset:2px}';
+    document.head.appendChild(style);
+  }
+
+  function isHeadingTag(tagName) {
+    return tagName === 'H1' || tagName === 'H2' || tagName === 'H3' ||
+           tagName === 'H4' || tagName === 'H5' || tagName === 'H6';
+  }
+
+  function matchesCollapseHeading(text) {
+    var t = (text || '').trim().toLowerCase();
+    if (!t) return false;
+    if (t === 'about' || t === 'about the assessment' || t === 'about this assessment') return true;
+    if (t === 'faq' || t === 'faqs' || t === 'frequently asked questions') return true;
+    return false;
+  }
+
+  function collapseSection(heading) {
+    if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
+
+    var hiddenElements = [];
+    var firstShownElement = null;
+    var current = heading.nextElementSibling;
+
+    while (current) {
+      if (isHeadingTag(current.tagName)) break;
+      if (!firstShownElement && (current.tagName === 'P' || current.tagName === 'DIV')) {
+        firstShownElement = current;
+      } else {
+        current.classList.add('hb-collapsed');
+        hiddenElements.push(current);
+      }
+      current = current.nextElementSibling;
+    }
+
+    if (hiddenElements.length === 0) {
+      return false;
+    }
+
+    if (heading.dataset) heading.dataset.hbCollapsed = '1';
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'hb-collapse-toggle';
+    btn.textContent = 'Show more ↓';
+    btn.setAttribute('aria-expanded', 'false');
+
+    var isOpen = false;
+    btn.addEventListener('click', function() {
+      isOpen = !isOpen;
+      hiddenElements.forEach(function(el) {
+        if (isOpen) el.classList.remove('hb-collapsed');
+        else el.classList.add('hb-collapsed');
+      });
+      btn.textContent = isOpen ? 'Show less ↑' : 'Show more ↓';
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      trackEvent('content_collapse_toggle', {
+        section: (heading.textContent || '').trim().substring(0, 40),
+        opened: isOpen
+      });
+    });
+
+    var anchor = firstShownElement || heading;
+    if (anchor.parentNode) {
+      anchor.parentNode.insertBefore(btn, anchor.nextSibling);
+    }
+    return true;
+  }
+
+  function applyAboutFAQCollapse(retries) {
+    retries = retries || 0;
+    var headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    if (headings.length === 0 && retries < 10) {
+      setTimeout(function() { applyAboutFAQCollapse(retries + 1); }, 200);
+      return 0;
+    }
+    var collapsed = 0;
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      if (rootEl && rootEl.contains(h)) continue;
+      var quizRoot = document.getElementById('hb-quiz-root');
+      if (quizRoot && quizRoot.contains(h)) continue;
+
+      if (matchesCollapseHeading(h.textContent)) {
+        if (collapseSection(h)) collapsed++;
+      }
+    }
+    return collapsed;
+  }
+
   /* INJECT STYLES */
 
   function injectExtraStyles() {
@@ -330,7 +534,9 @@
       + '.hb-tracker-journey-item.is-unlocked .hb-tracker-journey-label{color:#085041}'
       + '.hb-tracker-journey-item.is-active .hb-tracker-journey-label{color:#C97B5C}'
       + '.hb-tracker-journey-desc{font-size:12px;color:#5F5E5A;margin:0;line-height:1.45}'
-      + '@media(max-width:479px){.hb-tracker-cal-nav-title{font-size:16px}.hb-tracker-cal-nav-today{padding:6px 11px;font-size:10px}.hb-tracker-selected-day-row{flex-direction:column;align-items:flex-start;gap:4px}.hb-tracker-selected-day-value{text-align:left}.hb-tracker-selected-day-chips{justify-content:flex-start}}';
+      + '.hb-tracker-divider{height:0.5px;background:#EBE0CC;margin:28px 0 20px 0;border:none}'
+      + '.hb-tracker-section-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#8B928E;margin:0 0 14px 0;text-align:center}'
+      + '@media(max-width:479px){.hb-tracker-cal-nav-title{font-size:16px}.hb-tracker-cal-nav-today{padding:6px 11px;font-size:10px}.hb-tracker-selected-day-row{flex-direction:column;align-items:flex-start;gap:4px}.hb-tracker-selected-day-value{text-align:left}.hb-tracker-selected-day-chips{justify-content:flex-start}.hb-tracker-divider{margin:24px 0 16px 0}}';
     document.head.appendChild(style);
   }
 
@@ -417,7 +623,7 @@
     var title = state.saveJustSucceeded ? 'Logged for today ✓' : "You've already logged today";
     var desc = state.saveJustSucceeded
       ? 'Your entry is saved. Come back tomorrow to keep building your data.'
-      : 'Your entry below shows what you logged. You can update it any time today.';
+      : 'You can update your entry any time today.';
     return el('div', { class: 'hb-tracker-logged-today' }, [
       el('div', { class: 'hb-tracker-logged-icon', html: CHECK_ICON_SVG }),
       el('div', { class: 'hb-tracker-logged-text' }, [
@@ -439,7 +645,7 @@
     ]);
   }
 
-  /* PAST-MONTH HINT (NEW in v1.5.2) */
+  /* PAST-MONTH HINT */
 
   function renderPastMonthHint() {
     var viewYM = getViewMonthYear();
@@ -451,6 +657,16 @@
       el('strong', null, 'Today'),
       ' to return.'
     ]);
+  }
+
+  /* DIVIDER (NEW v1.6.0) */
+
+  function renderDivider() {
+    return el('hr', { class: 'hb-tracker-divider' });
+  }
+
+  function renderHistorySectionEyebrow() {
+    return el('p', { class: 'hb-tracker-section-eyebrow' }, 'Your history');
   }
 
   /* CALENDAR NAVIGATION */
@@ -608,7 +824,7 @@
     }
   }
 
-  /* SELECTED DAY PANEL (v1.5.2 — × keeps month context) */
+  /* SELECTED DAY PANEL */
 
   function renderSelectedDayPanel() {
     if (!state.selectedDayKey) return null;
@@ -617,7 +833,6 @@
     var entry = state.entries[state.selectedDayKey];
     var dateStr = formatDateFromKey(state.selectedDayKey);
 
-    // BUG FIX A: × only closes panel, keeps month view
     var closeBtn = el('button', {
       class: 'hb-tracker-selected-day-close',
       type: 'button',
@@ -625,7 +840,6 @@
       'aria-label': 'Close past day view, stay on current month',
       onclick: function() {
         state.selectedDayKey = null;
-        // viewMonthOffset NOT changed — user stays on the same month they were browsing
         renderTracker();
       }
     }, '×');
@@ -638,7 +852,6 @@
       closeBtn
     ]);
 
-    // Return button: closes panel AND returns to current month
     var returnBtn = el('button', {
       class: 'hb-tracker-selected-day-return',
       type: 'button',
@@ -765,7 +978,7 @@
     ]);
   }
 
-  /* FIELD: ENERGY SCALE */
+  /* FIELDS */
 
   function renderEnergyField() {
     var fieldDef = HB_TRACKER_DATA.fields.energy;
@@ -799,14 +1012,11 @@
     return el('div', { class: 'hb-tracker-field' }, [
       el('p', { class: 'hb-tracker-field-label' }, fieldDef.label),
       el('div', { class: 'hb-tracker-scale' }, [
-        emojiRow,
-        buttonsRow,
+        emojiRow, buttonsRow,
         el('p', { class: 'hb-tracker-scale-label' }, labelText)
       ])
     ]);
   }
-
-  /* FIELD: SLEEP SLIDER */
 
   function renderSleepField() {
     var fieldDef = HB_TRACKER_DATA.fields.sleep;
@@ -843,8 +1053,6 @@
     ]);
   }
 
-  /* FIELD: CYCLE DAY */
-
   function renderCycleDayField() {
     if (!typeConfig.cycleVisible) return null;
 
@@ -877,8 +1085,6 @@
       el('div', { class: 'hb-tracker-number-wrapper' }, [input])
     ]);
   }
-
-  /* FIELD: SYMPTOMS */
 
   function renderSymptomsField() {
     var fieldDef = HB_TRACKER_DATA.fields.symptoms;
@@ -933,12 +1139,9 @@
     return el('div', { class: 'hb-tracker-field' }, [
       el('p', { class: 'hb-tracker-field-label is-optional' }, fieldDef.label),
       el('p', { class: 'hb-tracker-field-help' }, fieldDef.helpText),
-      chipsRow,
-      counter
+      chipsRow, counter
     ]);
   }
-
-  /* FIELD: NOTES */
 
   function renderNotesField() {
     var fieldDef = HB_TRACKER_DATA.fields.notes;
@@ -1018,9 +1221,7 @@
       trackEvent('log_update', { hormone_type: state.hormoneType });
     }
 
-    if (milestone) {
-      trackEvent('streak_milestone', { days: milestone });
-    }
+    if (milestone) trackEvent('streak_milestone', { days: milestone });
 
     state.saveJustSucceeded = true;
     renderTracker();
@@ -1031,7 +1232,7 @@
     }, 2200);
   }
 
-  /* MAIN TRACKER RENDER (v1.5.2 — 3 modes) */
+  /* MAIN TRACKER RENDER (v1.6.0 — form-first in TODAY mode) */
 
   function renderTracker() {
     clearRoot();
@@ -1043,23 +1244,19 @@
     var children = [renderHeader()];
 
     if (isViewingPastDay) {
-      // PAST DAY MODE
       children.push(renderPastDayHint());
       children.push(renderHeatmapCalendar());
       var selectedPanel = renderSelectedDayPanel();
       if (selectedPanel) children.push(selectedPanel);
     } else if (isViewingPastMonth) {
-      // PAST MONTH MODE (NEW v1.5.2) — no form, no banner
       children.push(renderPastMonthHint());
       children.push(renderHeatmapCalendar());
       children.push(renderJourneyProgress());
     } else {
-      // TODAY MODE
+      // TODAY MODE — FORM FIRST (v1.6.0)
       if (hasLoggedToday) {
         children.push(renderLoggedTodayBanner());
       }
-      children.push(renderHeatmapCalendar());
-      children.push(renderJourneyProgress());
       children.push(renderEnergyField());
       children.push(renderSleepField());
       var cycleField = renderCycleDayField();
@@ -1067,6 +1264,10 @@
       children.push(renderSymptomsField());
       children.push(renderNotesField());
       children.push(renderSaveButton());
+      children.push(renderDivider());
+      children.push(renderHistorySectionEyebrow());
+      children.push(renderHeatmapCalendar());
+      children.push(renderJourneyProgress());
     }
 
     rootEl.appendChild(el('div', { class: 'hb-tracker' }, children));
@@ -1084,12 +1285,26 @@
     if (!rootEl) return;
 
     injectExtraStyles();
+    injectReturningUserStyles();
+    injectCollapseStyles();
 
     state.today = getTodayKey();
     state.viewMonthOffset = 0;
     loadEntries();
     loadStreak();
     loadQuizHormoneType();
+
+    if (state.hormoneType) {
+      applyReturningUserMode();
+    }
+
+    if (document.readyState === 'complete') {
+      applyAboutFAQCollapse();
+    } else {
+      window.addEventListener('load', function() {
+        applyAboutFAQCollapse();
+      });
+    }
 
     if (!state.hormoneType) {
       renderNoQuizPrompt();
@@ -1113,11 +1328,14 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.5.2',
+    version: '1.6.0',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
-    getAllEntries: function() { return state.entries; }
+    getAllEntries: function() { return state.entries; },
+    _applyReturningUserMode: applyReturningUserMode,
+    _applyAboutFAQCollapse: applyAboutFAQCollapse,
+    _matchesCollapseHeading: matchesCollapseHeading
   };
 
   if (document.readyState === 'loading') {
