@@ -1,16 +1,17 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — bug fixes for midnight transition + cycle history
+ * Daily Tracker — month navigator (back/forward through history)
  *
  * Changelog:
- *   v1.4.1 — Fix midnight transition (state.today refresh), fix cycle_day history display, add aria-label.
- *   v1.4.0 — Two-mode UX: clicking past day swaps form for read-only panel; today clickable to return.
- *   v1.3.0 — Date range subtitle (month names) + click-to-view past entries.
- *   v1.2.0 — Real 5-week heatmap calendar with actual dates.
- *   v1.1.0 — Journey Progress card with milestone roadmap.
+ *   v1.5.0 — Month navigator: ‹ › arrows shift calendar 4 weeks, Today button returns.
+ *   v1.4.1 — Fix midnight transition + cycle history display + aria-label.
+ *   v1.4.0 — Two-mode UX (form vs past view).
+ *   v1.3.0 — Date range subtitle + click-to-view past entries.
+ *   v1.2.0 — Real 5-week heatmap calendar.
+ *   v1.1.0 — Journey Progress card.
  *
- * @version 1.4.1
+ * @version 1.5.0
  * @license MIT
  */
 
@@ -21,7 +22,8 @@
   var STORAGE_KEY_STREAK  = 'hb_tracker_streak';
   var QUIZ_STORAGE_KEY    = 'hb_quiz_state';
   var ROOT_ID             = 'hb-tracker-root';
-  var DATE_CHECK_INTERVAL_MS = 60000; // 60s — for midnight transition
+  var DATE_CHECK_INTERVAL_MS = 60000;
+  var MAX_BACKWARD_OFFSET = -12; // 12 months back limit
 
   var MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var MONTHS_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -34,7 +36,8 @@
     hormoneType: null,
     currentEntry: null,
     saveJustSucceeded: false,
-    selectedDayKey: null
+    selectedDayKey: null,
+    viewMonthOffset: 0  // NEW in v1.5.0: 0 = current, -1 = 1 month back, -12 = max
   };
 
   var rootEl = null;
@@ -65,7 +68,55 @@
     return DAYS_LONG[d.getDay()] + ', ' + MONTHS_LONG[d.getMonth()] + ' ' + d.getDate();
   }
 
-  /* MIDNIGHT DETECTION (NEW in v1.4.1) */
+  /* VIEW WINDOW HELPERS (NEW in v1.5.0) */
+
+  function getViewStartDate() {
+    var today = new Date();
+    var dayOfWeek = today.getDay();
+    var daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    // Default: today - daysToMonday - 28 (Monday 4 weeks before this week's Monday)
+    // Offset: shift back by (offset * 28) days
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysToMonday - 28 + (state.viewMonthOffset * 28));
+  }
+
+  function getViewEndDate() {
+    var startDate = getViewStartDate();
+    return new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 34);
+  }
+
+  function isViewingTodayPeriod() {
+    return state.viewMonthOffset === 0;
+  }
+
+  function canNavigateBackward() {
+    return state.viewMonthOffset > MAX_BACKWARD_OFFSET;
+  }
+
+  function canNavigateForward() {
+    return state.viewMonthOffset < 0;
+  }
+
+  function navigateBackward() {
+    if (!canNavigateBackward()) return;
+    state.viewMonthOffset -= 1;
+    state.selectedDayKey = null;
+    renderTracker();
+  }
+
+  function navigateForward() {
+    if (!canNavigateForward()) return;
+    state.viewMonthOffset += 1;
+    state.selectedDayKey = null;
+    renderTracker();
+  }
+
+  function navigateToday() {
+    state.viewMonthOffset = 0;
+    state.selectedDayKey = null;
+    renderTracker();
+  }
+
+  /* MIDNIGHT DETECTION */
 
   function buildCurrentEntryForToday() {
     var existingEntry = state.entries[state.today];
@@ -94,6 +145,7 @@
       state.today = newToday;
       state.selectedDayKey = null;
       state.saveJustSucceeded = false;
+      state.viewMonthOffset = 0; // Reset navigation on day change
       buildCurrentEntryForToday();
       renderTracker();
     }
@@ -190,11 +242,18 @@
     style.textContent = ''
       /* Heatmap calendar */
       + '.hb-tracker-heatmap-wrap{background:#FFFFFF;border:1px solid #E8E2D3;border-radius:12px;padding:18px 20px}'
-      + '.hb-tracker-heatmap-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:6px}'
-      + '.hb-tracker-heatmap-title-group{display:flex;flex-direction:column;gap:2px}'
+      + '.hb-tracker-heatmap-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:6px}'
       + '.hb-tracker-heatmap-title{font-family:Newsreader,Georgia,serif;font-size:17px;color:#1A2A4A;margin:0;font-weight:500;letter-spacing:-0.01em}'
-      + '.hb-tracker-heatmap-daterange{font-size:12px;color:#8B928E;margin:0;font-weight:500}'
-      + '.hb-tracker-heatmap-subtitle{font-size:12px;color:#8B928E;font-weight:500;margin-top:2px}'
+      + '.hb-tracker-heatmap-subtitle{font-size:12px;color:#8B928E;font-weight:500}'
+      /* Calendar navigation (NEW in v1.5.0) */
+      + '.hb-tracker-cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:4px 0}'
+      + '.hb-tracker-cal-nav-btn{width:30px;height:30px;border-radius:50%;background:#FFFFFF;border:1px solid #E8E2D3;color:#1A2A4A;font-size:18px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;transition:all 150ms;flex-shrink:0;padding:0}'
+      + '.hb-tracker-cal-nav-btn:hover:not(:disabled){background:#F1EFE8;border-color:#C9C2AE}'
+      + '.hb-tracker-cal-nav-btn:disabled{opacity:0.3;cursor:not-allowed}'
+      + '.hb-tracker-cal-nav-date{font-size:13px;color:#1A2A4A;font-weight:500;flex:1;text-align:center;font-variant-numeric:tabular-nums}'
+      + '.hb-tracker-cal-nav-today{padding:6px 14px;background:#1A2A4A;color:#FFFFFF;border:none;border-radius:100px;font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;transition:background 150ms;flex-shrink:0;letter-spacing:0.3px}'
+      + '.hb-tracker-cal-nav-today:hover{background:#0A1A3A}'
+      /* Calendar grid */
       + '.hb-tracker-heatmap-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}'
       + '.hb-tracker-heatmap-labels span{font-size:10px;color:#8B928E;text-align:center;font-weight:600;letter-spacing:0.5px}'
       + '.hb-tracker-heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}'
@@ -215,7 +274,7 @@
       + '.hb-tracker-heatmap-legend-swatches{display:flex;gap:3px;align-items:center}'
       + '.hb-tracker-heatmap-legend-swatch{width:11px;height:11px;border-radius:2px}'
       + '.hb-tracker-heatmap-legend-text{font-size:10px;color:#8B928E;margin:0 6px 0 4px}'
-      /* Past-view hint above calendar */
+      /* Past-view hint */
       + '.hb-tracker-pastview-hint{font-size:12px;color:#5F5E5A;text-align:center;margin:0 0 -4px 0;padding:6px 12px;background:#FDFBF6;border:1px dashed #C97B5C;border-radius:8px}'
       + '.hb-tracker-pastview-hint strong{color:#C97B5C}'
       /* Selected day panel */
@@ -254,7 +313,7 @@
       + '.hb-tracker-journey-item.is-active .hb-tracker-journey-label{color:#C97B5C}'
       + '.hb-tracker-journey-desc{font-size:12px;color:#5F5E5A;margin:0;line-height:1.45}'
       /* Mobile */
-      + '@media(max-width:479px){.hb-tracker-selected-day-row{flex-direction:column;align-items:flex-start;gap:4px}.hb-tracker-selected-day-value{text-align:left}.hb-tracker-selected-day-chips{justify-content:flex-start}}';
+      + '@media(max-width:479px){.hb-tracker-cal-nav-date{font-size:12px}.hb-tracker-cal-nav-today{padding:5px 10px;font-size:10px}.hb-tracker-selected-day-row{flex-direction:column;align-items:flex-start;gap:4px}.hb-tracker-selected-day-value{text-align:left}.hb-tracker-selected-day-chips{justify-content:flex-start}}';
     document.head.appendChild(style);
   }
 
@@ -361,29 +420,68 @@
     ]);
   }
 
-  /* HEATMAP CALENDAR */
+  /* CALENDAR NAVIGATION ROW (NEW in v1.5.0) */
 
-  function renderHeatmapCalendar() {
-    var today = new Date();
-    var todayKey = state.today;
-
-    var dayOfWeek = today.getDay();
-    var daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
-    var startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysToMonday - 28);
-    var endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-    var dateRange;
+  function buildDateRangeText() {
+    var startDate = getViewStartDate();
+    var endDate = getViewEndDate();
     if (startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear()) {
-      dateRange = MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ' — ' + endDate.getDate() + ', ' + endDate.getFullYear();
+      return MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ' — ' + endDate.getDate() + ', ' + endDate.getFullYear();
     } else if (startDate.getFullYear() === endDate.getFullYear()) {
-      dateRange = MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ' — ' + MONTHS_SHORT[endDate.getMonth()] + ' ' + endDate.getDate() + ', ' + endDate.getFullYear();
+      return MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ' — ' + MONTHS_SHORT[endDate.getMonth()] + ' ' + endDate.getDate() + ', ' + endDate.getFullYear();
     } else {
-      dateRange = MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ', ' + startDate.getFullYear() + ' — ' + MONTHS_SHORT[endDate.getMonth()] + ' ' + endDate.getDate() + ', ' + endDate.getFullYear();
+      return MONTHS_SHORT[startDate.getMonth()] + ' ' + startDate.getDate() + ', ' + startDate.getFullYear() + ' — ' + MONTHS_SHORT[endDate.getMonth()] + ' ' + endDate.getDate() + ', ' + endDate.getFullYear();
+    }
+  }
+
+  function renderCalendarNavigation() {
+    var backDisabled = !canNavigateBackward();
+    var fwdDisabled = !canNavigateForward();
+
+    var backBtn = el('button', {
+      class: 'hb-tracker-cal-nav-btn',
+      type: 'button',
+      'aria-label': 'View earlier weeks',
+      title: backDisabled ? '12 months back limit' : 'Earlier weeks',
+      disabled: backDisabled,
+      onclick: navigateBackward
+    }, '‹');
+
+    var fwdBtn = el('button', {
+      class: 'hb-tracker-cal-nav-btn',
+      type: 'button',
+      'aria-label': 'View later weeks',
+      title: fwdDisabled ? 'Already at current week' : 'Later weeks',
+      disabled: fwdDisabled,
+      onclick: navigateForward
+    }, '›');
+
+    var dateText = el('span', { class: 'hb-tracker-cal-nav-date' }, buildDateRangeText());
+
+    var children = [backBtn, dateText, fwdBtn];
+
+    if (!isViewingTodayPeriod()) {
+      var todayBtn = el('button', {
+        class: 'hb-tracker-cal-nav-today',
+        type: 'button',
+        'aria-label': 'Return to current week',
+        onclick: navigateToday
+      }, 'Today');
+      children.push(todayBtn);
     }
 
+    return el('div', { class: 'hb-tracker-cal-nav' }, children);
+  }
+
+  /* HEATMAP CALENDAR (UPDATED in v1.5.0) */
+
+  function renderHeatmapCalendar() {
+    var todayKey = state.today;
+    var startDate = getViewStartDate();
+    var todayDate = new Date();
+    var todayMidnight = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).getTime();
+
     var grid = el('div', { class: 'hb-tracker-heatmap-grid' });
-    var todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
 
     for (var i = 0; i < 35; i++) {
       var cellDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i);
@@ -454,12 +552,10 @@
 
     return el('div', { class: 'hb-tracker-heatmap-wrap' }, [
       el('div', { class: 'hb-tracker-heatmap-header' }, [
-        el('div', { class: 'hb-tracker-heatmap-title-group' }, [
-          el('h3', { class: 'hb-tracker-heatmap-title' }, 'Your last 5 weeks'),
-          el('p', { class: 'hb-tracker-heatmap-daterange' }, dateRange)
-        ]),
+        el('h3', { class: 'hb-tracker-heatmap-title' }, 'Your last 5 weeks'),
         el('span', { class: 'hb-tracker-heatmap-subtitle' }, subtitleText)
       ]),
+      renderCalendarNavigation(),
       labelsRow,
       grid,
       legend
@@ -490,7 +586,7 @@
     }
   }
 
-  /* SELECTED DAY PANEL (UPDATED in v1.4.1 — Bug #3 fix + aria-label) */
+  /* SELECTED DAY PANEL */
 
   function renderSelectedDayPanel() {
     if (!state.selectedDayKey) return null;
@@ -548,7 +644,6 @@
         ]));
       }
 
-      // Bug #3 fix: show cycle_day if entry HAS it, regardless of current type config
       if (entry.cycle_day != null) {
         rows.push(el('div', { class: 'hb-tracker-selected-day-row' }, [
           el('span', { class: 'hb-tracker-selected-day-label' }, 'Cycle day'),
@@ -942,7 +1037,7 @@
     rootEl.appendChild(el('div', { class: 'hb-tracker' }, children));
   }
 
-  /* INIT (UPDATED in v1.4.1 — start date-change interval) */
+  /* INIT */
 
   function init() {
     if (typeof window.HB_TRACKER_DATA === 'undefined') {
@@ -956,6 +1051,7 @@
     injectExtraStyles();
 
     state.today = getTodayKey();
+    state.viewMonthOffset = 0;
     loadEntries();
     loadStreak();
     loadQuizHormoneType();
@@ -975,7 +1071,6 @@
     buildCurrentEntryForToday();
     renderTracker();
 
-    // Start date-change watcher (Bug #1 + Bug #2 fix)
     if (dateCheckTimer) clearInterval(dateCheckTimer);
     dateCheckTimer = setInterval(checkDateChange, DATE_CHECK_INTERVAL_MS);
   }
@@ -983,7 +1078,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.4.1',
+    version: '1.5.0',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
