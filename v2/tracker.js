@@ -1,17 +1,18 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — true calendar month view (no overlap)
+ * Daily Tracker — three-mode UX (Today / Past Day / Past Month)
  *
  * Changelog:
- *   v1.5.1 — Full refactor to true calendar month grid. Fixes overlap bug.
- *   v1.5.0 — Month navigator (28-day shift, had overlap bug).
+ *   v1.5.2 — Past Month mode (no form when navigating past months) + × keeps month context.
+ *   v1.5.1 — True calendar month grid (fixes overlap bug).
+ *   v1.5.0 — Month navigator (had overlap bug).
  *   v1.4.1 — Fix midnight transition + cycle history.
  *   v1.4.0 — Two-mode UX.
  *   v1.3.0 — Click-to-view past entries.
  *   v1.2.0 — 5-week heatmap calendar.
  *
- * @version 1.5.1
+ * @version 1.5.2
  * @license MIT
  */
 
@@ -72,7 +73,7 @@
     return DAYS_LONG[d.getDay()] + ', ' + MONTHS_LONG[d.getMonth()] + ' ' + d.getDate();
   }
 
-  /* VIEW MONTH HELPERS (v1.5.1 — true calendar month) */
+  /* VIEW MONTH HELPERS */
 
   function getViewMonthYear() {
     var today = new Date();
@@ -81,13 +82,11 @@
   }
 
   function getCalendarGrid(viewYM) {
-    // First day of view month
     var firstDay = new Date(viewYM.year, viewYM.month, 1);
-    var firstDayOfWeek = firstDay.getDay(); // 0=Sun..6=Sat
-    var daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Monday-first
+    var firstDayOfWeek = firstDay.getDay();
+    var daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
-    // Last day of view month
-    var lastDay = new Date(viewYM.year, viewYM.month + 1, 0); // 0th day of next = last of this
+    var lastDay = new Date(viewYM.year, viewYM.month + 1, 0);
     var lastDayOfWeek = lastDay.getDay();
     var daysToAdd = lastDayOfWeek === 0 ? 0 : 7 - lastDayOfWeek;
 
@@ -266,9 +265,7 @@
     var style = document.createElement('style');
     style.id = 'hb-tracker-extra-styles';
     style.textContent = ''
-      /* Heatmap calendar */
       + '.hb-tracker-heatmap-wrap{background:#FFFFFF;border:1px solid #E8E2D3;border-radius:12px;padding:18px 20px}'
-      /* Calendar navigation */
       + '.hb-tracker-cal-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px}'
       + '.hb-tracker-cal-nav-btn{width:32px;height:32px;border-radius:50%;background:#FFFFFF;border:1px solid #E8E2D3;color:#1A2A4A;font-size:18px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;transition:all 150ms;flex-shrink:0;padding:0}'
       + '.hb-tracker-cal-nav-btn:hover:not(:disabled){background:#F1EFE8;border-color:#C9C2AE}'
@@ -276,7 +273,6 @@
       + '.hb-tracker-cal-nav-title{font-family:Newsreader,Georgia,serif;font-size:18px;color:#1A2A4A;font-weight:500;flex:1;text-align:center;letter-spacing:-0.01em}'
       + '.hb-tracker-cal-nav-today{padding:7px 14px;background:#1A2A4A;color:#FFFFFF;border:none;border-radius:100px;font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;transition:background 150ms;flex-shrink:0;letter-spacing:0.3px}'
       + '.hb-tracker-cal-nav-today:hover{background:#0A1A3A}'
-      /* Calendar grid */
       + '.hb-tracker-heatmap-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}'
       + '.hb-tracker-heatmap-labels span{font-size:10px;color:#8B928E;text-align:center;font-weight:600;letter-spacing:0.5px}'
       + '.hb-tracker-heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}'
@@ -299,10 +295,8 @@
       + '.hb-tracker-heatmap-legend-swatches{display:flex;gap:3px;align-items:center}'
       + '.hb-tracker-heatmap-legend-swatch{width:11px;height:11px;border-radius:2px}'
       + '.hb-tracker-heatmap-legend-text{font-size:10px;color:#8B928E;margin:0 6px 0 4px}'
-      /* Past-view hint */
-      + '.hb-tracker-pastview-hint{font-size:12px;color:#5F5E5A;text-align:center;margin:0 0 -4px 0;padding:6px 12px;background:#FDFBF6;border:1px dashed #C97B5C;border-radius:8px}'
+      + '.hb-tracker-pastview-hint{font-size:12px;color:#5F5E5A;text-align:center;margin:0 0 -4px 0;padding:8px 14px;background:#FDFBF6;border:1px dashed #C97B5C;border-radius:8px;line-height:1.5}'
       + '.hb-tracker-pastview-hint strong{color:#C97B5C}'
-      /* Selected day panel */
       + '.hb-tracker-selected-day{background:#FDFBF6;border:1px solid #E8E2D3;border-radius:12px;padding:20px 22px}'
       + '.hb-tracker-selected-day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px}'
       + '.hb-tracker-selected-day-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#C97B5C;margin:0 0 4px 0}'
@@ -321,7 +315,6 @@
       + '.hb-tracker-selected-day-notes{font-size:13px;color:#3A4555;line-height:1.55;font-style:italic;padding:8px 12px;background:#FFFFFF;border-left:2px solid #C97B5C;border-radius:0 4px 4px 0;margin:0}'
       + '.hb-tracker-selected-day-return{margin-top:18px;padding:12px 18px;background:#1A2A4A;color:#FFFFFF;border:none;border-radius:100px;font-size:13px;font-weight:500;cursor:pointer;width:100%;font-family:inherit;transition:background 150ms}'
       + '.hb-tracker-selected-day-return:hover{background:#0A1A3A}'
-      /* Journey */
       + '.hb-tracker-journey{background:#F4ECDD;border-radius:12px;padding:20px 22px;border:1px solid #EBE0CC}'
       + '.hb-tracker-journey-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#C97B5C;margin:0 0 6px 0}'
       + '.hb-tracker-journey-title{font-family:Newsreader,Georgia,serif;font-size:20px;color:#1A2A4A;margin:0 0 10px 0;font-weight:500;letter-spacing:-0.01em;line-height:1.3}'
@@ -337,7 +330,6 @@
       + '.hb-tracker-journey-item.is-unlocked .hb-tracker-journey-label{color:#085041}'
       + '.hb-tracker-journey-item.is-active .hb-tracker-journey-label{color:#C97B5C}'
       + '.hb-tracker-journey-desc{font-size:12px;color:#5F5E5A;margin:0;line-height:1.45}'
-      /* Mobile */
       + '@media(max-width:479px){.hb-tracker-cal-nav-title{font-size:16px}.hb-tracker-cal-nav-today{padding:6px 11px;font-size:10px}.hb-tracker-selected-day-row{flex-direction:column;align-items:flex-start;gap:4px}.hb-tracker-selected-day-value{text-align:left}.hb-tracker-selected-day-chips{justify-content:flex-start}}';
     document.head.appendChild(style);
   }
@@ -435,19 +427,33 @@
     ]);
   }
 
-  /* PAST-VIEW HINT */
+  /* PAST-DAY HINT */
 
-  function renderPastViewHint() {
+  function renderPastDayHint() {
     return el('p', { class: 'hb-tracker-pastview-hint' }, [
-      'Viewing past day. Tap ',
+      'Viewing a past day. Tap ',
       el('strong', null, '×'),
-      ' or ',
+      ' to close, or ',
       el('strong', null, 'Return'),
-      ' to go back.'
+      ' to go to today.'
     ]);
   }
 
-  /* CALENDAR NAVIGATION (v1.5.1 — Month YYYY title) */
+  /* PAST-MONTH HINT (NEW in v1.5.2) */
+
+  function renderPastMonthHint() {
+    var viewYM = getViewMonthYear();
+    var monthYear = MONTHS_LONG[viewYM.month] + ' ' + viewYM.year;
+    return el('p', { class: 'hb-tracker-pastview-hint' }, [
+      'Viewing ',
+      el('strong', null, monthYear),
+      '. Click a day for details, or ',
+      el('strong', null, 'Today'),
+      ' to return.'
+    ]);
+  }
+
+  /* CALENDAR NAVIGATION */
 
   function renderCalendarNavigation() {
     var viewYM = getViewMonthYear();
@@ -491,7 +497,7 @@
     return el('div', { class: 'hb-tracker-cal-nav' }, children);
   }
 
-  /* HEATMAP CALENDAR (v1.5.1 — true calendar month) */
+  /* HEATMAP CALENDAR */
 
   function renderHeatmapCalendar() {
     var viewYM = getViewMonthYear();
@@ -582,7 +588,7 @@
   function handleDayClick(dateKey) {
     if (dateKey === state.today) {
       state.selectedDayKey = null;
-      state.viewMonthOffset = 0; // ensure we're on current month when returning to today
+      state.viewMonthOffset = 0;
     } else {
       if (state.selectedDayKey === dateKey) {
         state.selectedDayKey = null;
@@ -602,7 +608,7 @@
     }
   }
 
-  /* SELECTED DAY PANEL */
+  /* SELECTED DAY PANEL (v1.5.2 — × keeps month context) */
 
   function renderSelectedDayPanel() {
     if (!state.selectedDayKey) return null;
@@ -611,14 +617,15 @@
     var entry = state.entries[state.selectedDayKey];
     var dateStr = formatDateFromKey(state.selectedDayKey);
 
+    // BUG FIX A: × only closes panel, keeps month view
     var closeBtn = el('button', {
       class: 'hb-tracker-selected-day-close',
       type: 'button',
-      title: 'Close (return to today)',
-      'aria-label': 'Close past day view and return to today',
+      title: 'Close panel (stay on this month)',
+      'aria-label': 'Close past day view, stay on current month',
       onclick: function() {
         state.selectedDayKey = null;
-        state.viewMonthOffset = 0;
+        // viewMonthOffset NOT changed — user stays on the same month they were browsing
         renderTracker();
       }
     }, '×');
@@ -631,9 +638,11 @@
       closeBtn
     ]);
 
+    // Return button: closes panel AND returns to current month
     var returnBtn = el('button', {
       class: 'hb-tracker-selected-day-return',
       type: 'button',
+      'aria-label': 'Close panel and return to current month',
       onclick: function() {
         state.selectedDayKey = null;
         state.viewMonthOffset = 0;
@@ -1022,22 +1031,30 @@
     }, 2200);
   }
 
-  /* MAIN TRACKER RENDER */
+  /* MAIN TRACKER RENDER (v1.5.2 — 3 modes) */
 
   function renderTracker() {
     clearRoot();
 
     var hasLoggedToday = !!state.entries[state.today];
     var isViewingPastDay = state.selectedDayKey && state.selectedDayKey !== state.today;
+    var isViewingPastMonth = state.viewMonthOffset !== 0 && !isViewingPastDay;
 
     var children = [renderHeader()];
 
     if (isViewingPastDay) {
-      children.push(renderPastViewHint());
+      // PAST DAY MODE
+      children.push(renderPastDayHint());
       children.push(renderHeatmapCalendar());
       var selectedPanel = renderSelectedDayPanel();
       if (selectedPanel) children.push(selectedPanel);
+    } else if (isViewingPastMonth) {
+      // PAST MONTH MODE (NEW v1.5.2) — no form, no banner
+      children.push(renderPastMonthHint());
+      children.push(renderHeatmapCalendar());
+      children.push(renderJourneyProgress());
     } else {
+      // TODAY MODE
       if (hasLoggedToday) {
         children.push(renderLoggedTodayBanner());
       }
@@ -1096,7 +1113,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.5.1',
+    version: '1.5.2',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
