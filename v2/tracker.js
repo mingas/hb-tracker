@@ -1,8 +1,18 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.7.0
- *   v1.7.0 — Calendar alignment fix (visible bug user reported):
+ * Daily Tracker — v1.7.1
+ *   v1.7.1 — Calendar alignment fix (round 2).
+ *            v1.7.0 fixed labels (added display:block + width:100%) but cells
+ *            were still rendered at natural <button> width (smaller than column).
+ *            Cause: <button> grid items with aspect-ratio:1 default to intrinsic
+ *            size, ignoring justify-self:stretch when content is narrow.
+ *            Fix: .hb-tracker-heatmap-cell gets width:100% + min-width:0 so each
+ *            cell explicitly fills its 1fr column. aspect-ratio:1 then makes
+ *            height = full column width, producing square cells that line up
+ *            vertically under each day label.
+ *   v1.7.0 — Calendar label alignment (display:block on label spans).
+ *   v1.6.9 — Emoji rendering fixes.
  *            Day-of-week labels (M T W T F S S) were rendered as <span>
  *            inside a CSS grid. Spans default to inline-block in grid items,
  *            sitting at justify-self:start (left edge of column), while
@@ -396,7 +406,7 @@
   function renderCompactBar() {
     var typeName = getHormoneTypeDisplay(state.hormoneType);
     var emojiChar = getHormoneTypeEmoji(state.hormoneType);
-    console.log('[HB v1.7.0] state.hormoneType=' + JSON.stringify(state.hormoneType) + ' emoji=' + JSON.stringify(emojiChar) + ' codepoints=' + (emojiChar ? Array.from(emojiChar).map(function(c){return 'U+'+c.codePointAt(0).toString(16).toUpperCase();}).join(',') : 'none'));
+    console.log('[HB v1.7.1] state.hormoneType=' + JSON.stringify(state.hormoneType) + ' emoji=' + JSON.stringify(emojiChar) + ' codepoints=' + (emojiChar ? Array.from(emojiChar).map(function(c){return 'U+'+c.codePointAt(0).toString(16).toUpperCase();}).join(',') : 'none'));
     var emojiSpan = el('span', { class: 'hb-compact-bar-emoji', 'aria-hidden': 'true' }, emojiChar);
     var labelSpan = el('span', { class: 'hb-compact-bar-label' }, 'Hormone Type');
     var typeSpan = el('span', { class: 'hb-compact-bar-type' }, typeName);
@@ -562,7 +572,7 @@
 
     if (items.length <= 2) return false;
 
-    console.log('[HB v1.7.0] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
+    console.log('[HB v1.7.1] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
 
     var hidden = items.slice(2);
     var allHidden = hidden.slice();
@@ -670,7 +680,7 @@
       + '.hb-tracker-heatmap-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}'
       + '.hb-tracker-heatmap-labels span{display:block;width:100%;font-size:10px;color:#8B928E;text-align:center;font-weight:600;letter-spacing:0.5px}'
       + '.hb-tracker-heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}'
-      + '.hb-tracker-heatmap-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8B928E;background:#F1EFE8;cursor:default;transition:transform 100ms,opacity 100ms;border:none;padding:0;font-family:inherit}'
+      + '.hb-tracker-heatmap-cell{width:100%;min-width:0;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8B928E;background:#F1EFE8;cursor:default;transition:transform 100ms,opacity 100ms;border:none;padding:0;font-family:inherit}'
       + '.hb-tracker-heatmap-cell.is-clickable{cursor:pointer}'
       + '.hb-tracker-heatmap-cell.is-clickable:hover{transform:scale(1.08)}'
       + '.hb-tracker-heatmap-cell.is-spillover{opacity:0.35}'
@@ -1521,28 +1531,4 @@
     renderTracker();
 
     if (dateCheckTimer) clearInterval(dateCheckTimer);
-    dateCheckTimer = setInterval(checkDateChange, DATE_CHECK_INTERVAL_MS);
-  }
-
-  /* EXPORT GLOBAL */
-
-  window.HB_TRACKER = {
-    version: '1.7.0',
-    mount: init,
-    getEntry: function(dateKey) { return state.entries[dateKey] || null; },
-    getStreak: function() { return state.streak; },
-    getAllEntries: function() { return state.entries; },
-    // Exposed for testing
-    _applyReturningUserMode: applyReturningUserMode,
-    _applyAboutFAQCollapse: applyAboutFAQCollapse,
-    _matchesCollapseHeading: matchesCollapseHeading,
-    _getHormoneTypeDisplay: getHormoneTypeDisplay
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
-})();
+    dateC
