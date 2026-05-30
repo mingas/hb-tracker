@@ -1,11 +1,12 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.6.4
- *   v1.6.4 — Aggressive wrapper hiding: walk up DOM from #hb-quiz-root to hide
- *            placeholder section wrapper. Increase hideEmptyParents depth.
- *            Also hide <hr> dividers between collapsed FAQ items.
- *            Add console.log debug output for live DOM inspection.
+ * Daily Tracker — v1.6.5
+ *   v1.6.5 — COMMON ANCESTOR strategy: instead of walking up parents looking for
+ *            "empty" wrappers, find the common ancestor of first-kept and last-hidden
+ *            items, then hide EVERY descendant between them in DOM order.
+ *            This kills border-bottom dividers, hr lines, and any wrapper artifacts.
+ *   v1.6.4 — Aggressive wrapper hiding + debug logging.
  *   v1.6.3 — Hide .hb-quiz-placeholder wrapper and FAQ item wrappers.
  *   v1.6.2 — Fix About/FAQ collapse for nested container structure.
  *   v1.6.1 — Webflow-specific selectors.
@@ -476,7 +477,8 @@
   }
 
   // Collapse About section: keep heading + first <p> visible, hide rest
-  // Uses DOM position comparison to find <p> elements across container divs
+  // STRATEGY: same common-ancestor approach as FAQ — hide everything in DOM order
+  // after first paragraph, within the smallest common container.
   function collapseAboutSection(heading, faqHeading) {
     if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
 
@@ -487,7 +489,7 @@
       var p = allParas[i];
       if (!isAfter(heading, p)) continue;
       if (faqHeading && !isBefore(faqHeading, p)) continue;
-      // Skip eyebrows, FAQ answers, tracker/quiz internals
+      // Skip eyebrows, FAQ answers, tracker/quiz internals, footer
       if (p.classList.contains('hb-seo-eyebrow')) continue;
       if (p.classList.contains('hb-faq-eyebrow')) continue;
       if (p.classList.contains('hb-faq-answer')) continue;
@@ -499,16 +501,70 @@
 
     if (paragraphs.length <= 1) return false;
 
-    var hidden = paragraphs.slice(1);
-    hidden.forEach(function(p) { p.classList.add('hb-collapsed'); });
-    // Hide empty parent wrappers (removes leftover dividers/backgrounds)
-    hidden.forEach(function(p) { hideEmptyParents(p, 3); });
+    console.log('[HB v1.6.5] About: found ' + paragraphs.length + ' paragraphs');
+
+    var firstP = paragraphs[0];           // keep visible
+    var toHide = paragraphs.slice(1);
+    var lastHidden = toHide[toHide.length - 1];
+
+    var commonAncestor = findCommonAncestor(firstP, lastHidden);
+    if (!commonAncestor) {
+      // Fallback to simple hide
+      toHide.forEach(function(p) { p.classList.add('hb-collapsed'); });
+      if (heading.dataset) heading.dataset.hbCollapsed = '1';
+      addCollapseToggle(firstP, toHide, 'About');
+      return true;
+    }
+
+    // Safety: if commonAncestor is too broad (body/main/html), constrain to firstP's parent
+    var tag = commonAncestor.tagName;
+    if (tag === 'BODY' || tag === 'HTML' || tag === 'MAIN') {
+      commonAncestor = firstP.parentElement || commonAncestor;
+    }
+
+    console.log('[HB v1.6.5] About common ancestor:',
+      commonAncestor.tagName, commonAncestor.className || '(no class)');
+
+    // Hide every descendant of commonAncestor that appears AFTER firstP
+    // BUT must come BEFORE faqHeading (don't bleed into FAQ section)
+    var hiddenCount = 0;
+    var allDescendants = commonAncestor.querySelectorAll('*');
+    for (var j = 0; j < allDescendants.length; j++) {
+      var node = allDescendants[j];
+      if (!isAfter(firstP, node)) continue;
+      if (faqHeading && !isBefore(faqHeading, node)) continue;
+      if (node.contains(firstP)) continue;
+      if (node.classList.contains('hb-collapsed')) continue;
+      if (node === firstP) continue;
+      if (node.tagName === 'FOOTER' || node.closest('footer')) continue;
+      if (isInsideAppRoots(node)) continue;
+      // Don't hide the FAQ heading or its content
+      if (faqHeading && (node === faqHeading || node.contains(faqHeading))) continue;
+      node.classList.add('hb-collapsed');
+      hiddenCount++;
+    }
+
+    console.log('[HB v1.6.5] About hidden ' + hiddenCount + ' elements after first paragraph');
+
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
-    addCollapseToggle(paragraphs[0], hidden, 'About');
+    addCollapseToggle(firstP, toHide, 'About');
     return true;
   }
 
-  // Collapse FAQ section: keep heading + first Q+A pair visible, hide rest
+  // Helper: find the closest common ancestor of two elements
+  function findCommonAncestor(a, b) {
+    if (!a || !b) return null;
+    var ancestor = a;
+    while (ancestor && !ancestor.contains(b)) {
+      ancestor = ancestor.parentElement;
+    }
+    return ancestor;
+  }
+
+  // Collapse FAQ section: keep heading + first Q+A pair visible, hide rest.
+  // STRATEGY: find common ancestor of first answer and last Q/A, then hide every
+  // descendant element between them in DOM order. This kills all wrappers, hr lines,
+  // border-bottom dividers, and any other visual artifacts.
   function collapseFAQSection(heading) {
     if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
 
@@ -524,52 +580,53 @@
 
     if (items.length <= 2) return false;
 
-    console.log('[HB v1.6.4] FAQ: found ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
+    console.log('[HB v1.6.5] FAQ: found ' + items.length + ' Q/A items');
 
-    var hidden = items.slice(2);
-    hidden.forEach(function(el) { el.classList.add('hb-collapsed'); });
-    // Hide empty parent wrappers (deeper depth = 5)
-    hidden.forEach(function(el) { hideEmptyParents(el, 5); });
+    var firstQ = items[0];           // h3 - keep visible
+    var firstA = items[1];           // p  - keep visible
+    var toHide = items.slice(2);     // 4×Q + 4×A = 8 items typically
+    var lastHidden = toHide[toHide.length - 1];
 
-    // ALSO hide <hr> elements that are AFTER the first visible Q+A pair
-    // (these are horizontal divider lines between FAQ items)
-    var allHRs = document.querySelectorAll('hr');
-    var firstAnswerAfterHeading = items[1]; // The kept-visible answer
-    for (var h = 0; h < allHRs.length; h++) {
-      var hr = allHRs[h];
-      if (isAfter(firstAnswerAfterHeading, hr) && !isInsideAppRoots(hr)) {
-        hr.classList.add('hb-collapsed');
-        console.log('[HB v1.6.4] Hidden <hr> divider');
-      }
+    // Find common ancestor of firstA and lastHidden — that's the FAQ container
+    var commonAncestor = findCommonAncestor(firstA, lastHidden);
+    if (!commonAncestor) {
+      console.log('[HB v1.6.5] FAQ: no common ancestor, fallback to simple hide');
+      toHide.forEach(function(el) { el.classList.add('hb-collapsed'); });
+      addCollapseToggle(firstA, toHide, 'FAQ');
+      if (heading.dataset) heading.dataset.hbCollapsed = '1';
+      return true;
     }
 
-    // ALSO hide siblings of hidden items that are DOM-positioned between them
-    // (catches divider divs that aren't wrappers but separators)
-    var visibleSiblings = [];
-    hidden.forEach(function(el) {
-      var parent = el.parentElement;
-      if (!parent) return;
-      for (var s = 0; s < parent.children.length; s++) {
-        var sib = parent.children[s];
-        if (sib === el) continue;
-        if (sib.classList.contains('hb-collapsed')) continue;
-        // Only hide siblings that are clearly dividers/spacers (no text content, no children that contain headings)
-        var hasText = sib.textContent && sib.textContent.trim().length > 5;
-        var hasHeading = sib.querySelector && sib.querySelector('h1, h2, h3, h4, h5, h6');
-        if (!hasText && !hasHeading) {
-          // Likely a divider/spacer
-          var rect = sib.getBoundingClientRect ? sib.getBoundingClientRect() : null;
-          // Hide if it's narrow/short (divider-like) OR if it's between hidden items
-          if (isAfter(firstAnswerAfterHeading, sib)) {
-            sib.classList.add('hb-collapsed');
-            console.log('[HB v1.6.4] Hidden empty sibling:', sib.tagName, sib.className || '(no class)');
-          }
-        }
-      }
-    });
+    console.log('[HB v1.6.5] FAQ common ancestor:',
+      commonAncestor.tagName, commonAncestor.className || '(no class)');
+
+    // Walk descendants of commonAncestor in DOM order; hide every element
+    // that appears AFTER firstA (and is not the firstA itself or its ancestors)
+    var hiddenCount = 0;
+    var allDescendants = commonAncestor.querySelectorAll('*');
+    for (var j = 0; j < allDescendants.length; j++) {
+      var node = allDescendants[j];
+      // Must come strictly after firstA in DOM order
+      if (!isAfter(firstA, node)) continue;
+      // Skip firstA's ancestors (we don't want to hide a parent of firstA)
+      if (node.contains(firstA)) continue;
+      // Skip if already collapsed
+      if (node.classList.contains('hb-collapsed')) continue;
+      // Skip if it IS firstA (shouldn't happen but defensive)
+      if (node === firstA) continue;
+      // Skip footer-related (in case commonAncestor is body)
+      if (node.tagName === 'FOOTER' || node.closest('footer')) continue;
+      // Skip app roots
+      if (isInsideAppRoots(node)) continue;
+      // Hide this node
+      node.classList.add('hb-collapsed');
+      hiddenCount++;
+    }
+
+    console.log('[HB v1.6.5] FAQ hidden ' + hiddenCount + ' elements after first Q+A');
 
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
-    addCollapseToggle(items[1], hidden, 'FAQ');
+    addCollapseToggle(firstA, toHide, 'FAQ');
     return true;
   }
 
@@ -1493,7 +1550,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.6.4',
+    version: '1.6.5',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
