@@ -1,10 +1,13 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.6.3
- *   v1.6.3 — Hide .hb-quiz-placeholder wrapper (white empty card) and FAQ item
- *            wrappers so border-bottom dividers don't leak through when Q+A are collapsed.
- *   v1.6.2 — Fix About/FAQ collapse for nested container structure (compareDocumentPosition).
+ * Daily Tracker — v1.6.4
+ *   v1.6.4 — Aggressive wrapper hiding: walk up DOM from #hb-quiz-root to hide
+ *            placeholder section wrapper. Increase hideEmptyParents depth.
+ *            Also hide <hr> dividers between collapsed FAQ items.
+ *            Add console.log debug output for live DOM inspection.
+ *   v1.6.3 — Hide .hb-quiz-placeholder wrapper and FAQ item wrappers.
+ *   v1.6.2 — Fix About/FAQ collapse for nested container structure.
  *   v1.6.1 — Webflow-specific selectors.
  *   v1.6.0 — Returning user UX (compact bar + About/FAQ collapse + form-first)
  *   v1.5.2 — Past Month mode.
@@ -305,6 +308,62 @@
       return;
     }
     document.body.classList.add('hb-returning');
+
+    // Walk up DOM from #hb-quiz-root to hide its section/container wrapper
+    // (the white empty card with rounded corners)
+    var quizRoot = document.getElementById('hb-quiz-root');
+    if (quizRoot) {
+      console.log('[HB v1.6.4] #hb-quiz-root found, walking up to hide wrapper');
+      console.log('[HB v1.6.4] quiz-root parent chain:');
+      var node = quizRoot;
+      var chain = [];
+      for (var i = 0; i < 6 && node; i++) {
+        chain.push({
+          tag: node.tagName,
+          id: node.id || '',
+          classes: node.className || '',
+          childCount: node.children ? node.children.length : 0
+        });
+        node = node.parentElement;
+      }
+      console.log(JSON.stringify(chain, null, 2));
+
+      // Walk up and hide the closest meaningful wrapper:
+      // - Stop at SECTION/MAIN/BODY
+      // - Hide if parent only contains quizRoot or placeholder-related children
+      var current = quizRoot;
+      for (var j = 0; j < 4; j++) {
+        var parent = current.parentElement;
+        if (!parent) break;
+        var ptag = parent.tagName;
+        // Stop at major boundaries
+        if (ptag === 'BODY' || ptag === 'MAIN' || ptag === 'HTML') break;
+        // Hide this wrapper if it has ≤1 visible non-tracker children
+        var visibleNonTracker = 0;
+        for (var k = 0; k < parent.children.length; k++) {
+          var ch = parent.children[k];
+          if (ch.id === 'hb-tracker-root') continue;
+          // Section/div wrapping tracker — that's our own added section, skip
+          if (ch.contains && ch.contains(document.getElementById('hb-tracker-root'))) continue;
+          if (!ch.classList.contains('hb-collapsed')) visibleNonTracker++;
+        }
+        // If parent's only non-tracker visible child is what we're walking up from, hide parent
+        if (visibleNonTracker <= 1) {
+          current.classList.add('hb-collapsed');
+          console.log('[HB v1.6.4] Hidden wrapper:', current.tagName, current.className || '(no class)');
+          current = parent;
+          // Stop if we reached a SECTION (don't hide the section itself, just nested wrappers)
+          if (ptag === 'SECTION') break;
+        } else {
+          // Parent has other visible content — hide just current, not parent
+          current.classList.add('hb-collapsed');
+          console.log('[HB v1.6.4] Hidden current only:', current.tagName, current.className || '(no class)');
+          break;
+        }
+      }
+    } else {
+      console.log('[HB v1.6.4] #hb-quiz-root not found');
+    }
   }
 
   function renderCompactBar() {
@@ -465,10 +524,50 @@
 
     if (items.length <= 2) return false;
 
+    console.log('[HB v1.6.4] FAQ: found ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
+
     var hidden = items.slice(2);
     hidden.forEach(function(el) { el.classList.add('hb-collapsed'); });
-    // Hide empty parent wrappers (removes leftover dividers between FAQ items)
-    hidden.forEach(function(el) { hideEmptyParents(el, 3); });
+    // Hide empty parent wrappers (deeper depth = 5)
+    hidden.forEach(function(el) { hideEmptyParents(el, 5); });
+
+    // ALSO hide <hr> elements that are AFTER the first visible Q+A pair
+    // (these are horizontal divider lines between FAQ items)
+    var allHRs = document.querySelectorAll('hr');
+    var firstAnswerAfterHeading = items[1]; // The kept-visible answer
+    for (var h = 0; h < allHRs.length; h++) {
+      var hr = allHRs[h];
+      if (isAfter(firstAnswerAfterHeading, hr) && !isInsideAppRoots(hr)) {
+        hr.classList.add('hb-collapsed');
+        console.log('[HB v1.6.4] Hidden <hr> divider');
+      }
+    }
+
+    // ALSO hide siblings of hidden items that are DOM-positioned between them
+    // (catches divider divs that aren't wrappers but separators)
+    var visibleSiblings = [];
+    hidden.forEach(function(el) {
+      var parent = el.parentElement;
+      if (!parent) return;
+      for (var s = 0; s < parent.children.length; s++) {
+        var sib = parent.children[s];
+        if (sib === el) continue;
+        if (sib.classList.contains('hb-collapsed')) continue;
+        // Only hide siblings that are clearly dividers/spacers (no text content, no children that contain headings)
+        var hasText = sib.textContent && sib.textContent.trim().length > 5;
+        var hasHeading = sib.querySelector && sib.querySelector('h1, h2, h3, h4, h5, h6');
+        if (!hasText && !hasHeading) {
+          // Likely a divider/spacer
+          var rect = sib.getBoundingClientRect ? sib.getBoundingClientRect() : null;
+          // Hide if it's narrow/short (divider-like) OR if it's between hidden items
+          if (isAfter(firstAnswerAfterHeading, sib)) {
+            sib.classList.add('hb-collapsed');
+            console.log('[HB v1.6.4] Hidden empty sibling:', sib.tagName, sib.className || '(no class)');
+          }
+        }
+      }
+    });
+
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
     addCollapseToggle(items[1], hidden, 'FAQ');
     return true;
@@ -1394,7 +1493,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.6.3',
+    version: '1.6.4',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
