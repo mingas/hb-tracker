@@ -1,13 +1,17 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.6.7
- *   v1.6.7 — COMBINED FIX. Three problems solved in one version:
- *            (1) White placeholder card wrapper hidden via DOM walk-up from #hb-quiz-root
- *                (was in v1.6.4 but lost in v1.6.6 rollback).
- *            (2) FAQ item wrappers hidden via hideEmptyParents (kept from v1.6.6).
- *            (3) Show more toggle re-reveals BOTH Q+A items AND wrappers (kept from v1.6.6).
- *            Also keeps compact bar UNTOUCHED (no common-ancestor side effects).
+ * Daily Tracker — v1.6.8
+ *   v1.6.8 — Three fixes responding to user feedback:
+ *            (1) Compact bar now shows hormone-type EMOJI before the label/type
+ *                (\uD83C\uDF0A Cycle Surfer / \uD83D\uDD25 Estrogen Dominant / etc).
+ *            (2) FAQ section: PERMANENTLY strips all border-top, border-bottom,
+ *                box-shadow, and <hr> elements from the FAQ section regardless
+ *                of collapse state — per user: "those lines are not needed".
+ *            (3) The FAQ wrapper hiding from v1.6.7 still works for the empty
+ *                wrappers, but borders are killed independently so they stay
+ *                invisible whether collapsed or expanded.
+ *   v1.6.7 — Combined fix: placeholder + FAQ wrappers + toggle + compact bar.
  *   v1.6.6 — Show more toggle fix + rollback common ancestor.
  *   v1.6.5 — REVERTED. Common ancestor strategy broke toggle.
  *   v1.6.4 — REVERTED. Had placeholder wrapper walking but no FAQ fix.
@@ -47,6 +51,14 @@
     'progesterone_deficient':    'Progesterone Deficient',
     'perimenopause_transitioner':'Perimenopause Transitioner',
     'postmenopause_renewer':     'Postmenopause Renewer'
+  };
+
+  var HORMONE_TYPE_EMOJI = {
+    'cycle_surfer':              '\uD83C\uDF0A',
+    'estrogen_dominant':         '\uD83D\uDD25',
+    'progesterone_deficient':    '\uD83C\uDF11',
+    'perimenopause_transitioner':'\uD83C\uDF17',
+    'postmenopause_renewer':     '\u2600\uFE0F'
   };
 
   var state = {
@@ -285,6 +297,7 @@
       // Compact bar (rendered inside tracker, at top)
       + '.hb-compact-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#F4ECDD;border:1px solid #EBE0CC;border-radius:12px;margin:0 0 20px 0;font-family:inherit;gap:14px;box-sizing:border-box}'
       + '.hb-compact-bar-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;overflow:hidden}'
+      + '.hb-compact-bar-emoji{font-size:20px;line-height:1;flex-shrink:0}'
       + '.hb-compact-bar-label{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#5F5E5A;font-weight:600;flex-shrink:0}'
       + '.hb-compact-bar-type{font-size:14px;color:#1A2A4A;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.01em}'
       + '.hb-compact-bar-retake{background:transparent;border:1px solid #C9C2AE;color:#1A2A4A;font-size:12px;font-weight:500;cursor:pointer;padding:7px 14px;border-radius:100px;font-family:inherit;transition:all 150ms;white-space:nowrap;flex-shrink:0}'
@@ -349,9 +362,11 @@
 
   function renderCompactBar() {
     var typeName = getHormoneTypeDisplay(state.hormoneType);
+    var emojiChar = HORMONE_TYPE_EMOJI[state.hormoneType] || '';
+    var emojiSpan = el('span', { class: 'hb-compact-bar-emoji', 'aria-hidden': 'true' }, emojiChar);
     var labelSpan = el('span', { class: 'hb-compact-bar-label' }, 'Hormone Type');
     var typeSpan = el('span', { class: 'hb-compact-bar-type' }, typeName);
-    var leftDiv = el('div', { class: 'hb-compact-bar-left' }, [labelSpan, typeSpan]);
+    var leftDiv = el('div', { class: 'hb-compact-bar-left' }, [emojiSpan, labelSpan, typeSpan]);
     var retakeBtn = el('button', {
       class: 'hb-compact-bar-retake',
       type: 'button',
@@ -513,7 +528,7 @@
 
     if (items.length <= 2) return false;
 
-    console.log('[HB v1.6.7] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
+    console.log('[HB v1.6.8] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
 
     var hidden = items.slice(2);
     var allHidden = hidden.slice();
@@ -523,20 +538,36 @@
       var wrappers = hideEmptyParents(el, 5);
       wrappers.forEach(function(w) { allHidden.push(w); });
     });
-    // Also hide <hr> dividers AFTER first answer (between collapsed items)
-    var firstAnswer = items[1];
-    var allHRs = document.querySelectorAll('hr');
-    for (var h = 0; h < allHRs.length; h++) {
-      var hr = allHRs[h];
-      if (isAfter(firstAnswer, hr) && !isInsideAppRoots(hr) && !hr.closest('footer')) {
-        // Only hide if it's near FAQ items (in same section as FAQ heading)
-        var faqSection = heading.closest('section, [class*="faq"]');
-        if (faqSection && faqSection.contains(hr)) {
-          hr.classList.add('hb-collapsed');
-          allHidden.push(hr);
+
+    // PERMANENTLY strip all borders and <hr> from FAQ section.
+    // Per user request: those lines are not needed at all, even when expanded.
+    // Find the FAQ section by walking up from the heading.
+    var faqSection = heading;
+    var depth = 0;
+    while (faqSection && depth < 6) {
+      var tag = faqSection.tagName;
+      if (tag === 'SECTION' || tag === 'MAIN' || tag === 'BODY') break;
+      faqSection = faqSection.parentElement;
+      depth++;
+    }
+    if (faqSection) {
+      var allInFAQ = faqSection.querySelectorAll('*');
+      for (var f = 0; f < allInFAQ.length; f++) {
+        var fel = allInFAQ[f];
+        if (isInsideAppRoots(fel)) continue;
+        if (fel.tagName === 'HR') {
+          fel.style.setProperty('display', 'none', 'important');
+        } else {
+          fel.style.setProperty('border-top', '0', 'important');
+          fel.style.setProperty('border-bottom', '0', 'important');
+          fel.style.setProperty('box-shadow', 'none', 'important');
         }
       }
+      // Also strip borders from FAQ section itself
+      faqSection.style.setProperty('border-top', '0', 'important');
+      faqSection.style.setProperty('border-bottom', '0', 'important');
     }
+
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
     addCollapseToggle(items[1], allHidden, 'FAQ');
     return true;
@@ -1462,7 +1493,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.6.7',
+    version: '1.6.8',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
