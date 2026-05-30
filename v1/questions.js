@@ -163,7 +163,8 @@ window.HB_QUIZ_DATA = {
         { value: 'anxiety',           label: 'Anxiety' },
         { value: 'low_libido',        label: 'Low libido' },
         { value: 'cravings',          label: 'Cravings' },
-        { value: 'breast_tenderness', label: 'Breast tenderness' }
+        { value: 'breast_tenderness', label: 'Breast tenderness' },
+        { value: 'none',              label: 'None of these' }
       ]
     },
     {
