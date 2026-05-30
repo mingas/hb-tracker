@@ -1,22 +1,21 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.6.0
- *   Phase 1 (Returning user mode): Compact bar instead of full hero/welcome
- *   Phase 2 (About/FAQ collapse): Sections show 1 paragraph + "Show more" button
- *   Phase 3 (Form-first reorder): Today mode shows form before calendar
- *
- * Changelog:
+ * Daily Tracker — v1.6.1
+ *   v1.6.1 — Webflow-specific selectors: hide hero via body.hb-returning class targeting
+ *            actual Webflow classes (.hb-eyebrow, .hb-quiz-title, .hb-quiz-subtitle, #hb-quiz-root).
+ *            Compact bar moved inside tracker. Smart hormone type fallback (title-case).
+ *            About/FAQ collapse uses .hb-seo-title and .hb-faq-title selectors.
  *   v1.6.0 — Returning user UX (compact bar + About/FAQ collapse + form-first)
- *   v1.5.2 — Past Month mode (no form when navigating past months) + × keeps month context.
- *   v1.5.1 — True calendar month grid (fixes overlap bug).
- *   v1.5.0 — Month navigator (had overlap bug).
+ *   v1.5.2 — Past Month mode.
+ *   v1.5.1 — True calendar month grid.
+ *   v1.5.0 — Month navigator.
  *   v1.4.1 — Fix midnight transition + cycle history.
  *   v1.4.0 — Two-mode UX.
  *   v1.3.0 — Click-to-view past entries.
  *   v1.2.0 — 5-week heatmap calendar.
  *
- * @version 1.6.0
+ * @version 1.6.1
  * @license MIT
  */
 
@@ -259,7 +258,7 @@
   }
 
   /* ========================================
-     PHASE 1: RETURNING USER MODE (NEW v1.6.0)
+     PHASE 1: RETURNING USER MODE (v1.6.1 — CSS-only hiding, no DOM moving)
      ======================================== */
 
   function injectReturningUserStyles() {
@@ -267,101 +266,70 @@
     var style = document.createElement('style');
     style.id = 'hb-returning-styles';
     style.textContent = ''
-      + '.hb-compact-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#F4ECDD;border:1px solid #EBE0CC;border-radius:10px;margin:0 auto 24px auto;max-width:640px;font-family:inherit;gap:12px;box-sizing:border-box}'
-      + '.hb-compact-bar-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden}'
-      + '.hb-compact-bar-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#5F5E5A;font-weight:600;flex-shrink:0}'
-      + '.hb-compact-bar-type{font-size:14px;color:#1A2A4A;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
-      + '.hb-compact-bar-right{display:flex;gap:2px;flex-shrink:0;align-items:center}'
-      + '.hb-compact-bar-link{background:transparent;border:none;color:#C97B5C;font-size:12px;font-weight:500;cursor:pointer;padding:6px 10px;border-radius:6px;font-family:inherit;transition:background 150ms;white-space:nowrap}'
-      + '.hb-compact-bar-link:hover{background:rgba(201,123,92,0.1)}'
-      + '.hb-compact-bar-divider{color:#C9C2AE;font-size:11px;margin:0 2px}'
-      + '@media (max-width:479px){.hb-compact-bar{padding:10px 12px;margin-bottom:16px}.hb-compact-bar-label{display:none}.hb-compact-bar-type{font-size:13px}.hb-compact-bar-link{font-size:11px;padding:6px 8px}}'
-      + '.hb-quiz-hidden-wrapper{display:none}';
+      // Hide Webflow hero + quiz root + placeholders for returning users
+      + 'body.hb-returning .hb-eyebrow,'
+      + 'body.hb-returning .hb-quiz-title,'
+      + 'body.hb-returning .hb-quiz-subtitle,'
+      + 'body.hb-returning #hb-quiz-root,'
+      + 'body.hb-returning .hb-quiz-placeholder-title,'
+      + 'body.hb-returning .hb-quiz-placeholder-text{display:none !important}'
+      // Compact bar (rendered inside tracker, at top)
+      + '.hb-compact-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#F4ECDD;border:1px solid #EBE0CC;border-radius:12px;margin:0 0 20px 0;font-family:inherit;gap:14px;box-sizing:border-box}'
+      + '.hb-compact-bar-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;overflow:hidden}'
+      + '.hb-compact-bar-label{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#5F5E5A;font-weight:600;flex-shrink:0}'
+      + '.hb-compact-bar-type{font-size:14px;color:#1A2A4A;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.01em}'
+      + '.hb-compact-bar-retake{background:transparent;border:1px solid #C9C2AE;color:#1A2A4A;font-size:12px;font-weight:500;cursor:pointer;padding:7px 14px;border-radius:100px;font-family:inherit;transition:all 150ms;white-space:nowrap;flex-shrink:0}'
+      + '.hb-compact-bar-retake:hover{background:#FFFFFF;border-color:#1A2A4A}'
+      + '@media (max-width:479px){.hb-compact-bar{padding:11px 14px;gap:10px}.hb-compact-bar-label{display:none}.hb-compact-bar-type{font-size:13px}.hb-compact-bar-retake{font-size:11px;padding:6px 11px}}';
     document.head.appendChild(style);
+  }
+
+  // Smart fallback: turns any string into Title Case if not in display map
+  function getHormoneTypeDisplay(raw) {
+    if (!raw) return 'Quiz result';
+    if (HORMONE_TYPE_DISPLAY[raw]) return HORMONE_TYPE_DISPLAY[raw];
+    return String(raw)
+      .replace(/[_-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .split(' ')
+      .map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); })
+      .join(' ');
   }
 
   function applyReturningUserMode(retries) {
     retries = retries || 0;
-    if (document.querySelector('.hb-compact-bar')) return;
-
-    var quizRoot = document.getElementById('hb-quiz-root');
-    if (!quizRoot) {
-      if (retries < 20) setTimeout(function() { applyReturningUserMode(retries + 1); }, 100);
+    if (!document.body || !document.body.classList) {
+      if (retries < 20) setTimeout(function() { applyReturningUserMode(retries + 1); }, 50);
       return;
     }
-    if (quizRoot.children.length === 0) {
-      if (retries < 20) setTimeout(function() { applyReturningUserMode(retries + 1); }, 100);
-      return;
-    }
+    document.body.classList.add('hb-returning');
+  }
 
-    var hiddenWrapper = document.createElement('div');
-    hiddenWrapper.className = 'hb-quiz-hidden-wrapper';
-    while (quizRoot.firstChild) {
-      hiddenWrapper.appendChild(quizRoot.firstChild);
-    }
-    quizRoot.appendChild(hiddenWrapper);
-
-    var typeName = HORMONE_TYPE_DISPLAY[state.hormoneType] || 'Quiz result';
-
-    var labelSpan = document.createElement('span');
-    labelSpan.className = 'hb-compact-bar-label';
-    labelSpan.textContent = 'Hormone Type';
-
-    var typeSpan = document.createElement('span');
-    typeSpan.className = 'hb-compact-bar-type';
-    typeSpan.textContent = typeName;
-
-    var leftDiv = document.createElement('div');
-    leftDiv.className = 'hb-compact-bar-left';
-    leftDiv.appendChild(labelSpan);
-    leftDiv.appendChild(typeSpan);
-
-    var viewBtn = document.createElement('button');
-    viewBtn.type = 'button';
-    viewBtn.className = 'hb-compact-bar-link';
-    viewBtn.textContent = 'View result';
-    viewBtn.setAttribute('aria-label', 'View full quiz result');
-    viewBtn.addEventListener('click', function() {
-      hiddenWrapper.style.display = '';
-      bar.style.display = 'none';
-      try { if (hiddenWrapper.scrollIntoView) hiddenWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
-      trackEvent('compact_bar_view_result', { hormone_type: state.hormoneType });
-    });
-
-    var divider = document.createElement('span');
-    divider.className = 'hb-compact-bar-divider';
-    divider.textContent = '·';
-
-    var retakeBtn = document.createElement('button');
-    retakeBtn.type = 'button';
-    retakeBtn.className = 'hb-compact-bar-link';
-    retakeBtn.textContent = 'Retake';
-    retakeBtn.setAttribute('aria-label', 'Retake the quiz, clears current result');
-    retakeBtn.addEventListener('click', function() {
-      var confirmMsg = 'Retake the quiz? Your current hormone type result will be replaced (your tracker entries stay).';
-      var ok = typeof window.confirm === 'function' ? window.confirm(confirmMsg) : true;
-      if (!ok) return;
-      try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
-      trackEvent('compact_bar_retake', { hormone_type: state.hormoneType });
-      location.reload();
-    });
-
-    var rightDiv = document.createElement('div');
-    rightDiv.className = 'hb-compact-bar-right';
-    rightDiv.appendChild(viewBtn);
-    rightDiv.appendChild(divider);
-    rightDiv.appendChild(retakeBtn);
-
-    var bar = document.createElement('div');
-    bar.className = 'hb-compact-bar';
-    bar.appendChild(leftDiv);
-    bar.appendChild(rightDiv);
-
-    quizRoot.insertBefore(bar, quizRoot.firstChild);
+  function renderCompactBar() {
+    var typeName = getHormoneTypeDisplay(state.hormoneType);
+    var labelSpan = el('span', { class: 'hb-compact-bar-label' }, 'Hormone Type');
+    var typeSpan = el('span', { class: 'hb-compact-bar-type' }, typeName);
+    var leftDiv = el('div', { class: 'hb-compact-bar-left' }, [labelSpan, typeSpan]);
+    var retakeBtn = el('button', {
+      class: 'hb-compact-bar-retake',
+      type: 'button',
+      'aria-label': 'Retake the quiz, current result will be replaced',
+      onclick: function() {
+        var ok = typeof window.confirm === 'function'
+          ? window.confirm('Retake the quiz? Your hormone type result will be replaced. Your tracker entries are NOT affected.')
+          : true;
+        if (!ok) return;
+        try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
+        trackEvent('compact_bar_retake', { hormone_type: state.hormoneType });
+        location.reload();
+      }
+    }, 'Retake →');
+    return el('div', { class: 'hb-compact-bar' }, [leftDiv, retakeBtn]);
   }
 
   /* ========================================
-     PHASE 2: ABOUT / FAQ COLLAPSE (NEW v1.6.0)
+     PHASE 2: ABOUT / FAQ COLLAPSE (v1.6.1 — Webflow-specific selectors)
      ======================================== */
 
   function injectCollapseStyles() {
@@ -376,49 +344,12 @@
     document.head.appendChild(style);
   }
 
-  function isHeadingTag(tagName) {
-    return tagName === 'H1' || tagName === 'H2' || tagName === 'H3' ||
-           tagName === 'H4' || tagName === 'H5' || tagName === 'H6';
-  }
-
-  function matchesCollapseHeading(text) {
-    var t = (text || '').trim().toLowerCase();
-    if (!t) return false;
-    if (t === 'about' || t === 'about the assessment' || t === 'about this assessment') return true;
-    if (t === 'faq' || t === 'faqs' || t === 'frequently asked questions') return true;
-    return false;
-  }
-
-  function collapseSection(heading) {
-    if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
-
-    var hiddenElements = [];
-    var firstShownElement = null;
-    var current = heading.nextElementSibling;
-
-    while (current) {
-      if (isHeadingTag(current.tagName)) break;
-      if (!firstShownElement && (current.tagName === 'P' || current.tagName === 'DIV')) {
-        firstShownElement = current;
-      } else {
-        current.classList.add('hb-collapsed');
-        hiddenElements.push(current);
-      }
-      current = current.nextElementSibling;
-    }
-
-    if (hiddenElements.length === 0) {
-      return false;
-    }
-
-    if (heading.dataset) heading.dataset.hbCollapsed = '1';
-
+  function addCollapseToggle(anchorEl, hiddenElements, sectionName) {
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'hb-collapse-toggle';
     btn.textContent = 'Show more ↓';
     btn.setAttribute('aria-expanded', 'false');
-
     var isOpen = false;
     btn.addEventListener('click', function() {
       isOpen = !isOpen;
@@ -428,37 +359,94 @@
       });
       btn.textContent = isOpen ? 'Show less ↑' : 'Show more ↓';
       btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      trackEvent('content_collapse_toggle', {
-        section: (heading.textContent || '').trim().substring(0, 40),
-        opened: isOpen
-      });
+      trackEvent('content_collapse_toggle', { section: sectionName, opened: isOpen });
     });
-
-    var anchor = firstShownElement || heading;
-    if (anchor.parentNode) {
-      anchor.parentNode.insertBefore(btn, anchor.nextSibling);
+    if (anchorEl.parentNode) {
+      anchorEl.parentNode.insertBefore(btn, anchorEl.nextSibling);
     }
+  }
+
+  // Collapse About section: keep heading + first <p> visible, hide rest of <p> siblings
+  function collapseAboutSection(heading) {
+    if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
+    var paragraphs = [];
+    var current = heading.nextElementSibling;
+    while (current) {
+      if (current.tagName === 'P') paragraphs.push(current);
+      current = current.nextElementSibling;
+    }
+    if (paragraphs.length <= 1) return false;
+    var hidden = paragraphs.slice(1);
+    hidden.forEach(function(p) { p.classList.add('hb-collapsed'); });
+    if (heading.dataset) heading.dataset.hbCollapsed = '1';
+    addCollapseToggle(paragraphs[0], hidden, 'About');
     return true;
+  }
+
+  // Collapse FAQ section: keep heading + first Q+A pair visible, hide rest
+  function collapseFAQSection(heading) {
+    if (heading.dataset && heading.dataset.hbCollapsed === '1') return false;
+    var items = [];
+    var current = heading.nextElementSibling;
+    while (current) {
+      if (current.classList && (
+          current.classList.contains('hb-faq-question') ||
+          current.classList.contains('hb-faq-answer'))) {
+        items.push(current);
+      }
+      current = current.nextElementSibling;
+    }
+    if (items.length <= 2) return false;
+    var hidden = items.slice(2);
+    hidden.forEach(function(el) { el.classList.add('hb-collapsed'); });
+    if (heading.dataset) heading.dataset.hbCollapsed = '1';
+    // Anchor toggle after the first answer (items[1])
+    addCollapseToggle(items[1], hidden, 'FAQ');
+    return true;
+  }
+
+  // Generic fallback: match h1-h6 by text content (for non-Webflow pages)
+  function matchesCollapseHeading(text) {
+    var t = (text || '').trim().toLowerCase();
+    if (!t) return false;
+    if (t === 'about' || t === 'about the assessment' || t === 'about this assessment') return true;
+    if (t === 'faq' || t === 'faqs' || t === 'frequently asked questions') return true;
+    return false;
   }
 
   function applyAboutFAQCollapse(retries) {
     retries = retries || 0;
-    var headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    if (headings.length === 0 && retries < 10) {
+    var aboutHeading = document.querySelector('.hb-seo-title');
+    var faqHeading = document.querySelector('.hb-faq-title');
+
+    // Retry if headings not yet in DOM
+    if (!aboutHeading && !faqHeading && retries < 10) {
       setTimeout(function() { applyAboutFAQCollapse(retries + 1); }, 200);
       return 0;
     }
-    var collapsed = 0;
-    for (var i = 0; i < headings.length; i++) {
-      var h = headings[i];
-      if (rootEl && rootEl.contains(h)) continue;
-      var quizRoot = document.getElementById('hb-quiz-root');
-      if (quizRoot && quizRoot.contains(h)) continue;
 
-      if (matchesCollapseHeading(h.textContent)) {
-        if (collapseSection(h)) collapsed++;
+    var collapsed = 0;
+    if (aboutHeading) {
+      if (collapseAboutSection(aboutHeading)) collapsed++;
+    }
+    if (faqHeading) {
+      if (collapseFAQSection(faqHeading)) collapsed++;
+    }
+
+    // Generic fallback: if Webflow classes not found, try h1-h6 text match
+    if (collapsed === 0) {
+      var headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      for (var i = 0; i < headings.length; i++) {
+        var h = headings[i];
+        if (rootEl && rootEl.contains(h)) continue;
+        var quizRoot = document.getElementById('hb-quiz-root');
+        if (quizRoot && quizRoot.contains(h)) continue;
+        if (matchesCollapseHeading(h.textContent)) {
+          if (collapseAboutSection(h)) collapsed++;
+        }
       }
     }
+
     return collapsed;
   }
 
@@ -1232,7 +1220,7 @@
     }, 2200);
   }
 
-  /* MAIN TRACKER RENDER (v1.6.0 — form-first in TODAY mode) */
+  /* MAIN TRACKER RENDER (v1.6.1 — compact bar at top + form-first in TODAY mode) */
 
   function renderTracker() {
     clearRoot();
@@ -1241,7 +1229,14 @@
     var isViewingPastDay = state.selectedDayKey && state.selectedDayKey !== state.today;
     var isViewingPastMonth = state.viewMonthOffset !== 0 && !isViewingPastDay;
 
-    var children = [renderHeader()];
+    var children = [];
+
+    // Compact bar at top for returning users (always visible, all modes)
+    if (state.hormoneType) {
+      children.push(renderCompactBar());
+    }
+
+    children.push(renderHeader());
 
     if (isViewingPastDay) {
       children.push(renderPastDayHint());
@@ -1294,10 +1289,12 @@
     loadStreak();
     loadQuizHormoneType();
 
+    // Phase 1: Returning user mode
     if (state.hormoneType) {
       applyReturningUserMode();
     }
 
+    // Phase 2: About/FAQ collapse — run after page settles
     if (document.readyState === 'complete') {
       applyAboutFAQCollapse();
     } else {
@@ -1328,14 +1325,16 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.6.0',
+    version: '1.6.1',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
     getAllEntries: function() { return state.entries; },
+    // Exposed for testing
     _applyReturningUserMode: applyReturningUserMode,
     _applyAboutFAQCollapse: applyAboutFAQCollapse,
-    _matchesCollapseHeading: matchesCollapseHeading
+    _matchesCollapseHeading: matchesCollapseHeading,
+    _getHormoneTypeDisplay: getHormoneTypeDisplay
   };
 
   if (document.readyState === 'loading') {
