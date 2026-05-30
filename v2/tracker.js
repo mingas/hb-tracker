@@ -1,10 +1,10 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.6.2
- *   v1.6.2 — Fix About/FAQ collapse for Webflow's nested container structure.
- *            Use compareDocumentPosition to find paragraphs/Q&A across container divs
- *            instead of nextElementSibling which stops at container boundaries.
+ * Daily Tracker — v1.6.3
+ *   v1.6.3 — Hide .hb-quiz-placeholder wrapper (white empty card) and FAQ item
+ *            wrappers so border-bottom dividers don't leak through when Q+A are collapsed.
+ *   v1.6.2 — Fix About/FAQ collapse for nested container structure (compareDocumentPosition).
  *   v1.6.1 — Webflow-specific selectors.
  *   v1.6.0 — Returning user UX (compact bar + About/FAQ collapse + form-first)
  *   v1.5.2 — Past Month mode.
@@ -271,6 +271,7 @@
       + 'body.hb-returning .hb-quiz-title,'
       + 'body.hb-returning .hb-quiz-subtitle,'
       + 'body.hb-returning #hb-quiz-root,'
+      + 'body.hb-returning .hb-quiz-placeholder,'
       + 'body.hb-returning .hb-quiz-placeholder-title,'
       + 'body.hb-returning .hb-quiz-placeholder-text{display:none !important}'
       // Compact bar (rendered inside tracker, at top)
@@ -386,6 +387,35 @@
     return false;
   }
 
+  // Helper: after hiding elements, walk up and hide empty parent wrappers
+  // (those whose all element-children are now hb-collapsed or display:none)
+  // This removes leftover border-bottom dividers and white card backgrounds.
+  // Stops at: section, article, aside, main, body, or wrappers with allow-list classes.
+  function hideEmptyParents(startEl, maxDepth) {
+    maxDepth = maxDepth || 4;
+    var parent = startEl.parentElement;
+    var depth = 0;
+    while (parent && depth < maxDepth) {
+      // Don't climb past major section boundaries
+      var tag = parent.tagName;
+      if (tag === 'SECTION' || tag === 'ARTICLE' || tag === 'ASIDE' ||
+          tag === 'MAIN' || tag === 'BODY' || tag === 'NAV' ||
+          tag === 'HEADER' || tag === 'FOOTER') break;
+      // Don't hide if it has sibling text content
+      var hasVisibleChild = false;
+      for (var i = 0; i < parent.children.length; i++) {
+        var child = parent.children[i];
+        if (child.classList.contains('hb-collapsed')) continue;
+        hasVisibleChild = true;
+        break;
+      }
+      if (hasVisibleChild) break;
+      parent.classList.add('hb-collapsed');
+      parent = parent.parentElement;
+      depth++;
+    }
+  }
+
   // Collapse About section: keep heading + first <p> visible, hide rest
   // Uses DOM position comparison to find <p> elements across container divs
   function collapseAboutSection(heading, faqHeading) {
@@ -412,6 +442,8 @@
 
     var hidden = paragraphs.slice(1);
     hidden.forEach(function(p) { p.classList.add('hb-collapsed'); });
+    // Hide empty parent wrappers (removes leftover dividers/backgrounds)
+    hidden.forEach(function(p) { hideEmptyParents(p, 3); });
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
     addCollapseToggle(paragraphs[0], hidden, 'About');
     return true;
@@ -435,6 +467,8 @@
 
     var hidden = items.slice(2);
     hidden.forEach(function(el) { el.classList.add('hb-collapsed'); });
+    // Hide empty parent wrappers (removes leftover dividers between FAQ items)
+    hidden.forEach(function(el) { hideEmptyParents(el, 3); });
     if (heading.dataset) heading.dataset.hbCollapsed = '1';
     addCollapseToggle(items[1], hidden, 'FAQ');
     return true;
@@ -1360,7 +1394,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.6.2',
+    version: '1.6.3',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
