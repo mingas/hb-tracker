@@ -1,8 +1,17 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.6.8
- *   v1.6.8 — Three fixes responding to user feedback:
+ * Daily Tracker — v1.6.9
+ *   v1.6.9 — Emoji rendering fixes:
+ *            (1) getHormoneTypeEmoji() — robust lookup with normalization
+ *                fallback (matches getHormoneTypeDisplay pattern). Handles
+ *                inputs like "Perimenopause Transitioner" -> "perimenopause_transitioner".
+ *            (2) Emoji span gets explicit emoji font-family stack
+ *                (Apple Color Emoji / Segoe UI Emoji / Noto Color Emoji)
+ *                so emojis render across all OSes regardless of inherited font.
+ *            (3) Console.log emits state.hormoneType + emoji codepoints
+ *                for diagnostic visibility.
+ *   v1.6.8 — Compact bar emoji + permanently strip FAQ borders.
  *            (1) Compact bar now shows hormone-type EMOJI before the label/type
  *                (\uD83C\uDF0A Cycle Surfer / \uD83D\uDD25 Estrogen Dominant / etc).
  *            (2) FAQ section: PERMANENTLY strips all border-top, border-bottom,
@@ -297,7 +306,7 @@
       // Compact bar (rendered inside tracker, at top)
       + '.hb-compact-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#F4ECDD;border:1px solid #EBE0CC;border-radius:12px;margin:0 0 20px 0;font-family:inherit;gap:14px;box-sizing:border-box}'
       + '.hb-compact-bar-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;overflow:hidden}'
-      + '.hb-compact-bar-emoji{font-size:20px;line-height:1;flex-shrink:0}'
+      + '.hb-compact-bar-emoji{font-size:20px;line-height:1;flex-shrink:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji","Twemoji Mozilla",system-ui,sans-serif;font-style:normal;font-weight:normal}'
       + '.hb-compact-bar-label{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#5F5E5A;font-weight:600;flex-shrink:0}'
       + '.hb-compact-bar-type{font-size:14px;color:#1A2A4A;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.01em}'
       + '.hb-compact-bar-retake{background:transparent;border:1px solid #C9C2AE;color:#1A2A4A;font-size:12px;font-weight:500;cursor:pointer;padding:7px 14px;border-radius:100px;font-family:inherit;transition:all 150ms;white-space:nowrap;flex-shrink:0}'
@@ -317,6 +326,20 @@
       .split(' ')
       .map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); })
       .join(' ');
+  }
+
+  // Robust emoji lookup with normalization fallback. Tries exact key first,
+  // then normalizes input (lowercase, spaces→underscores) to match snake_case keys.
+  function getHormoneTypeEmoji(raw) {
+    if (!raw) return '';
+    if (HORMONE_TYPE_EMOJI[raw]) return HORMONE_TYPE_EMOJI[raw];
+    // Try normalizing: "Perimenopause Transitioner" → "perimenopause_transitioner"
+    var normalized = String(raw)
+      .toLowerCase()
+      .replace(/[-\s]+/g, '_')
+      .replace(/[^a-z0-9_]/g, '');
+    if (HORMONE_TYPE_EMOJI[normalized]) return HORMONE_TYPE_EMOJI[normalized];
+    return '';
   }
 
   function applyReturningUserMode(retries) {
@@ -362,7 +385,8 @@
 
   function renderCompactBar() {
     var typeName = getHormoneTypeDisplay(state.hormoneType);
-    var emojiChar = HORMONE_TYPE_EMOJI[state.hormoneType] || '';
+    var emojiChar = getHormoneTypeEmoji(state.hormoneType);
+    console.log('[HB v1.6.9] state.hormoneType=' + JSON.stringify(state.hormoneType) + ' emoji=' + JSON.stringify(emojiChar) + ' codepoints=' + (emojiChar ? Array.from(emojiChar).map(function(c){return 'U+'+c.codePointAt(0).toString(16).toUpperCase();}).join(',') : 'none'));
     var emojiSpan = el('span', { class: 'hb-compact-bar-emoji', 'aria-hidden': 'true' }, emojiChar);
     var labelSpan = el('span', { class: 'hb-compact-bar-label' }, 'Hormone Type');
     var typeSpan = el('span', { class: 'hb-compact-bar-type' }, typeName);
@@ -528,7 +552,7 @@
 
     if (items.length <= 2) return false;
 
-    console.log('[HB v1.6.8] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
+    console.log('[HB v1.6.9] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
 
     var hidden = items.slice(2);
     var allHidden = hidden.slice();
@@ -1493,7 +1517,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.6.8',
+    version: '1.6.9',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
