@@ -1,13 +1,16 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.6.6
- *   v1.6.6 — ROLLBACK from v1.6.5 common-ancestor strategy (broke Show more toggle
- *            and compact bar). Back to v1.6.3 hideEmptyParents + tracked-wrappers list:
- *            now Show more toggle reveals BOTH Q+A items AND their hidden wrappers.
- *            Adds CSS :has() rule to hide empty .hb-faq-item wrappers as belt-and-suspenders.
+ * Daily Tracker — v1.6.7
+ *   v1.6.7 — COMBINED FIX. Three problems solved in one version:
+ *            (1) White placeholder card wrapper hidden via DOM walk-up from #hb-quiz-root
+ *                (was in v1.6.4 but lost in v1.6.6 rollback).
+ *            (2) FAQ item wrappers hidden via hideEmptyParents (kept from v1.6.6).
+ *            (3) Show more toggle re-reveals BOTH Q+A items AND wrappers (kept from v1.6.6).
+ *            Also keeps compact bar UNTOUCHED (no common-ancestor side effects).
+ *   v1.6.6 — Show more toggle fix + rollback common ancestor.
  *   v1.6.5 — REVERTED. Common ancestor strategy broke toggle.
- *   v1.6.4 — REVERTED. Aggressive wrapper hiding.
+ *   v1.6.4 — REVERTED. Had placeholder wrapper walking but no FAQ fix.
  *   v1.6.3 — Hide .hb-quiz-placeholder wrapper and FAQ item wrappers.
  *   v1.6.2 — Fix About/FAQ collapse for nested container structure.
  *   v1.6.1 — Webflow-specific selectors.
@@ -310,6 +313,38 @@
       return;
     }
     document.body.classList.add('hb-returning');
+
+    // Walk up DOM from #hb-quiz-root to hide its section/container wrapper
+    // (the white empty card with rounded corners) — restored from v1.6.4.
+    // Stops at SECTION/MAIN/BODY boundaries. Skips tracker root wrapper.
+    var quizRoot = document.getElementById('hb-quiz-root');
+    if (!quizRoot) return;
+    var current = quizRoot;
+    for (var j = 0; j < 4; j++) {
+      var parent = current.parentElement;
+      if (!parent) break;
+      var ptag = parent.tagName;
+      if (ptag === 'BODY' || ptag === 'MAIN' || ptag === 'HTML') break;
+      // Count parent's children that aren't tracker root or already-collapsed
+      var visibleNonTracker = 0;
+      for (var k = 0; k < parent.children.length; k++) {
+        var ch = parent.children[k];
+        if (ch.id === 'hb-tracker-root') continue;
+        if (ch.contains && ch.contains(document.getElementById('hb-tracker-root'))) continue;
+        if (!ch.classList.contains('hb-collapsed')) visibleNonTracker++;
+      }
+      // If parent's only non-tracker visible child is current, hide current and walk up
+      if (visibleNonTracker <= 1) {
+        current.classList.add('hb-collapsed');
+        current = parent;
+        // Stop walking after hiding inside a SECTION (don't hide section itself)
+        if (ptag === 'SECTION') break;
+      } else {
+        // Parent has other visible content — hide just current
+        current.classList.add('hb-collapsed');
+        break;
+      }
+    }
   }
 
   function renderCompactBar() {
@@ -478,7 +513,7 @@
 
     if (items.length <= 2) return false;
 
-    console.log('[HB v1.6.6] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
+    console.log('[HB v1.6.7] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
 
     var hidden = items.slice(2);
     var allHidden = hidden.slice();
@@ -1427,7 +1462,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.6.6',
+    version: '1.6.7',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
