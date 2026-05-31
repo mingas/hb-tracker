@@ -16,16 +16,26 @@
  *   - Lifestyle modifiers (Q9-Q12 → intensity)
  *
  * Changelog:
+ *   v1.2.0 — audit hardening: safeArr() guards all array fields
+ *            against corrupted state (string/number/object) that
+ *            previously crashed scoreEstrogenDominant.
  *   v1.1.0 — clinical gates: ED requires estrogen symptoms;
  *            Peri & Postmeno require age >= 35 (STRAW+10).
  *   v1.0.0 — initial.
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @license MIT
  */
 
 (function() {
   'use strict';
+
+  /* Defensive helper (v1.2.0 audit hardening) — coerce to safe array.
+     Protects against corrupted localStorage state passing non-array
+     values (string/number/object/boolean) where arrays are expected,
+     which previously caused TypeError crashes in scoreEstrogenDominant. */
+  function safeArr(v) { return Array.isArray(v) ? v : []; }
+
 
   /* ============================================================
      MAIN SCORING FUNCTION
@@ -81,7 +91,7 @@
     if (a.q4_fertility === 'yes') score += 2;
 
     // No severe symptom clustering
-    const symptoms = a.q5_top_symptoms || [];
+    const symptoms = safeArr(a.q5_top_symptoms);
     if (symptoms.length <= 1) score += 2;
 
     // Feels better after period
@@ -103,7 +113,7 @@
      ============================================================ */
 
   function scoreEstrogenDominant(a) {
-    const symptoms = a.q5_top_symptoms || [];
+    const symptoms = safeArr(a.q5_top_symptoms);
 
     // GATE: must have at least one estrogen-pattern symptom
     const estrogenSymptoms = ['breast_tenderness', 'cravings', 'mood_swings', 'weight_gain', 'acne'];
@@ -144,7 +154,7 @@
   function scoreProgesteroneDeficient(a) {
     let score = 0;
 
-    const symptoms = a.q5_top_symptoms || [];
+    const symptoms = safeArr(a.q5_top_symptoms);
 
     // Classic low-progesterone symptoms
     if (symptoms.indexOf('anxiety') !== -1) score += 4;
@@ -162,7 +172,7 @@
     if (a.q11_sleep === 'poor' || a.q11_sleep === 'terrible') score += 2;
 
     // Family thyroid history (often co-occurs)
-    const family = a.q8_family_history || [];
+    const family = safeArr(a.q8_family_history);
     if (family.indexOf('thyroid') !== -1) score += 1;
 
     // Symptoms get worse — random or all the time
@@ -185,7 +195,7 @@
     if (!a.q1_age || a.q1_age < 35) return 0;
 
     let score = 0;
-    const symptoms = a.q5_top_symptoms || [];
+    const symptoms = safeArr(a.q5_top_symptoms);
 
     // Hot flashes is THE perimenopause marker
     if (symptoms.indexOf('hot_flashes') !== -1) score += 5;
@@ -207,7 +217,7 @@
     if (a.q2_last_period === '1_3_months' || a.q2_last_period === '3_12_months') score += 4;
 
     // Family history of early menopause
-    const family = a.q8_family_history || [];
+    const family = safeArr(a.q8_family_history);
     if (family.indexOf('early_menopause') !== -1) score += 2;
 
     // Cannot become pregnant easily
@@ -313,7 +323,7 @@
     if (a.q10_alcohol === 'none') hormonalAge -= 1;
 
     // Severe symptom load adds years
-    const symptoms = a.q5_top_symptoms || [];
+    const symptoms = safeArr(a.q5_top_symptoms);
     if (symptoms.length >= 3) hormonalAge += 1;
 
     // Cap at reasonable range
@@ -332,7 +342,7 @@
     let intensity = 1;
 
     // Number of symptoms reported
-    const symptoms = a.q5_top_symptoms || [];
+    const symptoms = safeArr(a.q5_top_symptoms);
     intensity += Math.min(symptoms.length, 3);
 
     // Stress level adds intensity
@@ -356,7 +366,7 @@
      ============================================================ */
 
   window.HB_QUIZ_SCORE = {
-    version: '1.1.0',
+    version: '1.2.0',
     score: score,
 
     // Exposed for debugging / testing
