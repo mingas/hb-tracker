@@ -536,27 +536,133 @@
     reader.readAsText(file);
   }
 
-  function handleDeleteAllData() {
+  function injectDeleteModalStyles() {
+    if (document.getElementById('hb-delete-modal-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-delete-modal-styles';
+    style.textContent = ''
+      + '.hb-tracker-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(26,42,74,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;animation:hbModalFadeIn 150ms ease-out}'
+      + '.hb-tracker-modal{background:#FFFFFF;border-radius:16px;padding:32px 28px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.25);animation:hbModalScaleIn 180ms ease-out;box-sizing:border-box}'
+      + '.hb-tracker-modal-icon{font-size:36px;margin-bottom:8px;text-align:center;line-height:1}'
+      + '.hb-tracker-modal-title{font-size:20px;font-weight:700;color:#1A2A4A;margin:0 0 18px 0;text-align:center}'
+      + '.hb-tracker-modal-list{background:#F4ECDD;border-radius:10px;padding:14px 18px;margin-bottom:20px}'
+      + '.hb-tracker-modal-text{font-size:13px;color:#1A2A4A;margin:0 0 8px 0;font-weight:500}'
+      + '.hb-tracker-modal-ul{margin:0 0 10px 0;padding-left:18px;color:#5A5048;font-size:13px;line-height:1.6}'
+      + '.hb-tracker-modal-ul li{margin-bottom:2px}'
+      + '.hb-tracker-modal-warning{font-size:13px;color:#B23E1E;font-weight:600;margin:0}'
+      + '.hb-tracker-modal-label{display:block;font-size:13px;color:#1A2A4A;margin-bottom:8px}'
+      + '.hb-tracker-modal-label strong{color:#B23E1E;letter-spacing:0.5px}'
+      + '.hb-tracker-modal-input{width:100%;padding:11px 14px;border:2px solid #E8E2D3;border-radius:8px;font-size:14px;font-family:inherit;color:#1A2A4A;background:#FFFFFF;box-sizing:border-box;outline:none;transition:border-color 150ms}'
+      + '.hb-tracker-modal-input:focus{border-color:#C97B5C}'
+      + '.hb-tracker-modal-actions{display:flex;gap:10px;margin-top:20px}'
+      + '.hb-tracker-modal-cancel,.hb-tracker-modal-confirm{flex:1;padding:12px 14px;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;border:1px solid;transition:all 150ms}'
+      + '.hb-tracker-modal-cancel{background:#FFFFFF;border-color:#E8E2D3;color:#1A2A4A}'
+      + '.hb-tracker-modal-cancel:hover{background:#F4ECDD}'
+      + '.hb-tracker-modal-confirm{background:#E8C5BC;border-color:#E8C5BC;color:#FFFFFF;opacity:0.55;cursor:not-allowed}'
+      + '.hb-tracker-modal-confirm.is-active{background:#B23E1E;border-color:#B23E1E;color:#FFFFFF;opacity:1;cursor:pointer}'
+      + '.hb-tracker-modal-confirm.is-active:hover{background:#8E2E15;border-color:#8E2E15}'
+      + '@keyframes hbModalFadeIn{from{opacity:0}to{opacity:1}}'
+      + '@keyframes hbModalScaleIn{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}'
+      + '@media (max-width:479px){.hb-tracker-modal{padding:24px 20px;border-radius:12px}.hb-tracker-modal-title{font-size:18px}.hb-tracker-modal-icon{font-size:32px}}';
+    document.head.appendChild(style);
+  }
+
+  function showDeleteConfirmModal() {
+    // Remove any existing modal first
+    var existing = document.getElementById('hb-tracker-delete-modal');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
     var entryCount = Object.keys(state.entries || {}).length;
-    var msg = 'Delete ALL your tracker data?\n\n'
-      + 'This will permanently remove:\n'
-      + '- ' + entryCount + ' daily logs\n'
-      + '- Your streak history\n'
-      + '- Your hormone type result\n\n'
-      + 'This cannot be undone. Continue?';
-    var ok = typeof window.confirm === 'function' ? window.confirm(msg) : false;
-    if (!ok) return;
+    var hasQuiz = !!state.hormoneType;
+    var hasStreak = !!(state.streak && state.streak.best);
 
-    var secondMsg = 'Last chance. Really delete everything?';
-    var confirmAgain = typeof window.confirm === 'function' ? window.confirm(secondMsg) : false;
-    if (!confirmAgain) return;
+    var typeInput, confirmBtn, overlay;
 
-    try { localStorage.removeItem(STORAGE_KEY_ENTRIES); } catch (e) {}
-    try { localStorage.removeItem(STORAGE_KEY_STREAK); } catch (e) {}
-    try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
+    function closeModal() {
+      if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }
 
-    trackEvent('data_delete_all', { entries_count: entryCount });
-    location.reload();
+    function performDelete() {
+      if (!typeInput || typeInput.value !== 'DELETE') return;
+      try { localStorage.removeItem(STORAGE_KEY_ENTRIES); } catch (e) {}
+      try { localStorage.removeItem(STORAGE_KEY_STREAK); } catch (e) {}
+      try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
+      trackEvent('data_delete_all', { entries_count: entryCount });
+      location.reload();
+    }
+
+    typeInput = el('input', {
+      type: 'text',
+      class: 'hb-tracker-modal-input',
+      placeholder: 'Type DELETE here',
+      autocomplete: 'off',
+      spellcheck: 'false',
+      'aria-label': 'Type DELETE to confirm',
+      oninput: function(e) {
+        var match = e.target.value === 'DELETE';
+        if (match) {
+          confirmBtn.removeAttribute('disabled');
+          confirmBtn.className = 'hb-tracker-modal-confirm is-active';
+        } else {
+          confirmBtn.setAttribute('disabled', 'true');
+          confirmBtn.className = 'hb-tracker-modal-confirm';
+        }
+      },
+      onkeydown: function(e) {
+        if (e.key === 'Enter' && typeInput.value === 'DELETE') performDelete();
+        if (e.key === 'Escape') closeModal();
+      }
+    });
+
+    confirmBtn = el('button', {
+      type: 'button',
+      class: 'hb-tracker-modal-confirm',
+      disabled: 'true',
+      onclick: performDelete
+    }, 'Delete forever');
+
+    var cancelBtn = el('button', {
+      type: 'button',
+      class: 'hb-tracker-modal-cancel',
+      onclick: closeModal
+    }, 'Cancel');
+
+    var listItems = [];
+    listItems.push(el('li', null, entryCount + ' daily ' + (entryCount === 1 ? 'log' : 'logs')));
+    if (hasStreak) listItems.push(el('li', null, 'Your streak history'));
+    if (hasQuiz) listItems.push(el('li', null, 'Your hormone type result'));
+
+    var modal = el('div', { class: 'hb-tracker-modal', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'hb-modal-title' }, [
+      el('div', { class: 'hb-tracker-modal-icon' }, '\u26A0\uFE0F'),
+      el('h3', { class: 'hb-tracker-modal-title', id: 'hb-modal-title' }, 'Delete all data?'),
+      el('div', { class: 'hb-tracker-modal-list' }, [
+        el('p', { class: 'hb-tracker-modal-text' }, 'This will permanently remove:'),
+        el('ul', { class: 'hb-tracker-modal-ul' }, listItems),
+        el('p', { class: 'hb-tracker-modal-warning' }, 'This cannot be undone.')
+      ]),
+      el('label', { class: 'hb-tracker-modal-label', for: 'hb-modal-input' }, [
+        'Type ',
+        el('strong', null, 'DELETE'),
+        ' below to confirm:'
+      ]),
+      typeInput,
+      el('div', { class: 'hb-tracker-modal-actions' }, [cancelBtn, confirmBtn])
+    ]);
+
+    overlay = el('div', {
+      id: 'hb-tracker-delete-modal',
+      class: 'hb-tracker-modal-overlay',
+      onclick: function(e) { if (e.target === overlay) closeModal(); }
+    }, [modal]);
+
+    document.body.appendChild(overlay);
+
+    // Focus input after a tick
+    setTimeout(function() { try { typeInput.focus(); } catch (e) {} }, 50);
+  }
+
+  function handleDeleteAllData() {
+    showDeleteConfirmModal();
   }
 
   function renderSettings() {
@@ -1714,6 +1820,7 @@
     injectCollapseStyles();
     injectPrivacyFooterStyles();
     injectSettingsStyles();
+    injectDeleteModalStyles();
 
     state.today = getTodayKey();
     state.viewMonthOffset = 0;
@@ -1757,7 +1864,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.7.3',
+    version: '1.7.4',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
