@@ -407,7 +407,7 @@
       'aria-label': 'Retake the quiz, current result will be replaced',
       onclick: function() {
         var ok = typeof window.confirm === 'function'
-          ? window.confirm('Retake the quiz? Your hormone type result will be replaced. Your tracker entries are NOT affected.')
+          ? window.confirm('Retake the quiz? Your hormone type will be replaced. Your daily logs are SAFE (stored in this browser).')
           : true;
         if (!ok) return;
         try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
@@ -421,6 +421,25 @@
   /* ========================================
      PHASE 2: ABOUT / FAQ COLLAPSE (v1.6.1 — Webflow-specific selectors)
      ======================================== */
+
+  function injectPrivacyFooterStyles() {
+    if (document.getElementById('hb-privacy-footer-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-privacy-footer-styles';
+    style.textContent = ''
+      + '.hb-tracker-privacy-footer{margin-top:40px;padding:20px 22px;background:#F4ECDD;border:1px solid #E8E2D3;border-radius:12px;font-size:13px;color:#5A5048;line-height:1.55;text-align:center}'
+      + '.hb-tracker-privacy-footer-title{font-weight:600;color:#1A2A4A;margin:0 0 6px 0;font-size:13px}'
+      + '.hb-tracker-privacy-footer-text{margin:0;font-size:12.5px}'
+      + '@media (max-width:479px){.hb-tracker-privacy-footer{padding:16px 18px;margin-top:32px}.hb-tracker-privacy-footer-title{font-size:12.5px}.hb-tracker-privacy-footer-text{font-size:12px}}';
+    document.head.appendChild(style);
+  }
+
+  function renderPrivacyFooter() {
+    return el('div', { class: 'hb-tracker-privacy-footer' }, [
+      el('p', { class: 'hb-tracker-privacy-footer-title' }, '\u{1F512} Your data lives in this browser only'),
+      el('p', { class: 'hb-tracker-privacy-footer-text' }, "We never see your entries \u2014 they're stored locally on this device. Clearing your browser data (cookies, cache, site data) will permanently delete all daily logs and your streak.")
+    ]);
+  }
 
   function injectCollapseStyles() {
     if (document.getElementById('hb-collapse-styles')) return;
@@ -1476,6 +1495,8 @@
       children.push(renderJourneyProgress());
     }
 
+    children.push(renderPrivacyFooter());
+
     rootEl.appendChild(el('div', { class: 'hb-tracker' }, children));
   }
 
@@ -1493,6 +1514,7 @@
     injectExtraStyles();
     injectReturningUserStyles();
     injectCollapseStyles();
+    injectPrivacyFooterStyles();
 
     state.today = getTodayKey();
     state.viewMonthOffset = 0;
@@ -1536,7 +1558,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.7.1',
+    version: '1.7.2',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
