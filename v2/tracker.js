@@ -1436,7 +1436,86 @@
 
   /* JOURNEY PROGRESS */
 
-  function renderJourneyProgress() {
+  function injectInsightsStyles() {
+    if (document.getElementById('hb-insights-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-insights-styles';
+    style.textContent = ''
+      + '.hb-tracker-insights{margin-top:28px}'
+      + '.hb-tracker-insights-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C97B5C;font-weight:600;margin:0 0 6px 0}'
+      + '.hb-tracker-insights-title{font-family:Newsreader,Georgia,serif;font-size:22px;color:#1A2A4A;margin:0 0 4px 0;font-weight:500;letter-spacing:-0.01em}'
+      + '.hb-tracker-insights-sub{font-size:13px;color:#5A5048;margin:0 0 16px 0;line-height:1.5}'
+      + '.hb-tracker-insights-empty{padding:18px 20px;background:#F4ECDD;border-radius:10px;font-size:13px;color:#5A5048;line-height:1.6;text-align:center}'
+      + '.hb-tracker-insights-list{display:flex;flex-direction:column;gap:12px;margin:0}'
+      + '.hb-tracker-insight{padding:18px 20px;background:#FFFFFF;border:1px solid #E8E2D3;border-radius:12px;border-left:4px solid #C97B5C;transition:transform 150ms,box-shadow 150ms}'
+      + '.hb-tracker-insight.is-positive{border-left-color:#5A8C5A;background:#F4F8F1}'
+      + '.hb-tracker-insight.is-actionable{border-left-color:#C97B5C}'
+      + '.hb-tracker-insight.is-info{border-left-color:#1A2A4A}'
+      + '.hb-tracker-insight.is-caution{border-left-color:#C9A449;background:#FCF8EE}'
+      + '.hb-tracker-insight-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}'
+      + '.hb-tracker-insight-icon{font-size:18px;flex-shrink:0;line-height:1.2}'
+      + '.hb-tracker-insight-headline{font-weight:600;color:#1A2A4A;font-size:14.5px;line-height:1.35;margin:0;flex:1}'
+      + '.hb-tracker-insight-body{font-size:13px;color:#3A4555;line-height:1.6;margin:0;padding-left:28px}'
+      + '.hb-tracker-insights-cta{margin-top:16px;padding:14px 18px;background:#1A2A4A;color:#FFFFFF;border-radius:10px;text-align:center;font-size:13px;line-height:1.5}'
+      + '.hb-tracker-insights-cta strong{color:#C97B5C}'
+      + '@media (max-width:479px){.hb-tracker-insights-title{font-size:20px}.hb-tracker-insight{padding:16px 16px}.hb-tracker-insight-headline{font-size:14px}.hb-tracker-insight-body{font-size:12.5px;padding-left:0;margin-top:4px}}';
+    document.head.appendChild(style);
+  }
+
+  function renderInsights() {
+    if (typeof window.HB_INSIGHTS === 'undefined' || typeof window.HB_INSIGHTS.detectPatterns !== 'function') {
+      return null;
+    }
+
+    var totalLogs = Object.keys(state.entries || {}).length;
+    // Header always visible from log 1; the body adapts to data availability
+    var insights = [];
+    try {
+      insights = window.HB_INSIGHTS.detectPatterns(state.entries, state.hormoneType) || [];
+    } catch (e) {
+      console.warn('HB Insights: detectPatterns failed', e);
+      insights = [];
+    }
+
+    var bodyEl;
+    if (totalLogs < 7) {
+      bodyEl = el('div', { class: 'hb-tracker-insights-empty' },
+        'Pattern detection unlocks after 7 logs. You have ' + totalLogs + '/7 — keep going.');
+    } else if (insights.length === 0) {
+      bodyEl = el('div', { class: 'hb-tracker-insights-empty' },
+        "No strong patterns yet — that's actually good news. Keep logging; patterns emerge as your data grows.");
+    } else {
+      var items = insights.map(function(ins) {
+        return el('div', { class: 'hb-tracker-insight is-' + (ins.severity || 'info') }, [
+          el('div', { class: 'hb-tracker-insight-head' }, [
+            el('span', { class: 'hb-tracker-insight-icon' }, ins.icon || '\u{1F4CA}'),
+            el('p', { class: 'hb-tracker-insight-headline' }, ins.headline)
+          ]),
+          el('p', { class: 'hb-tracker-insight-body' }, ins.body)
+        ]);
+      });
+      bodyEl = el('div', { class: 'hb-tracker-insights-list' }, items);
+    }
+
+    var children = [
+      el('p', { class: 'hb-tracker-insights-eyebrow' }, 'What your data shows'),
+      el('h3', { class: 'hb-tracker-insights-title' }, 'Your patterns'),
+      el('p', { class: 'hb-tracker-insights-sub' }, totalLogs >= 7 && insights.length > 0
+        ? 'Detected from your last ' + totalLogs + ' logs. The more you log, the sharper these get.'
+        : 'Tracking reveals hormonal rhythms over time. Patterns deepen with each log.'),
+      bodyEl
+    ];
+
+    if (totalLogs >= 14 && insights.length > 0) {
+      children.push(el('div', { class: 'hb-tracker-insights-cta', html:
+        'Want the full framework? <strong>The Hormone Blueprint</strong> covers each of these patterns in depth.'
+      }));
+    }
+
+    return el('div', { class: 'hb-tracker-insights' }, children);
+  }
+
+    function renderJourneyProgress() {
     var totalLogs = Object.keys(state.entries).length;
 
     var milestones = [
@@ -1779,6 +1858,8 @@
     } else if (isViewingPastMonth) {
       children.push(renderPastMonthHint());
       children.push(renderHeatmapCalendar());
+      var insightsEl = renderInsights();
+      if (insightsEl) children.push(insightsEl);
       children.push(renderJourneyProgress());
     } else {
       // TODAY MODE — FORM FIRST (v1.6.0)
@@ -1795,6 +1876,8 @@
       children.push(renderDivider());
       children.push(renderHistorySectionEyebrow());
       children.push(renderHeatmapCalendar());
+      var insightsEl = renderInsights();
+      if (insightsEl) children.push(insightsEl);
       children.push(renderJourneyProgress());
     }
 
@@ -1821,6 +1904,7 @@
     injectPrivacyFooterStyles();
     injectSettingsStyles();
     injectDeleteModalStyles();
+    injectInsightsStyles();
 
     state.today = getTodayKey();
     state.viewMonthOffset = 0;
@@ -1864,7 +1948,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.7.4',
+    version: '1.7.5',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
