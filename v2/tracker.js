@@ -422,7 +422,204 @@
      PHASE 2: ABOUT / FAQ COLLAPSE (v1.6.1 — Webflow-specific selectors)
      ======================================== */
 
-  function injectPrivacyFooterStyles() {
+  function injectSettingsStyles() {
+    if (document.getElementById('hb-settings-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-settings-styles';
+    style.textContent = ''
+      + '.hb-tracker-settings{margin-top:32px;padding:24px;background:#FFFFFF;border:1px solid #E8E2D3;border-radius:12px}'
+      + '.hb-tracker-settings-title{font-size:14px;font-weight:600;color:#1A2A4A;margin:0 0 4px 0;letter-spacing:0.3px}'
+      + '.hb-tracker-settings-subtitle{font-size:12.5px;color:#5A5048;margin:0 0 16px 0}'
+      + '.hb-tracker-settings-row{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}'
+      + '.hb-tracker-settings-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;background:#F4ECDD;border:1px solid #E8E2D3;border-radius:8px;color:#1A2A4A;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 150ms;text-align:left;width:100%}'
+      + '.hb-tracker-settings-btn:hover{background:#EFE6D0;border-color:#C9C2AE}'
+      + '.hb-tracker-settings-btn:focus-visible{outline:2px solid #C97B5C;outline-offset:2px}'
+      + '.hb-tracker-settings-btn.is-danger{background:#FFFFFF;border-color:#E8C5BC;color:#B23E1E}'
+      + '.hb-tracker-settings-btn.is-danger:hover{background:#FBEDE8;border-color:#B23E1E}'
+      + '.hb-tracker-settings-btn-icon{font-size:14px;flex-shrink:0}'
+      + '.hb-tracker-settings-btn-label{flex:1;text-align:left}'
+      + '.hb-tracker-settings-btn-hint{font-size:11.5px;color:#8B7E6E;font-weight:400;margin-top:2px}'
+      + '.hb-tracker-settings-btn.is-danger .hb-tracker-settings-btn-hint{color:#A86A56}'
+      + '.hb-tracker-settings-file-input{display:none}'
+      + '@media (max-width:479px){.hb-tracker-settings{padding:20px 18px}.hb-tracker-settings-btn{padding:10px 14px;font-size:12.5px}}';
+    document.head.appendChild(style);
+  }
+
+  function buildExportPayload() {
+    var payload = {
+      app: 'hb-tracker',
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      hormoneType: state.hormoneType || null,
+      entries: state.entries || {},
+      streak: state.streak || { current: 0, best: 0, last_log_date: null }
+    };
+    try {
+      var quizRaw = localStorage.getItem(QUIZ_STORAGE_KEY);
+      if (quizRaw) payload.quizState = JSON.parse(quizRaw);
+    } catch (e) { /* quiz state optional */ }
+    return payload;
+  }
+
+  function handleExportData() {
+    try {
+      var payload = buildExportPayload();
+      var json = JSON.stringify(payload, null, 2);
+      var blob = new Blob([json], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var d = new Date();
+      var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+      var dateStr = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+      a.href = url;
+      a.download = 'hb-tracker-backup-' + dateStr + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+      trackEvent('data_export', { entries_count: Object.keys(payload.entries).length });
+    } catch (e) {
+      console.error('HB Tracker: export failed', e);
+      if (typeof window.alert === 'function') {
+        window.alert('Sorry, export failed. Please try again.');
+      }
+    }
+  }
+
+  function handleImportData(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var payload = JSON.parse(ev.target.result);
+
+        // Validate schema
+        if (!payload || payload.app !== 'hb-tracker') {
+          throw new Error('This file does not look like an HB Tracker backup.');
+        }
+        if (!payload.entries || typeof payload.entries !== 'object' || Array.isArray(payload.entries)) {
+          throw new Error('Backup file is missing valid entries.');
+        }
+
+        // Confirm overwrite
+        var existingCount = Object.keys(state.entries || {}).length;
+        var newCount = Object.keys(payload.entries).length;
+        var msg = 'Import will REPLACE your current data.\n\n'
+          + 'Current logs: ' + existingCount + '\n'
+          + 'Import file: ' + newCount + ' logs from ' + (payload.exportedAt || 'unknown date').substring(0,10) + '\n\n'
+          + 'Continue?';
+
+        var ok = typeof window.confirm === 'function' ? window.confirm(msg) : true;
+        if (!ok) return;
+
+        // Write to localStorage
+        try { localStorage.setItem(STORAGE_KEY_ENTRIES, JSON.stringify(payload.entries)); } catch (e) {}
+        if (payload.streak && typeof payload.streak === 'object') {
+          try { localStorage.setItem(STORAGE_KEY_STREAK, JSON.stringify(payload.streak)); } catch (e) {}
+        }
+        if (payload.quizState && typeof payload.quizState === 'object') {
+          try { localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(payload.quizState)); } catch (e) {}
+        }
+
+        trackEvent('data_import', { entries_count: newCount });
+        location.reload();
+      } catch (e) {
+        console.error('HB Tracker: import failed', e);
+        if (typeof window.alert === 'function') {
+          window.alert('Import failed: ' + e.message);
+        }
+      }
+    };
+    reader.onerror = function() {
+      if (typeof window.alert === 'function') window.alert('Could not read the file.');
+    };
+    reader.readAsText(file);
+  }
+
+  function handleDeleteAllData() {
+    var entryCount = Object.keys(state.entries || {}).length;
+    var msg = 'Delete ALL your tracker data?\n\n'
+      + 'This will permanently remove:\n'
+      + '- ' + entryCount + ' daily logs\n'
+      + '- Your streak history\n'
+      + '- Your hormone type result\n\n'
+      + 'This cannot be undone. Continue?';
+    var ok = typeof window.confirm === 'function' ? window.confirm(msg) : false;
+    if (!ok) return;
+
+    var secondMsg = 'Last chance. Really delete everything?';
+    var confirmAgain = typeof window.confirm === 'function' ? window.confirm(secondMsg) : false;
+    if (!confirmAgain) return;
+
+    try { localStorage.removeItem(STORAGE_KEY_ENTRIES); } catch (e) {}
+    try { localStorage.removeItem(STORAGE_KEY_STREAK); } catch (e) {}
+    try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
+
+    trackEvent('data_delete_all', { entries_count: entryCount });
+    location.reload();
+  }
+
+  function renderSettings() {
+    var exportBtn = el('button', {
+      class: 'hb-tracker-settings-btn',
+      type: 'button',
+      onclick: handleExportData
+    }, [
+      el('span', { class: 'hb-tracker-settings-btn-icon' }, '\u2B07'),
+      el('span', { class: 'hb-tracker-settings-btn-label' }, [
+        'Export backup',
+        el('div', { class: 'hb-tracker-settings-btn-hint' }, 'Download a JSON file with all your data')
+      ])
+    ]);
+
+    var fileInput = el('input', {
+      type: 'file',
+      accept: 'application/json,.json',
+      class: 'hb-tracker-settings-file-input',
+      id: 'hb-tracker-import-input',
+      onchange: function(e) {
+        var file = e.target && e.target.files && e.target.files[0];
+        handleImportData(file);
+        try { e.target.value = ''; } catch (err) {}
+      }
+    });
+
+    var importBtn = el('button', {
+      class: 'hb-tracker-settings-btn',
+      type: 'button',
+      onclick: function() {
+        var inp = document.getElementById('hb-tracker-import-input');
+        if (inp) inp.click();
+      }
+    }, [
+      el('span', { class: 'hb-tracker-settings-btn-icon' }, '\u2B06'),
+      el('span', { class: 'hb-tracker-settings-btn-label' }, [
+        'Import backup',
+        el('div', { class: 'hb-tracker-settings-btn-hint' }, 'Restore from a previously exported JSON file')
+      ])
+    ]);
+
+    var deleteBtn = el('button', {
+      class: 'hb-tracker-settings-btn is-danger',
+      type: 'button',
+      onclick: handleDeleteAllData
+    }, [
+      el('span', { class: 'hb-tracker-settings-btn-icon' }, '\u2716'),
+      el('span', { class: 'hb-tracker-settings-btn-label' }, [
+        'Delete all data',
+        el('div', { class: 'hb-tracker-settings-btn-hint' }, 'Permanently wipe entries, streak, and quiz result')
+      ])
+    ]);
+
+    return el('div', { class: 'hb-tracker-settings' }, [
+      el('p', { class: 'hb-tracker-settings-title' }, 'Settings'),
+      el('p', { class: 'hb-tracker-settings-subtitle' }, 'Back up, restore, or wipe your tracker data.'),
+      el('div', { class: 'hb-tracker-settings-row' }, [exportBtn, importBtn, deleteBtn]),
+      fileInput
+    ]);
+  }
+
+    function injectPrivacyFooterStyles() {
     if (document.getElementById('hb-privacy-footer-styles')) return;
     var style = document.createElement('style');
     style.id = 'hb-privacy-footer-styles';
@@ -1495,6 +1692,7 @@
       children.push(renderJourneyProgress());
     }
 
+    children.push(renderSettings());
     children.push(renderPrivacyFooter());
 
     rootEl.appendChild(el('div', { class: 'hb-tracker' }, children));
@@ -1515,6 +1713,7 @@
     injectReturningUserStyles();
     injectCollapseStyles();
     injectPrivacyFooterStyles();
+    injectSettingsStyles();
 
     state.today = getTodayKey();
     state.viewMonthOffset = 0;
@@ -1558,7 +1757,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.7.2',
+    version: '1.7.3',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
