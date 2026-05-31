@@ -1280,9 +1280,18 @@
     var fieldDef = HB_TRACKER_DATA.fields.symptoms;
     var selected = state.currentEntry.symptoms || [];
     var emphasized = typeConfig.emphasizedSymptoms || [];
+    var relevant = typeConfig.relevantSymptoms;
     var max = fieldDef.maxSelections || 5;
 
-    var sortedSymptoms = HB_TRACKER_DATA.allSymptoms.slice().sort(function(a, b) {
+    // Filter to type-relevant symptoms if defined; else show full pool.
+    // Backward compat: typeConfigs without relevantSymptoms continue to show all.
+    var symptomsPool = relevant
+      ? HB_TRACKER_DATA.allSymptoms.filter(function(opt) {
+          return relevant.indexOf(opt.value) !== -1;
+        })
+      : HB_TRACKER_DATA.allSymptoms;
+
+    var sortedSymptoms = symptomsPool.slice().sort(function(a, b) {
       var ai = emphasized.indexOf(a.value);
       var bi = emphasized.indexOf(b.value);
       if (ai !== -1 && bi !== -1) return ai - bi;
@@ -1527,7 +1536,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.7.0',
+    version: '1.7.1',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
