@@ -32,8 +32,7 @@
     /* desktop dropdown row */
     '.nbm-top{display:inline-flex;align-items:center;gap:6px}',
     '.nbm-dd{position:relative;display:inline-block}',
-    '.nbm-dd-btn{font:inherit;color:#fff;background:0;border:0;cursor:pointer;padding:8px 12px;display:inline-flex;align-items:center;gap:6px;border-radius:6px;letter-spacing:.2px}',
-    '.nbm-dd-btn:hover{opacity:.85}',
+    '.nbm-dd-btn{cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none}',
     '.nbm-caret{font-size:.7em;transition:transform .18s ease;opacity:.9}',
     '.nbm-dd.open .nbm-caret,.nbm-dd:hover .nbm-caret{transform:rotate(180deg)}',
     '.nbm-dd-menu{position:absolute;top:100%;left:0;min-width:230px;background:#16243d;border:1px solid rgba(255,255,255,.12);border-radius:12px;box-shadow:0 18px 40px rgba(0,0,0,.35);padding:8px;opacity:0;visibility:hidden;transform:translateY(6px);transition:opacity .16s ease,transform .16s ease;z-index:10000}',
@@ -101,8 +100,9 @@
   // --- desktop -----------------------------------------------------------------
   function buildDropdown(label, items) {
     var dd = elc('div', 'nbm-dd');
-    var btn = elc('button', 'nbm-dd-btn');
-    btn.type = 'button';
+    var btn = elc('a', 'nbar-ghost nbm-dd-btn');
+    btn.setAttribute('role', 'button');
+    btn.setAttribute('tabindex', '0');
     btn.appendChild(document.createTextNode(label + ' '));
     btn.appendChild(caret());
     var menu = elc('div', 'nbm-dd-menu');
@@ -115,6 +115,9 @@
       var wasOpen = dd.classList.contains('open');
       closeAllDD();
       if (!wasOpen) dd.classList.add('open');
+    });
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
     });
     return dd;
   }
