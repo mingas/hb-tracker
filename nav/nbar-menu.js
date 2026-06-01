@@ -137,7 +137,11 @@
     top.appendChild(buildDropdown('Resources', RES));
     top.appendChild(buildDropdown("Men's Health", MEN));
     top.appendChild(buildDropdown("Women's Health", WOMEN));
-    row.insertBefore(top, firstGhost);
+    // Ghosts may be nested inside a wrapper (e.g. .nbar-mid), not direct children of .nbar-row.
+    // Insert into the ghosts' ACTUAL parent, before the first ghost. Fallback: append to row.
+    var host = firstGhost.parentNode || row;
+    try { host.insertBefore(top, firstGhost); }
+    catch (e) { row.appendChild(top); }
     return true;
   }
 
