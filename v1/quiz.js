@@ -5,7 +5,7 @@
  *
  * Changelog:
  *   v1.5.0 — "Start Daily Tracker" CTA on result + auto-mount tracker on finish.
- *   v1.6.1 — Consolidated intro; step 3 names what tracking reveals; fixed lock glyph.
+ *   v1.6.2 — Auto-scroll quiz into view on each transition (navbar-aware).
  *   v1.3.0 — Welcome Back banner for returning users.
  *
  * @version 1.5.0
@@ -19,6 +19,8 @@
   var PRIVACY_SEEN_KEY = 'hb_privacy_seen';
   var JOURNEY_SEEN_KEY = 'hb_journey_seen';
   var ROOT_ID = 'hb-quiz-root';
+  var hasRenderedOnce = false;
+  var lastRenderKey = null;
 
   var state = {
     screen: 'onboarding',
@@ -809,6 +811,36 @@
 
   /* MAIN RENDER & INIT */
 
+  function quizHeaderOffset() {
+    var off = 0;
+    try {
+      var sel = document.querySelectorAll('nav, header, [class*="nav"], [class*="Nav"]');
+      for (var i = 0; i < sel.length; i++) {
+        var n = sel[i];
+        var cs = window.getComputedStyle ? window.getComputedStyle(n) : null;
+        if (cs && (cs.position === 'fixed' || cs.position === 'sticky')) {
+          var r = n.getBoundingClientRect();
+          if (r.top <= 2 && r.height > 0 && r.height < 200) off = Math.max(off, r.height);
+        }
+      }
+    } catch (e) {}
+    return off;
+  }
+
+  function scrollQuizIntoView() {
+    try {
+      var root = document.getElementById(ROOT_ID);
+      if (!root || typeof root.getBoundingClientRect !== 'function') return;
+      var offset = quizHeaderOffset() + 16;
+      var top = root.getBoundingClientRect().top + (window.pageYOffset || 0) - offset;
+      if (top < 0) top = 0;
+      if (typeof window.scrollTo === 'function') {
+        try { window.scrollTo({ top: top, behavior: 'smooth' }); }
+        catch (e) { window.scrollTo(0, top); }
+      }
+    } catch (e) {}
+  }
+
   function render() {
     if (!rootEl) return;
     if (state.screen === 'welcome_back') renderWelcomeBack();
@@ -816,6 +848,13 @@
     else if (state.screen === 'journey_preview') renderJourneyPreview();
     else if (state.screen === 'question') renderQuestion();
     else if (state.screen === 'result') renderResult();
+
+    // Scroll the quiz into view on every screen/question transition (not on first load),
+    // so a new question never opens part-scrolled below a fixed navbar.
+    var key = state.screen + ':' + (state.currentIndex || 0);
+    if (hasRenderedOnce && key !== lastRenderKey) scrollQuizIntoView();
+    hasRenderedOnce = true;
+    lastRenderKey = key;
   }
 
   function init() {
