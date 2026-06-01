@@ -36,7 +36,8 @@
     '.nbm-caret{font-size:.7em;transition:transform .18s ease;opacity:.9}',
     '.nbm-dd.open .nbm-caret,.nbm-dd:hover .nbm-caret{transform:rotate(180deg)}',
     '.nbm-dd-menu{position:absolute;top:100%;left:0;min-width:230px;background:#16243d;border:1px solid rgba(255,255,255,.12);border-radius:12px;box-shadow:0 18px 40px rgba(0,0,0,.35);padding:8px;opacity:0;visibility:hidden;transform:translateY(6px);transition:opacity .16s ease,transform .16s ease;z-index:10000}',
-    '.nbm-dd:hover .nbm-dd-menu,.nbm-dd.open .nbm-dd-menu{opacity:1;visibility:visible;transform:translateY(4px)}',
+    '.nbm-dd:hover .nbm-dd-menu,.nbm-dd.open .nbm-dd-menu{opacity:1;visibility:visible;transform:translateY(0)}',
+    '.nbm-dd-menu::before{content:"";position:absolute;left:0;right:0;top:-14px;height:14px}',
     '.nbm-dd-link{display:block;color:#F4ECDD;text-decoration:none;font:inherit;padding:10px 14px;border-radius:8px;white-space:nowrap}',
     '.nbm-dd-link:hover{background:rgba(255,255,255,.08)}',
     /* hamburger button (hidden on desktop) */
