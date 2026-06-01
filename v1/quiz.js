@@ -5,7 +5,7 @@
  *
  * Changelog:
  *   v1.5.0 — "Start Daily Tracker" CTA on result + auto-mount tracker on finish.
- *   v1.4.0 — Journey Preview screen between privacy onboarding and Q1.
+ *   v1.6.1 — Consolidated intro; step 3 names what tracking reveals; fixed lock glyph.
  *   v1.3.0 — Welcome Back banner for returning users.
  *
  * @version 1.5.0
@@ -296,46 +296,73 @@
 
   /* ONBOARDING */
 
+  function injectQuizIntroStyles() {
+    if (document.getElementById('hb-quiz-intro-styles')) return;
+    var css = ''
+      + '.hb-quiz-intro-eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;font-weight:700;color:#C97B5C;margin:0 0 .7rem;}'
+      + '.hb-quiz-intro-lead{font-family:Georgia,"Newsreader",serif;color:#1A2A4A;font-size:1.6rem;line-height:1.25;margin:0 0 .6rem;font-weight:600;}'
+      + '.hb-quiz-intro-sub{color:#5A5048;font-size:1rem;line-height:1.55;margin:0 0 1.4rem;}'
+      + '.hb-quiz-intro-label{text-transform:uppercase;letter-spacing:.1em;font-size:.7rem;font-weight:700;color:#1A2A4A;opacity:.55;margin:1.5rem 0 .8rem;}'
+      + '.hb-quiz-intro-steps{display:flex;flex-direction:column;gap:.9rem;margin:0;}'
+      + '.hb-quiz-intro-step{display:flex;gap:.8rem;align-items:flex-start;}'
+      + '.hb-quiz-intro-step-num{flex:0 0 auto;width:1.7rem;height:1.7rem;border-radius:50%;background:#1A2A4A;color:#F4ECDD;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center;line-height:1;}'
+      + '.hb-quiz-intro-step-t{font-weight:600;color:#1A2A4A;margin:0 0 .15rem;font-size:.98rem;}'
+      + '.hb-quiz-intro-step-d{color:#5A5048;margin:0;font-size:.9rem;line-height:1.45;}'
+      + '.hb-quiz-intro-benefits{display:flex;flex-direction:column;gap:.75rem;margin:0;}'
+      + '.hb-quiz-intro-benefit{border-left:3px solid #C97B5C;padding:.1rem 0 .1rem .85rem;}'
+      + '.hb-quiz-intro-benefit-t{font-weight:600;color:#1A2A4A;margin:0 0 .12rem;font-size:.95rem;}'
+      + '.hb-quiz-intro-benefit-d{color:#5A5048;margin:0;font-size:.88rem;line-height:1.45;}'
+      + '.hb-quiz-intro-trust{margin:1.6rem 0 1.3rem;padding:.75rem .9rem;background:rgba(26,42,74,.05);border-radius:10px;color:#1A2A4A;font-size:.84rem;text-align:center;font-weight:600;line-height:1.4;}'
+      + '@media(max-width:767px){.hb-quiz-intro-lead{font-size:1.45rem;}}'
+      + '@media(max-width:478px){.hb-quiz-intro-lead{font-size:1.3rem;}.hb-quiz-intro-sub{font-size:.94rem;}.hb-quiz-intro-step-num{width:1.5rem;height:1.5rem;font-size:.8rem;}.hb-quiz-intro-trust{font-size:.8rem;}}';
+    var st = document.createElement('style');
+    st.id = 'hb-quiz-intro-styles';
+    st.textContent = css;
+    document.head.appendChild(st);
+  }
+
   function renderOnboarding() {
     clearRoot();
+    injectQuizIntroStyles();
 
-    var lockIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
-    var checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-
-    var promises = [
-      { title: 'Stays on your phone', desc: 'All your answers are saved only on this device — never uploaded to a server.' },
-      { title: 'No servers, no cloud', desc: "There is no backend. We don't have a database of users." },
-      { title: "Even we can't see it", desc: 'Your hormone data is yours alone. We have no way to access it.' }
+    var steps = [
+      { n: '1', t: 'Answer 12 short questions', d: 'Just pick what fits best. There are no right or wrong answers, and nothing to prepare \u2014 about three minutes.' },
+      { n: '2', t: 'Get your result instantly', d: 'Your hormone type, your Hormonal Age, and your top three priorities \u2014 mapped from established clinical frameworks (STRAW+10, Rotterdam).' },
+      { n: '3', t: 'See your patterns (optional)', d: 'The quiz is a snapshot; a few evening logs turn it into a moving picture \u2014 within a week you\u2019ll see which days and cycle phases hit hardest, and how sleep and stress move your symptoms.' }
     ];
-
-    var promiseItems = promises.map(function(p) {
-      return el('div', { class: 'hb-quiz-onboarding-item' }, [
-        el('div', { class: 'hb-quiz-onboarding-check', html: checkIcon }),
-        el('div', { class: 'hb-quiz-onboarding-item-text' }, [
-          el('p', { class: 'hb-quiz-onboarding-item-title' }, p.title),
-          el('p', { class: 'hb-quiz-onboarding-item-desc' }, p.desc)
+    var stepEls = steps.map(function(s) {
+      return el('div', { class: 'hb-quiz-intro-step' }, [
+        el('div', { class: 'hb-quiz-intro-step-num' }, s.n),
+        el('div', { class: 'hb-quiz-intro-step-text' }, [
+          el('p', { class: 'hb-quiz-intro-step-t' }, s.t),
+          el('p', { class: 'hb-quiz-intro-step-d' }, s.d)
         ])
       ]);
     });
 
-    var onboarding = el('div', { class: 'hb-quiz-onboarding' }, [
-      el('div', { class: 'hb-quiz-onboarding-icon', html: lockIcon }),
-      el('h2', { class: 'hb-quiz-onboarding-title' }, 'Your privacy promise'),
-      el('p', { class: 'hb-quiz-onboarding-subtitle' }, "Before we begin, here's what you need to know about your data:"),
-      el('div', { class: 'hb-quiz-onboarding-list' }, promiseItems),
+    var intro = el('div', { class: 'hb-quiz-onboarding' }, [
+      el('p', { class: 'hb-quiz-intro-eyebrow' }, 'Before you begin'),
+      el('h2', { class: 'hb-quiz-intro-lead' }, 'Understand what your body has been telling you'),
+      el('p', { class: 'hb-quiz-intro-sub' }, 'A free quiz, about three minutes. It identifies your hormone type and turns scattered symptoms into one clear, personal place to start \u2014 no jargon, no guesswork.'),
+      el('p', { class: 'hb-quiz-intro-label' }, 'How it works'),
+      el('div', { class: 'hb-quiz-intro-steps' }, stepEls),
+      el('div', { class: 'hb-quiz-intro-trust' }, "🔒  Stays on your phone \u00B7 No servers \u00B7 Even we can't see it"),
       el('button', {
         class: 'hb-quiz-onboarding-cta',
         type: 'button',
         onclick: function() {
           markPrivacySeen();
-          state.screen = 'journey_preview';
+          markJourneySeen();
+          trackEvent('quiz_start');
+          state.screen = 'question';
+          state.currentIndex = 0;
           saveState();
           render();
         }
-      }, ["Got it, what's next →"])
+      }, ['Start the quiz \u2192'])
     ]);
 
-    rootEl.appendChild(el('div', { class: 'hb-quiz' }, [onboarding]));
+    rootEl.appendChild(el('div', { class: 'hb-quiz' }, [intro]));
   }
 
   /* JOURNEY PREVIEW */
@@ -645,6 +672,68 @@
     triggerTrackerMount(false);
   }
 
+  function buildResultAdviceEl(type) {
+    if (!(window.HB_ADVICE && typeof window.HB_ADVICE.getResultCards === 'function')) return null;
+    var cards = window.HB_ADVICE.getResultCards(type);
+    if (!cards || !cards.length) return null;
+    var items = cards.map(function(c) {
+      var kids = [
+        el('p', { class: 'hb-rc-headline' }, c.headline),
+        el('p', { class: 'hb-rc-why' }, c.why)
+      ];
+      if (c.actions && c.actions.length) {
+        kids.push(el('ul', { class: 'hb-rc-actions' }, c.actions.map(function(a) { return el('li', null, a); })));
+      }
+      return el('div', { class: 'hb-rc-card is-' + (c.severity || 'info') }, kids);
+    });
+    return el('div', { class: 'hb-rc-wrap' }, [
+      el('h3', { class: 'hb-rc-title' }, 'What this means for you'),
+      el('div', { class: 'hb-rc-list' }, items)
+    ]);
+  }
+
+  function buildContractEl() {
+    if (!(window.HB_ADVICE && typeof window.HB_ADVICE.getContract === 'function')) return null;
+    var ct = window.HB_ADVICE.getContract();
+    if (!ct) return null;
+    var kids = [
+      el('p', { class: 'hb-ct-eyebrow' }, 'Your 30-day path'),
+      el('p', { class: 'hb-ct-body' }, ct.body),
+      el('ul', { class: 'hb-ct-list' }, (ct.bullets || []).map(function(b) { return el('li', null, b); }))
+    ];
+    if (ct.note) kids.push(el('p', { class: 'hb-ct-note' }, ct.note));
+    return el('div', { class: 'hb-ct-card' }, kids);
+  }
+
+  function injectQuizAdviceStyles() {
+    if (document.getElementById('hb-quiz-advice-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-quiz-advice-styles';
+    style.textContent =
+        '.hb-rc-wrap{max-width:460px;margin:0 auto 24px;text-align:left}'
+      + '.hb-rc-title{font-family:Newsreader,Georgia,serif;font-size:20px;color:#1A2A4A;margin:0 0 14px 0;font-weight:500;text-align:center}'
+      + '.hb-rc-list{display:flex;flex-direction:column;gap:12px}'
+      + '.hb-rc-card{padding:16px 18px;background:#FCF8F0;border:1px solid #EADFC8;border-left:4px solid #C97B5C;border-radius:12px}'
+      + '.hb-rc-card.is-positive{border-left-color:#7BA05B}'
+      + '.hb-rc-card.is-info{border-left-color:#1A2A4A}'
+      + '.hb-rc-card.is-actionable{border-left-color:#C97B5C}'
+      + '.hb-rc-headline{font-family:Newsreader,Georgia,serif;font-size:16px;color:#1A2A4A;margin:0 0 6px 0;font-weight:500;line-height:1.3}'
+      + '.hb-rc-why{font-size:13.5px;color:#4A4038;margin:0;line-height:1.6}'
+      + '.hb-rc-actions{margin:10px 0 0 0;padding-left:18px;color:#4A4038;font-size:13px;line-height:1.55}'
+      + '.hb-rc-actions li{margin:2px 0}'
+      + '.hb-ct-card{max-width:460px;margin:0 auto 16px;text-align:left;background:#F4ECDD;border-radius:12px;padding:20px 22px}'
+      + '.hb-ct-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C97B5C;font-weight:600;margin:0 0 8px 0}'
+      + '.hb-ct-body{font-size:14px;color:#3A4555;line-height:1.6;margin:0 0 12px 0}'
+      + '.hb-ct-list{margin:0;padding-left:18px;color:#1A2A4A;font-size:13.5px;line-height:1.7;font-weight:500}'
+      + '.hb-ct-list li{margin:3px 0}'
+      + '.hb-ct-note{font-size:12.5px;color:#5F5E5A;font-style:italic;margin:12px 0 0 0}'
+      + '@media (max-width:478px){'
+      +   '.hb-rc-card{padding:14px 15px}.hb-rc-headline{font-size:15px}.hb-rc-why{font-size:12.5px}.hb-rc-actions{font-size:12.5px}'
+      +   '.hb-ct-card{padding:16px 16px}.hb-ct-body{font-size:13px}.hb-ct-list{font-size:12.5px}'
+      + '}';
+    document.head.appendChild(style);
+  }
+
   function renderResult() {
     clearRoot();
     if (!state.result) { rootEl.appendChild(el('p', null, 'Calculating...')); return; }
@@ -707,10 +796,15 @@
       }
     }, ['↻ Retake quiz']);
 
-    rootEl.appendChild(el('div', { class: 'hb-quiz', style: 'text-align:center;' }, [
-      eyebrow, emoji, name, tagline, description,
-      hormonalAgeBox, prioritiesEl, bookCTA, trackerCTA, retakeBtn
-    ]));
+    injectQuizAdviceStyles();
+    var adviceCardsEl = buildResultAdviceEl(state.result.hormoneType);
+    var contractEl = buildContractEl();
+    var resultChildren = [eyebrow, emoji, name, tagline, description, hormonalAgeBox, prioritiesEl];
+    if (adviceCardsEl) resultChildren.push(adviceCardsEl);
+    resultChildren.push(bookCTA);
+    if (contractEl) resultChildren.push(contractEl);
+    resultChildren.push(trackerCTA, retakeBtn);
+    rootEl.appendChild(el('div', { class: 'hb-quiz', style: 'text-align:center;' }, resultChildren));
   }
 
   /* MAIN RENDER & INIT */
@@ -749,8 +843,6 @@
       state.screen = 'welcome_back';
     } else if (!hasSeenPrivacy()) {
       state.screen = 'onboarding';
-    } else if (!hasSeenJourney()) {
-      state.screen = 'journey_preview';
     } else {
       state.screen = 'question';
     }
