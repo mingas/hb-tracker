@@ -56,6 +56,7 @@
   var STORAGE_KEY_ENTRIES = 'hb_tracker_entries';
   var STORAGE_KEY_STREAK  = 'hb_tracker_streak';
   var QUIZ_STORAGE_KEY    = 'hb_quiz_state';
+  var STORAGE_KEY_ROTATION = 'hb_advice_rotation';
   var ROOT_ID             = 'hb-tracker-root';
   var DATE_CHECK_INTERVAL_MS = 60000;
   var MAX_BACKWARD_OFFSET = -12;
@@ -88,7 +89,9 @@
     currentEntry: null,
     saveJustSucceeded: false,
     selectedDayKey: null,
-    viewMonthOffset: 0
+    viewMonthOffset: 0,
+    lastLogCard: null,
+    adviceRotation: {}
   };
 
   var rootEl = null;
@@ -245,6 +248,15 @@
   function saveStreak() {
     try { localStorage.setItem(STORAGE_KEY_STREAK, JSON.stringify(state.streak)); }
     catch (e) { console.warn('HB Tracker: could not save streak', e); }
+  }
+
+  function loadRotation() {
+    try { var r = localStorage.getItem(STORAGE_KEY_ROTATION); state.adviceRotation = r ? (JSON.parse(r) || {}) : {}; }
+    catch (e) { state.adviceRotation = {}; }
+  }
+
+  function saveRotation() {
+    try { localStorage.setItem(STORAGE_KEY_ROTATION, JSON.stringify(state.adviceRotation || {})); } catch (e) {}
   }
 
   function loadQuizHormoneType() {
@@ -1462,6 +1474,78 @@
     document.head.appendChild(style);
   }
 
+  function slugLabel(slot) {
+    var s = String(slot || '').replace('/recommends/', '');
+    if (s.indexOf('blood-test') === 0 || s === 'medichecks' || s === 'everlywell' ||
+        s === 'forth' || s === 'thriva' || s === 'letsgetchecked') return 'At-home blood test';
+    s = s.replace(/-/g, ' ').replace(/\bd3\b/i, 'D3').replace(/\bk2\b/i, 'K2');
+    return s.replace(/\b\w/g, function(m) { return m.toUpperCase(); });
+  }
+
+  function renderRecommendChip(slot) {
+    if (!slot) return null;
+    return el('a', {
+      class: 'hb-advice-chip',
+      href: slot,
+      target: '_blank',
+      rel: 'sponsored nofollow noopener'
+    }, slugLabel(slot) + ' \u2192');
+  }
+
+  function renderAdviceCard(picked) {
+    if (!picked || !picked.card) return null;
+    var c = picked.card;
+    var sev = c.severity || 'info';
+    var eyebrow = picked.layer === 'safety'
+      ? 'Worth a gentle check'
+      : (sev === 'positive' ? 'Nice \u2014 here\u2019s why' : 'A note on today\u2019s log');
+    var kids = [
+      el('p', { class: 'hb-advice-eyebrow' }, eyebrow),
+      el('p', { class: 'hb-advice-headline' }, c.headline),
+      el('p', { class: 'hb-advice-why' }, c.why)
+    ];
+    if (c.actions && c.actions.length) {
+      var lis = c.actions.map(function(a) { return el('li', { class: 'hb-advice-action' }, a); });
+      kids.push(el('ul', { class: 'hb-advice-actions' }, lis));
+    }
+    var chip = renderRecommendChip(c.productSlot);
+    if (chip) kids.push(chip);
+    return el('div', { class: 'hb-advice-card is-' + sev }, kids);
+  }
+
+  function injectAdviceStyles() {
+    if (document.getElementById('hb-advice-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'hb-advice-styles';
+    style.textContent =
+        '.hb-advice-card{margin-top:16px;padding:18px 20px;background:#FCF8F0;border:1px solid #EADFC8;border-left:4px solid #C97B5C;border-radius:12px}'
+      + '.hb-advice-card.is-positive{border-left-color:#7BA05B}'
+      + '.hb-advice-card.is-actionable{border-left-color:#C97B5C}'
+      + '.hb-advice-card.is-info{border-left-color:#1A2A4A}'
+      + '.hb-advice-card.is-caution{border-left-color:#B5642F;background:#FBEFE6}'
+      + '.hb-advice-eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#C97B5C;font-weight:600;margin:0 0 6px 0}'
+      + '.hb-advice-card.is-caution .hb-advice-eyebrow{color:#B5642F}'
+      + '.hb-advice-headline{font-family:Newsreader,Georgia,serif;font-size:17px;color:#1A2A4A;margin:0 0 6px 0;font-weight:500;line-height:1.3}'
+      + '.hb-advice-why{font-size:13.5px;color:#4A4038;margin:0;line-height:1.6}'
+      + '.hb-advice-actions{margin:10px 0 0 0;padding:0 0 0 18px}'
+      + '.hb-advice-action{font-size:13px;color:#4A4038;line-height:1.55;margin:2px 0}'
+      + '.hb-advice-chip{display:inline-block;margin-top:12px;padding:7px 14px;background:#1A2A4A;color:#FFFFFF;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;letter-spacing:0.2px}'
+      + '.hb-advice-chip:hover{background:#243a63}'
+      + '.hb-tracker-insight-why{font-size:13px;color:#4A4038;line-height:1.6;margin:8px 0 0 0}'
+      + '.hb-tracker-insight-action{font-size:13px;color:#1A2A4A;line-height:1.55;margin:6px 0 0 0;font-weight:500}'
+      /* ---- tablet ---- */
+      + '@media (max-width:767px){.hb-advice-card{padding:16px 18px}.hb-advice-headline{font-size:16px}}'
+      /* ---- phone ---- */
+      + '@media (max-width:478px){'
+      +   '.hb-advice-card{padding:14px 15px;margin-top:14px}'
+      +   '.hb-advice-headline{font-size:15px}'
+      +   '.hb-advice-why{font-size:12.5px}'
+      +   '.hb-advice-action,.hb-tracker-insight-why,.hb-tracker-insight-action{font-size:12.5px}'
+      +   '.hb-advice-chip{font-size:12px;padding:8px 14px}'
+      + '}';
+    document.head.appendChild(style);
+  }
+
   function renderInsights() {
     if (typeof window.HB_INSIGHTS === 'undefined' || typeof window.HB_INSIGHTS.detectPatterns !== 'function') {
       return null;
@@ -1486,13 +1570,20 @@
         "No strong patterns yet — that's actually good news. Keep logging; patterns emerge as your data grows.");
     } else {
       var items = insights.map(function(ins) {
-        return el('div', { class: 'hb-tracker-insight is-' + (ins.severity || 'info') }, [
+        var insChildren = [
           el('div', { class: 'hb-tracker-insight-head' }, [
             el('span', { class: 'hb-tracker-insight-icon' }, ins.icon || '\u{1F4CA}'),
             el('p', { class: 'hb-tracker-insight-headline' }, ins.headline)
           ]),
           el('p', { class: 'hb-tracker-insight-body' }, ins.body)
-        ]);
+        ];
+        if (ins.advice) {
+          if (ins.advice.why)    insChildren.push(el('p', { class: 'hb-tracker-insight-why' }, ins.advice.why));
+          if (ins.advice.action) insChildren.push(el('p', { class: 'hb-tracker-insight-action' }, ins.advice.action));
+          var insChip = renderRecommendChip(ins.advice.productSlot);
+          if (insChip) insChildren.push(insChip);
+        }
+        return el('div', { class: 'hb-tracker-insight is-' + (ins.severity || 'info') }, insChildren);
       });
       bodyEl = el('div', { class: 'hb-tracker-insights-list' }, items);
     }
@@ -1810,6 +1901,17 @@
     };
     saveEntries();
 
+    // v2 advice layer: pick a contextual card (per-key rotation) for what was just logged
+    try {
+      if (window.HB_ADVICE && typeof window.HB_ADVICE.pickPerLogCard === 'function') {
+        state.lastLogCard = window.HB_ADVICE.pickPerLogCard(state.entries[state.today], state.entries, state.adviceRotation);
+        if (state.lastLogCard && state.lastLogCard.layer === 'perLog' && state.lastLogCard.key) {
+          state.adviceRotation[state.lastLogCard.key] = (state.adviceRotation[state.lastLogCard.key] || 0) + 1;
+          saveRotation();
+        }
+      }
+    } catch (e) { state.lastLogCard = null; }
+
     var milestone = null;
     if (!isUpdate) {
       milestone = maybeUpdateStreakOnNewLog();
@@ -1865,6 +1967,8 @@
       // TODAY MODE — FORM FIRST (v1.6.0)
       if (hasLoggedToday) {
         children.push(renderLoggedTodayBanner());
+        var adviceCardEl = renderAdviceCard(state.lastLogCard);
+        if (adviceCardEl) children.push(adviceCardEl);
       }
       children.push(renderEnergyField());
       children.push(renderSleepField());
@@ -1905,11 +2009,13 @@
     injectSettingsStyles();
     injectDeleteModalStyles();
     injectInsightsStyles();
+    injectAdviceStyles();
 
     state.today = getTodayKey();
     state.viewMonthOffset = 0;
     loadEntries();
     loadStreak();
+    loadRotation();
     loadQuizHormoneType();
 
     // Phase 1: Returning user mode
