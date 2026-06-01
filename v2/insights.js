@@ -343,7 +343,12 @@
     var rank = { positive: 1, actionable: 2, info: 3, caution: 4 };
     insights.sort(function(a, b) { return (rank[a.severity] || 9) - (rank[b.severity] || 9); });
 
-    return insights.slice(0, 3); // Cap at 3 insights to avoid overwhelming
+    var top = insights.slice(0, 3); // Cap at 3 insights to avoid overwhelming
+    // v2 advice layer: attach why/action/product to each pattern (defensive, no-op if HB_ADVICE absent)
+    if (window.HB_ADVICE && typeof window.HB_ADVICE.enrichInsight === 'function') {
+      for (var t = 0; t < top.length; t++) { try { window.HB_ADVICE.enrichInsight(top[t], parsed.length); } catch (e) {} }
+    }
+    return top;
   }
 
   /* Public API */
