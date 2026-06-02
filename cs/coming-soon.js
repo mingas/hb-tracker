@@ -34,6 +34,11 @@
 
   var css = '' +
     'html,body{margin:0!important;background:#0F1A2E!important}' +
+    /* navbar layout to match the rest of the site: brand left, menu+CTA grouped right */
+    '.nbar-row{display:flex!important;align-items:center;width:100%;max-width:100%;margin:0!important;padding:22px 40px!important;box-sizing:border-box}' +
+    '.nbar-row .nbar-brand{color:#F4ECDD!important;margin-right:auto;font:600 20px/1.1 Arial,Helvetica,sans-serif;text-decoration:none;letter-spacing:.2px}' +
+    '.nbar-row .nbar-mid{display:inline-flex;align-items:center;gap:8px}' +
+    '.nbar-row .nbar-red{margin-left:12px}' +
     '#cs-root{min-height:calc(100vh - 72px);display:flex;flex-direction:column;' +
     'align-items:center;justify-content:center;text-align:center;background:#0F1A2E;color:#F4ECDD;' +
     'padding:64px 24px;box-sizing:border-box}' +
@@ -67,7 +72,7 @@
       '<a class="nbar-ghost" href="/hormone-blueprint">Book</a>' +
       '<a class="nbar-ghost" href="/contact">Contact</a>' +
     '</div>' +
-    '<a class="nbar-red" href="/#book">Get the book</a>';
+    '<a class="nbar-red" href="/#book">Get the book \u2192</a>';
 
   function el(tag, cls, txt) {
     var e = document.createElement(tag);
