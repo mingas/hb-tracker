@@ -16,6 +16,7 @@
   var MEN = [
     ['/testosterone-test', 'Testosterone Quiz'],
     ['/andropause-calculator', 'Find Your Real Age'],
+    ['/testosterone-blood-test', 'Online Blood Test'],
     ['/free-guide', '7-Day Free Guide'],
     ['/testosterone-tracker', 'Optimisation Tracker'],
     ['/#book', 'Book']
