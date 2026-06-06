@@ -23,6 +23,7 @@
   ];
   var WOMEN = [
     ['/hormone-quiz', 'Hormone Quiz'],
+    ['/perimenopause-blood-test', 'Online Blood Test'],
     ['/hormone-blueprint', 'Book']
   ];
   // Paths that must NOT be folded into a dropdown (kept as top-level link).
