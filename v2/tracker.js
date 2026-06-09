@@ -58,6 +58,8 @@
   var QUIZ_STORAGE_KEY    = 'hb_quiz_state';
   var STORAGE_KEY_ROTATION = 'hb_advice_rotation';
   var STORAGE_KEY_LAST_CARD = 'hb_last_log_card';
+  var STORAGE_KEY_RECENT   = 'hb_advice_recent';
+  var RECENT_MAX           = 12;
   var ROOT_ID             = 'hb-tracker-root';
   var DATE_CHECK_INTERVAL_MS = 60000;
   var MAX_BACKWARD_OFFSET = -12;
@@ -92,7 +94,8 @@
     selectedDayKey: null,
     viewMonthOffset: 0,
     lastLogCard: null,
-    adviceRotation: {}
+    adviceRotation: {},
+    adviceRecent: []
   };
 
   var rootEl = null;
@@ -259,6 +262,15 @@
 
   function saveRotation() {
     try { localStorage.setItem(STORAGE_KEY_ROTATION, JSON.stringify(state.adviceRotation || {})); } catch (e) {}
+  }
+
+  function loadAdviceRecent() {
+    try { var r = localStorage.getItem(STORAGE_KEY_RECENT); var a = r ? JSON.parse(r) : []; state.adviceRecent = Array.isArray(a) ? a : []; }
+    catch (e) { state.adviceRecent = []; }
+  }
+
+  function saveAdviceRecent() {
+    try { localStorage.setItem(STORAGE_KEY_RECENT, JSON.stringify(state.adviceRecent || [])); } catch (e) {}
   }
 
   // Persist the advice card chosen for the most recent log, tied to its date,
@@ -562,8 +574,10 @@
         if (payload.quizState && typeof payload.quizState === 'object') {
           try { localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(payload.quizState)); } catch (e) {}
         }
-        // Imported data replaces current logs — the in-memory advice card no longer applies.
+        // Imported data replaces current logs — advice card, cooldown and rotation no longer apply.
         try { localStorage.removeItem(STORAGE_KEY_LAST_CARD); } catch (e) {}
+        try { localStorage.removeItem(STORAGE_KEY_RECENT); } catch (e) {}
+        try { localStorage.removeItem(STORAGE_KEY_ROTATION); } catch (e) {}
 
         trackEvent('data_import', { entries_count: newCount });
         location.reload();
@@ -632,6 +646,8 @@
       try { localStorage.removeItem(STORAGE_KEY_STREAK); } catch (e) {}
       try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
       try { localStorage.removeItem(STORAGE_KEY_LAST_CARD); } catch (e) {}
+      try { localStorage.removeItem(STORAGE_KEY_RECENT); } catch (e) {}
+      try { localStorage.removeItem(STORAGE_KEY_ROTATION); } catch (e) {}
       trackEvent('data_delete_all', { entries_count: entryCount });
       location.reload();
     }
@@ -1529,16 +1545,23 @@
     if (!picked || !picked.card) return null;
     var c = picked.card;
     var sev = c.severity || 'info';
-    var eyebrow = picked.layer === 'safety'
+    var eyebrow = c.eyebrow || (picked.layer === 'safety'
       ? 'Worth a gentle check'
-      : (sev === 'positive' ? 'Nice \u2014 here\u2019s why' : 'A note on today\u2019s log');
+      : (sev === 'positive' ? 'Nice \u2014 here\u2019s why' : 'A note on today\u2019s log'));
     var kids = [
       el('p', { class: 'hb-advice-eyebrow' }, eyebrow),
-      el('p', { class: 'hb-advice-headline' }, c.headline),
-      el('p', { class: 'hb-advice-why' }, c.why)
+      el('p', { class: 'hb-advice-headline' }, c.headline)
     ];
-    if (c.actions && c.actions.length) {
-      var lis = c.actions.map(function(a) { return el('li', { class: 'hb-advice-action' }, a); });
+    // Body: long-form Daily Learn uses body:[paragraphs]; legacy cards use why (string)
+    if (Array.isArray(c.body)) {
+      c.body.forEach(function(p) { if (p) kids.push(el('p', { class: 'hb-advice-why' }, p)); });
+    } else if (c.why) {
+      kids.push(el('p', { class: 'hb-advice-why' }, c.why));
+    }
+    // Actions: legacy actions:[...]; Daily Learn uses a single action string
+    var acts = (c.actions && c.actions.length) ? c.actions : (c.action ? [c.action] : null);
+    if (acts) {
+      var lis = acts.map(function(a) { return el('li', { class: 'hb-advice-action' }, a); });
       kids.push(el('ul', { class: 'hb-advice-actions' }, lis));
     }
     var chip = renderRecommendChip(c.productSlot);
@@ -1934,9 +1957,29 @@
     };
     saveEntries();
 
-    // v2 advice layer: pick a contextual card (per-key rotation) for what was just logged
+    // v2 advice layer: context-first (bad day -> teaching), else a Daily Learn
+    // article (good/neutral day), with per-id rotation + anti-repeat cooldown.
     try {
-      if (window.HB_ADVICE && typeof window.HB_ADVICE.pickPerLogCard === 'function') {
+      if (window.HB_ADVICE && typeof window.HB_ADVICE.pickCard === 'function') {
+        state.lastLogCard = window.HB_ADVICE.pickCard(
+          state.entries[state.today], state.entries, state.adviceRotation, state.adviceRecent, state.hormoneType
+        );
+        var picked = state.lastLogCard;
+        if (picked && picked.key && picked.layer !== 'safety') {
+          // count this showing (drives least-shown selection across the library)
+          state.adviceRotation[picked.key] = (state.adviceRotation[picked.key] || 0) + 1;
+          saveRotation();
+        }
+        if (picked && picked.layer === 'daily' && picked.key) {
+          // add to the cooldown window so it won't repeat until the pool cycles
+          state.adviceRecent.push(picked.key);
+          if (state.adviceRecent.length > RECENT_MAX) {
+            state.adviceRecent = state.adviceRecent.slice(state.adviceRecent.length - RECENT_MAX);
+          }
+          saveAdviceRecent();
+        }
+      } else if (window.HB_ADVICE && typeof window.HB_ADVICE.pickPerLogCard === 'function') {
+        // fallback for older library without pickCard
         state.lastLogCard = window.HB_ADVICE.pickPerLogCard(state.entries[state.today], state.entries, state.adviceRotation);
         if (state.lastLogCard && state.lastLogCard.layer === 'perLog' && state.lastLogCard.key) {
           state.adviceRotation[state.lastLogCard.key] = (state.adviceRotation[state.lastLogCard.key] || 0) + 1;
@@ -2050,6 +2093,7 @@
     loadEntries();
     loadStreak();
     loadRotation();
+    loadAdviceRecent();
     loadLastLogCard();
     loadQuizHormoneType();
 

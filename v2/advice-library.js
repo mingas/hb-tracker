@@ -754,11 +754,111 @@ window.HB_ADVICE = {
       return variantOf(best);
     }
 
-    // metric conditions, in relevance priority, with variant rotation
+    // metric conditions, in relevance priority, with variant rotation.
+    // Context-only: "bad day" signals get a teaching card here.
+    // Good days (energy>=4) and neutral days return null and are handled by
+    // pickCard, which mixes a _goodDay reflection with a Daily Learn article.
     if (entry.sleep  != null && entry.sleep  < 6  && P._lowSleep)  return variantOf('_lowSleep');
     if (entry.energy != null && entry.energy <= 2 && P._lowEnergy) return variantOf('_lowEnergy');
-    if (entry.energy != null && entry.energy >= 4 && P._goodDay)   return variantOf('_goodDay');
     return null;
+  };
+
+  /* =========================================================
+     DAILY LEARN — long-form mini-articles shown on neutral/good
+     days when no "bad day" context card applies. Mixed pool:
+     a common pool by topic + optional per-hormone-type pool.
+     Card shape: { id, category, severity, eyebrow, headline,
+       body:[paragraphs], action, bookRef, productSlot, source }
+     ========================================================= */
+  A.dailyLearn = {
+    common: {
+      sleep: [
+        { id:'dl-sleep-3am', category:'sleep', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The 3 a.m. wake-up has a name \u2014 and it isn\u2019t \u201Canxiety\u201D",
+          body:[
+            "You fall asleep without much trouble. Then, somewhere between 2 and 4 in the morning, you\u2019re wide awake \u2014 heart a little fast, mind suddenly loud, and no obvious reason for any of it. You lie there doing the maths on how much sleep is left. If this is your pattern, you are not imagining it, and it is not a character flaw.",
+            "Progesterone is your body\u2019s calming hormone. It works partly by boosting GABA, the brain chemical that acts like a brake on a busy nervous system. In the second half of your cycle, and steadily through your late thirties and forties, progesterone starts to thin out \u2014 and that brake gets lighter. At the same time, cortisol naturally begins to climb in the small hours to prepare you for morning. With less progesterone to soften it, that gentle rise can land like an alarm instead of a whisper.",
+            "There\u2019s often a second trigger underneath it: blood sugar. If dinner was early or light on carbohydrate, your glucose can dip overnight, and your body answers by releasing cortisol to push it back up \u2014 the same surge that snaps you awake with a thudding heart."
+          ],
+          action:"One thing to try tonight: a small protein-and-fat snack before bed \u2014 a spoonful of nut butter, a few nuts, or a couple of tablespoons of full-fat Greek yogurt \u2014 is often enough to steady overnight glucose. Pair it with a consistent wake-up time, and for many women a little magnesium in the evening.",
+          bookRef:'Sleep', productSlot:'/recommends/magnesium', source:'book+web' }
+      ],
+      nutrition: [
+        { id:'dl-nutrition-breakfast', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Your 3 p.m. crash probably started at breakfast",
+          body:[
+            "That mid-afternoon wall \u2014 the heavy eyelids, the reach for something sweet, the \u201Cwhy am I suddenly useless\u201D feeling around 3 p.m. \u2014 usually isn\u2019t about the afternoon at all. It often traces straight back to your first meal of the day.",
+            "A breakfast built mostly on quick carbohydrates \u2014 toast, cereal, a pastry, fruit on its own \u2014 sends blood sugar up fast and then drops it just as fast. That drop is the crash. It\u2019s also the craving: your body asks for more sugar to climb back out of the dip, and the cycle repeats by mid-afternoon.",
+            "Protein changes the shape of that curve. It slows how quickly glucose enters your blood, keeps you genuinely full for longer, and \u2014 this matters more every year past your mid-thirties \u2014 it defends the muscle that falling estrogen no longer protects for you. Most women eat far too little of it in the morning: a dab of yogurt, a single egg, or nothing at all."
+          ],
+          action:"One thing to try tomorrow: aim for roughly 25\u201330 grams of protein at your first meal. That\u2019s two or three eggs, a full cup of Greek yogurt with seeds, or a protein shake if mornings are rushed. Notice how 3 p.m. feels by the end of the week.",
+          bookRef:'Food / The Four Foundations', productSlot:null, source:'book+web' }
+      ],
+      mindset: [
+        { id:'dl-mindset-dismissed', category:'mindset', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"If you\u2019ve ever been told it was \u201Cnothing\u201D",
+          body:[
+            "You knew something had shifted. You felt it in your body \u2014 your sleep, your energy, your moods, something. You said it out loud to someone whose job was to listen, and you were told it was normal, or stress, or your age, or in your head. And somewhere in the drive home, you started to wonder if maybe you were making it up.",
+            "That particular loneliness \u2014 knowing something is wrong and being told it isn\u2019t \u2014 is real, and it is common. Being dismissed is not the same thing as being fine. A great many women spend years quietly talking themselves out of what their own body is plainly telling them.",
+            "The antidote isn\u2019t louder confidence or assuming the worst about every symptom. It\u2019s something steadier, and you can practise it: noticing what you feel, taking it seriously, looking for good information, and asking the second question when the first answer doesn\u2019t fit. It\u2019s often quiet \u2014 choosing rest over pushing through, deciding a symptom is worth mentioning even though you suspect you\u2019ll be brushed off."
+          ],
+          action:"One thing to carry with you: the next time an answer doesn\u2019t fit what you\u2019re living in, don\u2019t swallow it. Write the symptom down, ask one more question, or find someone who will actually listen. The women who do this, consistently, tend to catch things earlier.",
+          bookRef:null, productSlot:null, source:'book' }
+      ]
+    },
+    byType: {}
+  };
+
+  // Flatten the Daily Learn pool for a given hormone type (common + per-type).
+  function dailyPool(hormoneType) {
+    var pool = [];
+    var c = A.dailyLearn.common || {};
+    Object.keys(c).forEach(function(cat) { (c[cat] || []).forEach(function(card) { pool.push(card); }); });
+    var bt = (A.dailyLearn.byType || {})[hormoneType] || [];
+    bt.forEach(function(card) { pool.push(card); });
+    return pool;
+  }
+
+  /* Pick a Daily Learn card with anti-repetition.
+     rotation = { id: timesShown }; recent = [ids] cooldown (newest last).
+     Rule: never repeat anything in the cooldown window until the pool is
+     exhausted; among eligible, choose the least-shown (ties random) so the
+     whole library is seen before any repeat. Returns { card, layer:'daily', key }. */
+  A.pickDailyCard = function(hormoneType, rotation, recent) {
+    rotation = (rotation && typeof rotation === 'object') ? rotation : {};
+    recent = Array.isArray(recent) ? recent : [];
+    var pool = dailyPool(hormoneType);
+    if (!pool.length) return null;
+    var eligible = pool.filter(function(card) { return recent.indexOf(card.id) === -1; });
+    if (!eligible.length) eligible = pool; // pool smaller than cooldown window — relax
+    var best = eligible[0], bestC = rotation[best.id] || 0;
+    for (var i = 1; i < eligible.length; i++) {
+      var c = rotation[eligible[i].id] || 0;
+      if (c < bestC || (c === bestC && Math.random() < 0.5)) { bestC = c; best = eligible[i]; }
+    }
+    return { card: best, layer: 'daily', key: best.id };
+  };
+
+  /* Top-level picker. Priority:
+       1. safety (always)
+       2. bad-day context (symptom / low sleep / low energy) -> teaching card
+       3. good day (energy>=4): ~50/50 a _goodDay reflection OR a Daily Learn article
+       4. neutral day: Daily Learn article
+     rotation = { id: count }; recent = [ids] (daily cooldown). */
+  A.pickCard = function(entry, entries, rotation, recent, hormoneType) {
+    rotation = (rotation && typeof rotation === 'object') ? rotation : {};
+    entry = entry || {};
+    var ctx = A.pickPerLogCard(entry, entries, rotation);
+    if (ctx) return ctx;
+    var good = entry.energy != null && entry.energy >= 4;
+    if (good && A.perLog && A.perLog._goodDay && A.perLog._goodDay.length && Math.random() < 0.5) {
+      var v = A.perLog._goodDay, n = rotation['_goodDay'] || 0;
+      return { card: v[n % v.length], layer: 'perLog', key: '_goodDay' };
+    }
+    return A.pickDailyCard(hormoneType, rotation, recent);
   };
 
 })(window.HB_ADVICE);
