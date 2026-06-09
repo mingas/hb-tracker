@@ -452,7 +452,7 @@ window.HB_ADVICE = {
         actions:["Track length and gaps — it's the data a doctor needs"], bookRef:'Ch 2 / Ch 4', productSlot:null, source:'book' },
       { id:'log-irreg-2', severity:'info', headline:"PCOS often hides behind irregular cycles",
         why:"Irregular cycles with jawline acne, central weight or unwanted hair is a classic PCOS pattern — driven by insulin and androgens, and very responsive to the right support.",
-        actions:["If this cluster fits, inositol has good evidence for PCOS"], bookRef:'Ch 6', productSlot:'/recommends/inositol', source:'book' },
+        actions:["If this cluster fits, inositol has good evidence for PCOS"], bookRef:'Ch 6', productSlot:null, source:'book' },
       { id:'log-irreg-3', severity:'info', headline:"Stress and under-fuelling can pause cycles",
         why:"High stress, heavy training, or eating too little can suppress ovulation and lengthen or skip cycles. More rest and more food often bring them back; the body pauses what it can't afford.",
         actions:["If training is hard and food is low, add fuel and recovery first"], bookRef:'Ch 16 / Ch 4', productSlot:null, source:'book' },
