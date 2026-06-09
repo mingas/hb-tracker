@@ -944,7 +944,37 @@ window.HB_ADVICE = {
             "This isn\u2019t about forcing litres or chasing a trendy number. It\u2019s about noticing whether \u201Ctired and foggy by mid-afternoon\u201D eases with a glass of water before you reach for a more complicated explanation."
           ],
           action:"One thing to test this week: when the afternoon slump hits, drink a glass of water first and wait ten minutes. Sometimes the simplest fix has been hiding under the complicated ones.",
-          bookRef:'Food / What to Drink, What to Limit', productSlot:null, source:'book' }
+          bookRef:'Food / What to Drink, What to Limit', productSlot:null, source:'book' },
+        { id:'dl-nutrition-fasting', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Why intermittent fasting can backfire for women",
+          body:[
+            "Intermittent fasting is everywhere, usually sold as a simple fix for weight and metabolism. What rarely gets mentioned is that most of the enthusiastic advice is built on studies in men \u2014 and women\u2019s bodies respond to going without food quite differently.",
+            "Women are more sensitive to signals of energy scarcity. A long fast can read to your body as a stressor, nudging cortisol up and, especially in the second half of the cycle, suppressing progesterone and disturbing ovulation, sleep and mood. In perimenopause, when estrogen no longer buffers stress as well, that backfire effect tends to be stronger \u2014 the very symptoms you\u2019re trying to fix can get worse.",
+            "This isn\u2019t a blanket no. It\u2019s a \u201Cwomen need a gentler version.\u201D A modest overnight fast (say 12 hours) is fine for most; the long, aggressive fasts, and especially fasting hard in your pre-period week, are where it tends to go wrong."
+          ],
+          action:"One thing to keep in mind: if you fast, keep it gentle (around a 12-hour overnight window), eat enough in your eating window, and ease off in your pre-period week. Feeling worse is a signal, not a discipline problem.",
+          bookRef:'Food / Energy Availability', productSlot:null, source:'book+web' },
+        { id:'dl-nutrition-gut-mood', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Your gut has more to do with your mood than you\u2019d think",
+          body:[
+            "We talk about mood as if it lives entirely in the head, but a surprising amount of the chemistry involved is made further down \u2014 in the gut. The majority of your serotonin, the calm-and-contentment messenger, is produced in the digestive tract, and the bacteria living there are deeply involved.",
+            "When the gut\u2019s bacterial balance is off \u2014 from stress, poor sleep, low fibre, heavy alcohol \u2014 it can ripple upward into low mood, anxiety and brain fog, as well as bloating and irregular digestion. The gut and brain are in constant two-way conversation, which is why \u201Cgut feelings\u201D aren\u2019t just a figure of speech.",
+            "The practical upshot is encouraging: the same things that support estrogen clearance also feed a healthier gut \u2014 fibre, fermented foods, less alcohol \u2014 so tending your gut quietly supports your mood at the same time."
+          ],
+          action:"One thing to add: a small daily source of fermented food \u2014 live yogurt, kefir, sauerkraut, kimchi \u2014 alongside your fibre. You\u2019re feeding the bacteria that help make you feel steady.",
+          bookRef:'Food / Fibre & Estrogen Clearance', productSlot:null, source:'book' },
+        { id:'dl-nutrition-anti-inflammatory', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The eating pattern that helps almost every hormone issue",
+          body:[
+            "Faced with PMS, endometriosis pain, PCOS, perimenopausal symptoms \u2014 it can feel like each needs its own special diet. In reality, beneath most of them sits a shared theme: chronic low-grade inflammation. And one broad eating pattern helps across all of them.",
+            "It\u2019s nothing exotic \u2014 essentially the traditional Mediterranean way of eating: plenty of vegetables and fruit, oily fish, olive oil, nuts, beans and whole grains, with far less ultra-processed food. This pattern lowers inflammation and supports steadier blood sugar, which is why it shows up again and again in the research on women\u2019s hormonal conditions.",
+            "You don\u2019t need to adopt a label or overhaul everything overnight. Nudging your plates in this direction \u2014 more plants and good fats, less ultra-processed \u2014 quietly helps several problems at once."
+          ],
+          action:"One thing to try: build one more meal this week around vegetables, a good fat (olive oil, oily fish) and some protein. Direction toward anti-inflammatory eating, not perfection.",
+          bookRef:'Food / The Anti-Inflammatory Pattern', productSlot:null, source:'book' }
       ],
       mindset: [
         { id:'dl-mindset-dismissed', category:'mindset', severity:'info',
@@ -1036,6 +1066,16 @@ window.HB_ADVICE = {
             "And if you\u2019re still dismissed, that\u2019s information about the clinician, not a verdict on your symptoms. Asking one more question, or seeking another opinion, isn\u2019t being difficult \u2014 it\u2019s what informed people do."
           ],
           action:"One thing to do before your next appointment: write your top two concerns and a few specifics \u2014 duration, frequency, impact \u2014 and lead with them. Specific is harder to dismiss than vague.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-mindset-rest', category:'mindset', severity:'positive',
+          eyebrow:'Something to sit with today',
+          headline:"Rest is doing something \u2014 it just doesn\u2019t look like it",
+          body:[
+            "Most of us absorbed the idea that worth is measured in output, and that rest has to be earned by first finishing everything. Since the list is never finished, rest gets endlessly deferred \u2014 and the body pays for it in elevated stress chemistry that quietly worsens nearly every hormonal symptom.",
+            "But rest isn\u2019t the absence of productivity; it\u2019s the part where your body actually repairs and rebalances. Deep sleep is when tissue is repaired. Downtime is when your nervous system shifts out of the stress state and lets cortisol fall. The recovery is the work \u2014 it just doesn\u2019t show up on a to-do list.",
+            "Reframing rest as legitimate, even necessary, is one of the more quietly radical things you can do for your hormones \u2014 especially in a stage of life where stress amplifies everything."
+          ],
+          action:"One thing to try today: take a small rest you haven\u2019t \u201Cearned\u201D \u2014 ten minutes, no task, no guilt. Treat it as part of the work your body is doing, because it is.",
           bookRef:null, productSlot:null, source:'book' }
       ],
       stress: [
@@ -1170,7 +1210,17 @@ window.HB_ADVICE = {
             "That\u2019s the whole point of logging day after day. Not to chase a perfect pattern, but to build a personal reference so that when something changes, you notice it early and clearly."
           ],
           action:"One thing to keep doing: log consistently, even on unremarkable days. The boring entries are what build the baseline that makes a real change easy to spot.",
-          bookRef:'Cycle / The Cycle Is a Vital Sign', productSlot:null, source:'book' }
+          bookRef:'Cycle / The Cycle Is a Vital Sign', productSlot:null, source:'book' },
+        { id:'dl-cycle-post-pill', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"What to expect when you come off the pill",
+          body:[
+            "The pill works by switching off your natural cycle and supplying steady synthetic hormones instead. So coming off it isn\u2019t simply flicking a switch back on \u2014 your own hormonal rhythm has to wake up and find its feet again, and that can take a few months.",
+            "In that window it\u2019s common to see irregular or absent periods for a while, a return of symptoms the pill was masking (acne, PMS, heavier or more painful bleeds), and a stretch where things feel unpredictable. None of this means something is broken; it\u2019s your system re-establishing its own pattern.",
+            "It also matters because the pill can hide conditions \u2014 PCOS, endometriosis, irregular cycles \u2014 that re-emerge once it\u2019s stopped. What surfaces afterward is useful information about your underlying hormonal health, not a new problem the pill caused."
+          ],
+          action:"One thing to do if you\u2019ve recently stopped: start tracking, and give your cycle a few months to settle. If periods haven\u2019t returned after about three months, that\u2019s worth a doctor\u2019s conversation.",
+          bookRef:'Cycle / Contraception & Your Cycle', productSlot:null, source:'book' }
       ],
       menopause: [
         { id:'dl-meno-progesterone-first', category:'menopause', severity:'info',
@@ -1232,7 +1282,27 @@ window.HB_ADVICE = {
             "Which is why eating even less often backfires here \u2014 it costs you the very muscle that protects your metabolism. The more effective levers are protein, strength training, steady blood sugar and sleep, not deeper restriction."
           ],
           action:"One thing to reframe: if your shape has changed despite steady habits, reach for protein and strength rather than a stricter diet. You\u2019re working with the hormonal shift, not punishing yourself for it.",
-          bookRef:'Perimenopause / The Symptoms No One Connects', productSlot:null, source:'book' }
+          bookRef:'Perimenopause / The Symptoms No One Connects', productSlot:null, source:'book' },
+        { id:'dl-meno-window', category:'menopause', severity:'positive',
+          eyebrow:'Something to learn today',
+          headline:"These years are the highest-impact window you\u2019ll get",
+          body:[
+            "It\u2019s easy to treat perimenopause as something to survive until the symptoms pass. But there\u2019s a more useful way to see it: the years around menopause are the single highest-leverage window you have for protecting your next few decades.",
+            "Estrogen quietly guarded your bones, heart and brain for most of your life. As it withdraws, that protection fades \u2014 but the risk that follows is largely modifiable, and what you build now compounds. The strength training, the protein, the sleep, the blood-pressure and cholesterol awareness done in this decade pay off for thirty years. There\u2019s even evidence that this window matters for hormone therapy decisions too.",
+            "That reframe turns a stretch that can feel like loss into something more empowering: not the end of your strong years, but the most important time to invest in them."
+          ],
+          action:"One thing to start now rather than later: one long-game habit \u2014 strength training, or simply knowing your blood pressure and cholesterol. This is the window where it counts most.",
+          bookRef:'Postmenopause / The Long Game', productSlot:null, source:'book' },
+        { id:'dl-meno-reframe', category:'menopause', severity:'positive',
+          eyebrow:'Something to sit with today',
+          headline:"Perimenopause is a recalibration, not a decline",
+          body:[
+            "The cultural story about this stage is relentlessly negative \u2014 a winding down, a fading, a list of things that go wrong. It\u2019s no wonder so many women approach it with dread. But that story is incomplete, and the dread itself can make the experience harder.",
+            "Biologically, this is a transition to a new steady state, not a slide into decline. The turbulent years do end. Many women describe what comes after as one of the most stable, clear and self-assured periods of their lives \u2014 freed from cycles, often freed from the urge to please, more sure of what they want.",
+            "None of this dismisses the genuine difficulty of the symptoms. It just refuses the idea that the whole chapter is loss. Walked into informed and supported, it can be a recalibration toward something steadier \u2014 not the beginning of the end."
+          ],
+          action:"One thing to hold onto on a hard day: the turbulence is a phase, not your new permanent self. Informed and supported, what comes next can be genuinely steadier.",
+          bookRef:'Postmenopause / The New Steady State', productSlot:null, source:'book' }
       ],
       movement: [
         { id:'dl-move-cardio-not-enough', category:'movement', severity:'info',
@@ -1294,7 +1364,17 @@ window.HB_ADVICE = {
             "So the most useful question isn\u2019t \u201CWhat\u2019s the optimal workout?\u201D It\u2019s \u201CWhat will I genuinely still be doing in three months?\u201D Start there, start small, and let consistency compound."
           ],
           action:"One thing to choose: a movement habit modest enough that you\u2019re almost certain to keep it \u2014 two short sessions a week is plenty to start. You can always build once it\u2019s sticking.",
-          bookRef:'Movement / Why Cardio Is Not Enough', productSlot:null, source:'book' }
+          bookRef:'Movement / Why Cardio Is Not Enough', productSlot:null, source:'book' },
+        { id:'dl-move-pelvic-floor', category:'movement', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The muscles no one tells you to train",
+          body:[
+            "There\u2019s a set of muscles that quietly support your bladder, bowel and core, and almost no one is taught to look after them until something goes wrong: the pelvic floor. Leaking a little when you sneeze, laugh or run is incredibly common \u2014 and very commonly treated as just an inevitable part of having had babies or getting older.",
+            "It isn\u2019t inevitable, and it isn\u2019t something you have to live with quietly. Pregnancy, childbirth and falling estrogen all affect these muscles and the tissues around them, but they respond to training just like any other muscle. The catch is that \u201Cjust do your kegels\u201D is often wrong \u2014 some women need to strengthen, others to learn to release, and getting it backwards doesn\u2019t help.",
+            "This is exactly why it\u2019s worth treating as a real, trainable thing rather than a source of quiet embarrassment. A women\u2019s-health physiotherapist can tell you which direction you actually need."
+          ],
+          action:"One thing to know: leaking with sneezing or exercise is common but not something you have to accept. A women\u2019s-health physio can assess what your pelvic floor actually needs \u2014 it\u2019s trainable.",
+          bookRef:'Movement / The Pelvic Floor', productSlot:null, source:'book' }
       ],
       supplements: [
         { id:'dl-supp-foundations-first', category:'supplements', severity:'info',
@@ -1356,7 +1436,27 @@ window.HB_ADVICE = {
             "It also helps to know what to skip. Several heavily marketed options \u2014 evening primrose oil and a few popular herbs among them \u2014 don\u2019t have strong evidence behind the claims made for them. Spending less on those leaves more for the few that earn their place."
           ],
           action:"One thing to do before your next purchase: check for third-party testing and the specific form, and give anything new a fair trial with a stop date rather than taking it forever on faith.",
-          bookRef:'Supplements / What Actually Helps', productSlot:null, source:'book+web' }
+          bookRef:'Supplements / What Actually Helps', productSlot:null, source:'book+web' },
+        { id:'dl-supp-b12', category:'supplements', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The deficiency that masquerades as \u201Cjust tired\u201D",
+          body:[
+            "Bone-deep fatigue, brain fog, low mood, tingling in the hands or feet, even a sore tongue \u2014 these get pinned on stress or hormones, but they\u2019re also the classic signs of low vitamin B12, a deficiency that\u2019s easy to miss and easy to fix.",
+            "It\u2019s especially common in women who eat little or no meat, who are over forty, or who take certain stomach-acid or diabetes medications that reduce absorption. Because the symptoms overlap so neatly with hormonal fatigue, B12 often goes unchecked while everything else gets blamed.",
+            "It\u2019s worth knowing precisely because it\u2019s so treatable \u2014 a simple blood test confirms it, and correcting it can lift a fatigue that no amount of sleep was touching."
+          ],
+          action:"One thing to consider if you\u2019re plant-based, over forty, or on acid-reducing medication: ask for a B12 check, and supplement if you\u2019re low. It\u2019s a common, fixable cause of fatigue.",
+          bookRef:'Supplements / The Core Few', productSlot:'/recommends/vitamin-b12', source:'book' },
+        { id:'dl-supp-zinc', category:'supplements', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"A small mineral with an outsized role in women\u2019s hormones",
+          body:[
+            "Zinc rarely makes the headlines, but it quietly underpins a lot: it supports ovulation and progesterone production, helps regulate the skin (which is why low zinc shows up as hormonal acne for some women), and is involved in immune function and wound healing.",
+            "It\u2019s also a mineral many women run low on, particularly those eating little red meat or shellfish, and stress depletes it further. Low zinc can show up as more breakouts, slower healing, frequent colds, and a niggling sense of being run down.",
+            "As with most supplements, food comes first \u2014 meat, shellfish, seeds and legumes are good sources \u2014 and supplementing is best kept modest, since very high doses can throw off copper balance over time."
+          ],
+          action:"One thing to try: get zinc-rich foods in regularly (pumpkin seeds, shellfish, meat, legumes). If you supplement for skin or immunity, keep the dose modest rather than mega.",
+          bookRef:'Supplements / What Actually Helps', productSlot:'/recommends/zinc', source:'book' }
       ],
       body: [
         { id:'dl-body-joints', category:'body', severity:'info',
@@ -1428,7 +1528,27 @@ window.HB_ADVICE = {
             "None of this means you should diagnose yourself. It means \u201Cyour TSH is normal\u201D isn\u2019t always the end of the conversation \u2014 and you\u2019re allowed to ask for a fuller panel."
           ],
           action:"One thing to ask for if symptoms persist despite a \u201Cnormal\u201D result: a fuller thyroid panel \u2014 free T4, free T3, antibodies \u2014 plus ferritin and vitamin D, which both affect how the thyroid works.",
-          bookRef:'Thyroid / The Full Picture', productSlot:null, source:'book' }
+          bookRef:'Thyroid / The Full Picture', productSlot:null, source:'book' },
+        { id:'dl-body-sleep-apnea', category:'body', severity:'caution',
+          eyebrow:'Worth a gentle check',
+          headline:"In women, sleep apnea often hides behind other symptoms",
+          body:[
+            "Sleep apnea \u2014 where breathing repeatedly pauses in the night \u2014 is usually pictured as a loud-snoring man. That image is exactly why it gets missed in women, whose symptoms often look completely different and get blamed on hormones or stress instead.",
+            "In women it more often shows up as daytime fatigue, low mood, morning headaches, brain fog, or unexplained weight gain \u2014 without the dramatic snoring. And the risk rises around menopause, as the hormonal changes affect the airway and breathing during sleep. Many women carry it for years, treating the downstream symptoms while the cause goes unnamed.",
+            "This is worth knowing because it\u2019s very treatable once identified \u2014 and because no amount of sleep hygiene fixes a breathing problem. If exhaustion persists despite genuinely good sleep habits, this belongs on the list."
+          ],
+          action:"One thing to do if you\u2019re sleeping \u201Cenough\u201D but still wrecked, especially with morning headaches: mention sleep apnea to your doctor and ask whether a sleep assessment is warranted.",
+          bookRef:'Sleep / Why Sleep Breaks Down in Perimenopause', productSlot:null, source:'book+web' },
+        { id:'dl-body-period-pain', category:'body', severity:'caution',
+          eyebrow:'Worth a gentle check',
+          headline:"Period pain that stops your life isn\u2019t something to just endure",
+          body:[
+            "Some cramping is a normal part of menstruation. But pain that regularly keeps you off work or out of life, that painkillers barely touch, or that has crept worse over the years, is in a different category \u2014 and \u201Cperiods are just painful\u201D has left far too many women undiagnosed for years.",
+            "Severe, life-disrupting period pain can be a sign of conditions like endometriosis, where tissue similar to the womb lining grows elsewhere and drives inflammation and pain. On average women wait years for a diagnosis, partly because the pain gets normalised \u2014 by them and sometimes by clinicians.",
+            "Naming the threshold helps. Pain you can manage with the odd painkiller and a hot water bottle is one thing; pain that controls your month is a reason to push for answers, not to grit your teeth through."
+          ],
+          action:"One thing to do if pain regularly disrupts your life: track it (when, how severe, what it stops you doing) and take that record to a doctor. Ask directly whether endometriosis should be considered.",
+          bookRef:'Cycle / When Pain Isn\u2019t Normal', productSlot:null, source:'book' }
       ]
     },
     byType: {
