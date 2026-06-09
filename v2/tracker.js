@@ -57,6 +57,7 @@
   var STORAGE_KEY_STREAK  = 'hb_tracker_streak';
   var QUIZ_STORAGE_KEY    = 'hb_quiz_state';
   var STORAGE_KEY_ROTATION = 'hb_advice_rotation';
+  var STORAGE_KEY_LAST_CARD = 'hb_last_log_card';
   var ROOT_ID             = 'hb-tracker-root';
   var DATE_CHECK_INTERVAL_MS = 60000;
   var MAX_BACKWARD_OFFSET = -12;
@@ -212,6 +213,7 @@
       state.selectedDayKey = null;
       state.saveJustSucceeded = false;
       state.viewMonthOffset = 0;
+      state.lastLogCard = null;
       buildCurrentEntryForToday();
       renderTracker();
     }
@@ -257,6 +259,34 @@
 
   function saveRotation() {
     try { localStorage.setItem(STORAGE_KEY_ROTATION, JSON.stringify(state.adviceRotation || {})); } catch (e) {}
+  }
+
+  // Persist the advice card chosen for the most recent log, tied to its date,
+  // so it survives a page reload and stays until the next day is logged.
+  function saveLastLogCard() {
+    try {
+      if (state.lastLogCard) {
+        localStorage.setItem(STORAGE_KEY_LAST_CARD, JSON.stringify({ date: state.today, picked: state.lastLogCard }));
+      } else {
+        localStorage.removeItem(STORAGE_KEY_LAST_CARD);
+      }
+    } catch (e) {}
+  }
+
+  function loadLastLogCard() {
+    state.lastLogCard = null;
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_LAST_CARD);
+      if (!raw) return;
+      var parsed = JSON.parse(raw);
+      // Restore only if it belongs to today AND today actually has an entry.
+      // Anything else (previous day, no entry) is stale — drop it.
+      if (parsed && parsed.date === state.today && parsed.picked && state.entries[state.today]) {
+        state.lastLogCard = parsed.picked;
+      } else {
+        try { localStorage.removeItem(STORAGE_KEY_LAST_CARD); } catch (e2) {}
+      }
+    } catch (e) { state.lastLogCard = null; }
   }
 
   function loadQuizHormoneType() {
@@ -532,6 +562,8 @@
         if (payload.quizState && typeof payload.quizState === 'object') {
           try { localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(payload.quizState)); } catch (e) {}
         }
+        // Imported data replaces current logs — the in-memory advice card no longer applies.
+        try { localStorage.removeItem(STORAGE_KEY_LAST_CARD); } catch (e) {}
 
         trackEvent('data_import', { entries_count: newCount });
         location.reload();
@@ -599,6 +631,7 @@
       try { localStorage.removeItem(STORAGE_KEY_ENTRIES); } catch (e) {}
       try { localStorage.removeItem(STORAGE_KEY_STREAK); } catch (e) {}
       try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
+      try { localStorage.removeItem(STORAGE_KEY_LAST_CARD); } catch (e) {}
       trackEvent('data_delete_all', { entries_count: entryCount });
       location.reload();
     }
@@ -1911,6 +1944,7 @@
         }
       }
     } catch (e) { state.lastLogCard = null; }
+    saveLastLogCard();
 
     var milestone = null;
     if (!isUpdate) {
@@ -2016,6 +2050,7 @@
     loadEntries();
     loadStreak();
     loadRotation();
+    loadLastLogCard();
     loadQuizHormoneType();
 
     // Phase 1: Returning user mode
