@@ -802,7 +802,27 @@ window.HB_ADVICE = {
             "The second most powerful lever pairs with the first: daylight on your face within an hour of waking. Morning light is the strongest signal your brain has for setting the whole 24-hour rhythm \u2014 and it\u2019s free."
           ],
           action:"One thing to try: pick a wake-up time you can keep every day, including weekends, within about half an hour \u2014 and get outside, even briefly, soon after. Boring, and it works.",
-          bookRef:'Sleep', productSlot:null, source:'book' }
+          bookRef:'Sleep', productSlot:null, source:'book' },
+        { id:'dl-sleep-caffeine', category:'sleep', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Your afternoon coffee is still working at bedtime",
+          body:[
+            "A 3 p.m. coffee feels harmless \u2014 you\u2019ll be wide awake for hours, and surely it\u2019ll have worn off by bed. The catch is how slowly caffeine actually leaves: roughly half of it is still in your system five to six hours later, and a meaningful amount lingers well into the night.",
+            "Even when it doesn\u2019t stop you falling asleep, that residue can quietly flatten the deep, restorative stages \u2014 so you sleep, but wake less rested. And as you move through your late thirties and forties, many women find they simply tolerate caffeine less well than they used to.",
+            "You don\u2019t have to give it up. You mostly have to move it earlier, so the curve has fallen by the time you\u2019re trying to wind down."
+          ],
+          action:"One thing to try: make your last caffeine an early-afternoon cut-off \u2014 around 2 p.m. for many people \u2014 and see whether your sleep feels deeper within a week.",
+          bookRef:'Sleep / What Actually Works', productSlot:null, source:'book' },
+        { id:'dl-sleep-continuous', category:'sleep', severity:'positive',
+          eyebrow:'Something to sit with today',
+          headline:"You don\u2019t need eight perfect hours",
+          body:[
+            "The number \u201Ceight hours\u201D has become a stick women beat themselves with \u2014 lying awake doing anxious maths about how little is left, which of course makes sleep harder still. It\u2019s worth loosening the grip on that single figure.",
+            "What your body actually prizes is continuous sleep at least as much as total hours. Seven solid, unbroken hours often does more for you than eight that are fragmented. Chasing a perfect number can matter less than protecting the quality of the sleep you do get.",
+            "And one bad night is not a catastrophe. The body is resilient; it\u2019s the long-term pattern that shapes your hormones, not any single night. Releasing the pressure can, paradoxically, be part of sleeping better."
+          ],
+          action:"One thing to let go of tonight: the perfect-eight-hours scorecard. Aim for unbroken and good-enough, and don\u2019t let one rough night become a worry that ruins the next.",
+          bookRef:'Sleep / What Happens During the Stages', productSlot:null, source:'book' }
       ],
       nutrition: [
         { id:'dl-nutrition-breakfast', category:'nutrition', severity:'info',
@@ -894,7 +914,17 @@ window.HB_ADVICE = {
             "Doing the helpful things about eighty percent of the time, for years, quietly outperforms any strict protocol followed perfectly for a fortnight and then dropped. Direction beats perfection. Consistency beats intensity."
           ],
           action:"One thing to let go of today: the idea that it has to be perfect to count. Pick one foundation \u2014 protein, fibre, fats, or blood sugar \u2014 and just nudge it in the right direction this week.",
-          bookRef:'Food / The Four Foundations', productSlot:null, source:'book' }
+          bookRef:'Food / The Four Foundations', productSlot:null, source:'book' },
+        { id:'dl-nutrition-caffeine-luteal', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Why your coffee hits differently before your period",
+          body:[
+            "Some weeks your usual coffee is a friendly lift; other weeks the same cup leaves you jittery, anxious, and wide awake at night. If that swing seems to track your cycle, it isn\u2019t your imagination \u2014 it\u2019s the luteal phase changing how caffeine lands.",
+            "In the back half of your cycle, as progesterone falls, your buffer against stimulation thins and your nervous system runs a little more reactive. The same caffeine that felt fine in your follicular week can now tip you into anxiety and disrupted sleep \u2014 the very things that already worsen premenstrually.",
+            "So it isn\u2019t that you suddenly can\u2019t handle coffee. It\u2019s that the dose your body tolerates comfortably shifts across the month, and the pre-period stretch is when it\u2019s lowest."
+          ],
+          action:"One thing to try: in your pre-period week, ease back on caffeine \u2014 a smaller cup, or an earlier cut-off. Notice whether the premenstrual anxiety and poor sleep soften.",
+          bookRef:'Food / What to Drink, What to Limit', productSlot:null, source:'book' }
       ],
       mindset: [
         { id:'dl-mindset-dismissed', category:'mindset', severity:'info',
@@ -936,6 +966,26 @@ window.HB_ADVICE = {
             "The aim is a working relationship with your body, not authority over it. You\u2019re learning its language so you can cooperate with it, not so you can force it to behave."
           ],
           action:"One thing to release today: the idea that a hard day means you did something wrong. Note it, be gentle with it, and let the pattern \u2014 not the single day \u2014 be the teacher.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-mindset-comparison', category:'mindset', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"You\u2019re comparing your insides to everyone else\u2019s outsides",
+          body:[
+            "It\u2019s a strange feature of modern life that you can feel exhausted, foggy and stretched thin while scrolling past a steady stream of women who appear to be thriving \u2014 glowing, organised, energetic. The quiet conclusion is that something must be wrong with you specifically.",
+            "But you\u2019re comparing the full, unedited experience of your own body \u2014 the bad nights, the mood dips, the days you can barely think \u2014 against other people\u2019s carefully chosen highlights. Almost no one posts the 3 a.m. waking or the irritable luteal week. The comparison is rigged from the start.",
+            "Naming that can take some of its sting out. Most women you envy are managing their own invisible version of exactly what you\u2019re managing. You\u2019re not behind; you\u2019re just seeing the edited version of everyone else."
+          ],
+          action:"One thing to try: next time a feed leaves you feeling behind, remind yourself you\u2019re seeing someone\u2019s highlight reel, not their full day. Then put the phone down for a bit.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-mindset-mental-load', category:'mindset', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"The invisible work that never clocks off",
+          body:[
+            "Beyond the visible tasks sits a quieter kind of work: remembering the appointments, anticipating what everyone will need, holding the running list of the household in your head. It rarely gets named, it doesn\u2019t show up on any rota \u2014 and it is genuinely tiring in a way that\u2019s easy to dismiss.",
+            "This mental load is a real, low-grade stressor. Your nervous system doesn\u2019t distinguish between a heavy physical day and a mind that never gets to put the list down. Carried for years, it\u2019s part of the background activation that keeps cortisol quietly elevated.",
+            "Recognising it is the first step, because what has no name can\u2019t be shared or eased. The load being invisible doesn\u2019t make it weightless \u2014 and it doesn\u2019t have to be carried alone."
+          ],
+          action:"One thing to try: pick one piece of the mental load to genuinely hand over \u2014 not the task, the responsibility for remembering it. Naming it out loud is where sharing it begins.",
           bookRef:null, productSlot:null, source:'book' }
       ],
       stress: [
@@ -988,7 +1038,27 @@ window.HB_ADVICE = {
             "So the calm walk, the protected sleep, the boundary you set \u2014 these aren\u2019t indulgences you earn after the real work. For your hormones, they are the real work."
           ],
           action:"One thing to reframe today: treat one small recovery habit as non-negotiable, the way you would a medication \u2014 not as something you\u2019ll get to if there\u2019s time left over. Magnesium in the evening can support the same wind-down.",
-          bookRef:'Stress / Why It Amplifies Everything', productSlot:'/recommends/magnesium', source:'book' }
+          bookRef:'Stress / Why It Amplifies Everything', productSlot:'/recommends/magnesium', source:'book' },
+        { id:'dl-stress-boundaries', category:'stress', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"A boundary is a physiological act, not just a personality trait",
+          body:[
+            "Saying no, declining the extra thing, leaving the message until tomorrow \u2014 these get framed as matters of confidence or character. But for your nervous system, a boundary is something more concrete: it\u2019s a way of lowering the actual demand your body is responding to.",
+            "Your stress response reacts to perceived load \u2014 the sheer volume of things asking for you at once. Every commitment you decline is one fewer signal telling your body to stay switched on. In that sense, protecting your time isn\u2019t self-indulgence; it\u2019s directly lowering the cortisol cost of your week.",
+            "This reframe can make boundaries feel less like selfishness and more like maintenance. You\u2019re not letting people down \u2014 you\u2019re keeping the system that runs everything else from running hot."
+          ],
+          action:"One thing to try this week: decline one optional thing without over-explaining. Notice that the world holds, and your body gets a little of its capacity back.",
+          bookRef:'Stress / Regulating the Response', productSlot:null, source:'book' },
+        { id:'dl-stress-nature', category:'stress', severity:'positive',
+          eyebrow:'Something to learn today',
+          headline:"Ten minutes outside does measurable work",
+          body:[
+            "When you\u2019re stretched thin, \u201Cgo outside\u201D can sound almost insultingly simple. But time outdoors is one of the most reliable, lowest-effort ways to nudge your stress physiology in the right direction \u2014 and it costs nothing.",
+            "Daylight helps set the body clock that governs sleep and cortisol rhythm, gentle movement burns off some of the stress chemistry, and there\u2019s good evidence that time in green space lowers stress markers and lifts mood beyond what the walking alone explains. It\u2019s a surprising amount of return for ten minutes.",
+            "It doesn\u2019t need to be a hike or a project. A short walk around the block, a coffee taken outside, a few minutes of sky \u2014 done most days, it adds up to real regulation."
+          ],
+          action:"One thing to try today: ten minutes outside, ideally earlier in the day. Not as an item to achieve \u2014 as a small, deliberate reset for your nervous system.",
+          bookRef:'Stress / Regulating the Response', productSlot:null, source:'book' }
       ],
       cycle: [
         { id:'dl-cycle-vital-sign', category:'cycle', severity:'info',
@@ -1040,7 +1110,17 @@ window.HB_ADVICE = {
             "The takeaway isn\u2019t to memorise new numbers \u2014 it\u2019s to trust your own pattern over the textbook. Your body keeps a more accurate calendar than any generic average."
           ],
           action:"One thing to track: rather than counting to 14, watch for your own ovulation signs over a couple of cycles. Your real timing is more useful than the textbook\u2019s.",
-          bookRef:'Cycle / The Two Halves', productSlot:null, source:'book+web' }
+          bookRef:'Cycle / The Two Halves', productSlot:null, source:'book+web' },
+        { id:'dl-cycle-your-normal', category:'cycle', severity:'positive',
+          eyebrow:'Something to learn today',
+          headline:"Tracking reveals your normal \u2014 so you can spot when it changes",
+          body:[
+            "There\u2019s no single \u201Cnormal\u201D cycle. Healthy cycles range widely in length, flow and how they feel \u2014 so a number from a textbook tells you far less than a few months of your own data does. The real value of tracking isn\u2019t hitting an average; it\u2019s learning your average.",
+            "Once you know your own baseline \u2014 how long your cycle usually runs, how your mood and energy move through it, what your flow is normally like \u2014 you gain a quiet early-warning system. A clear change from your normal is one of the first signs that something \u2014 thyroid, stress, perimenopause \u2014 may be shifting.",
+            "That\u2019s the whole point of logging day after day. Not to chase a perfect pattern, but to build a personal reference so that when something changes, you notice it early and clearly."
+          ],
+          action:"One thing to keep doing: log consistently, even on unremarkable days. The boring entries are what build the baseline that makes a real change easy to spot.",
+          bookRef:'Cycle / The Cycle Is a Vital Sign', productSlot:null, source:'book' }
       ],
       menopause: [
         { id:'dl-meno-progesterone-first', category:'menopause', severity:'info',
@@ -1082,7 +1162,27 @@ window.HB_ADVICE = {
             "The honest summary is this: a clinician who tells you nothing can be done is not up to date with what the evidence supports. That\u2019s a reason to seek a second opinion, not to give up."
           ],
           action:"One thing to remember: \u201Cnothing can be done\u201D is usually a sign to find someone more current, not a verdict on your options. You are allowed to ask again, elsewhere.",
-          bookRef:'Menopause and HRT', productSlot:null, source:'book+web' }
+          bookRef:'Menopause and HRT', productSlot:null, source:'book+web' },
+        { id:'dl-meno-testosterone', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Women have testosterone too \u2014 and it quietly fades",
+          body:[
+            "Testosterone is filed in most minds as a male hormone, so its role in women\u2019s health goes almost entirely unmentioned. Yet women produce it throughout life, and it contributes to libido, energy, mood, motivation and muscle \u2014 and it declines slowly across the decades, well before and through menopause.",
+            "When it dips, the effects are easy to misattribute: a flattened sex drive, a loss of get-up-and-go, a sense of motivation gone quiet. Because almost no one connects these to testosterone, women often assume it\u2019s just them, or just age.",
+            "It\u2019s worth knowing simply so the dots can be joined. For some women, particularly where low libido is distressing, testosterone is something that can be discussed and, in the right setting, addressed \u2014 another reason a well-informed appointment matters."
+          ],
+          action:"One thing to keep in mind: if libido and drive have dropped in a way that bothers you, testosterone is part of the female picture too \u2014 and a reasonable thing to raise with a knowledgeable clinician.",
+          bookRef:'Postmenopause / The New Steady State', productSlot:null, source:'book' },
+        { id:'dl-meno-central-weight', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Midlife weight settling around the middle isn\u2019t a willpower failure",
+          body:[
+            "Many women reach their forties and find that weight, which once spread fairly evenly, now gathers around the middle \u2014 often without much change in how they eat. The usual response is self-blame and harder dieting, which frequently makes things worse.",
+            "The shift is largely hormonal. As estrogen falls, the body tends to redistribute fat toward the abdomen, and falling muscle plus less stable blood sugar tilt the metabolism in the same direction. It\u2019s a change in the terms, not a sudden collapse of your discipline.",
+            "Which is why eating even less often backfires here \u2014 it costs you the very muscle that protects your metabolism. The more effective levers are protein, strength training, steady blood sugar and sleep, not deeper restriction."
+          ],
+          action:"One thing to reframe: if your shape has changed despite steady habits, reach for protein and strength rather than a stricter diet. You\u2019re working with the hormonal shift, not punishing yourself for it.",
+          bookRef:'Perimenopause / The Symptoms No One Connects', productSlot:null, source:'book' }
       ],
       movement: [
         { id:'dl-move-cardio-not-enough', category:'movement', severity:'info',
@@ -1114,7 +1214,37 @@ window.HB_ADVICE = {
             "It\u2019s small, unglamorous, and easy to dismiss \u2014 which is exactly why it\u2019s worth naming. Done most days, after your biggest meal, it adds up to a meaningful metabolic habit for almost no effort."
           ],
           action:"One thing to try: take a ten-minute walk after your largest meal today \u2014 even around the block. Notice whether the usual afternoon slump is gentler.",
-          bookRef:'Food / Insulin Sensitivity', productSlot:null, source:'book' }
+          bookRef:'Food / Insulin Sensitivity', productSlot:null, source:'book' },
+        { id:'dl-move-neat', category:'movement', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The movement that doesn\u2019t feel like exercise still counts",
+          body:[
+            "If you only count movement that happens in workout clothes, you\u2019re missing most of it. The walking, standing, stair-climbing and general fidgeting of an ordinary day adds up to a surprisingly large share of what your body does \u2014 and it matters as much as the structured sessions.",
+            "This everyday activity keeps blood sugar steadier, supports a healthier metabolism, and quietly offsets the long, still hours that modern life builds in. A brisk daily life can outperform a single gym session bolted onto an otherwise sedentary day.",
+            "The freeing part is that none of it requires motivation or kit. Taking the stairs, parking further away, pacing on a call, walking to talk to a colleague instead of messaging \u2014 small choices, repeated, become a real foundation."
+          ],
+          action:"One thing to add today: one extra pocket of movement you wouldn\u2019t normally bother with \u2014 the stairs, a longer route, a walk during a call. It counts more than you think.",
+          bookRef:'Movement / Everyday Activity', productSlot:null, source:'book' },
+        { id:'dl-move-recovery', category:'movement', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"You can\u2019t out-train poor recovery",
+          body:[
+            "There\u2019s a quiet belief that more is always better with exercise \u2014 that if you\u2019re tired or stalled, the answer is to push harder. For women navigating shifting hormones, that instinct can backfire, because the gains from training don\u2019t happen during the workout. They happen during recovery.",
+            "When sessions are relentless and sleep and rest are short, the body reads it as one more stressor, nudging cortisol up rather than fitness. The result is the frustrating pattern of training hard and feeling worse \u2014 more tired, more wired, no progress.",
+            "Recovery isn\u2019t the absence of training; it\u2019s the part where the training actually works. Rest days, sleep, and easier weeks aren\u2019t slacking \u2014 they\u2019re where strength is built."
+          ],
+          action:"One thing to honour this week: a genuine rest day, and sleep around your harder sessions. If you\u2019re training and still flat, recovery is usually the missing piece, not effort.",
+          bookRef:'Movement / Recovery', productSlot:null, source:'book' },
+        { id:'dl-move-repeatable', category:'movement', severity:'positive',
+          eyebrow:'Something to learn today',
+          headline:"The best workout is the one you\u2019ll actually repeat",
+          body:[
+            "It\u2019s easy to be talked into elaborate programmes \u2014 six days a week, complicated splits, an hour at a time \u2014 and then quietly abandon the whole thing by week three when life gets in the way. The perfect plan you don\u2019t follow does nothing.",
+            "What changes a body over years isn\u2019t intensity; it\u2019s consistency. Two short, manageable strength sessions a week, done for months, beat an ambitious routine kept for a fortnight. The win is in the repeating, not the heroics.",
+            "So the most useful question isn\u2019t \u201CWhat\u2019s the optimal workout?\u201D It\u2019s \u201CWhat will I genuinely still be doing in three months?\u201D Start there, start small, and let consistency compound."
+          ],
+          action:"One thing to choose: a movement habit modest enough that you\u2019re almost certain to keep it \u2014 two short sessions a week is plenty to start. You can always build once it\u2019s sticking.",
+          bookRef:'Movement / Why Cardio Is Not Enough', productSlot:null, source:'book' }
       ],
       supplements: [
         { id:'dl-supp-foundations-first', category:'supplements', severity:'info',
@@ -1146,7 +1276,37 @@ window.HB_ADVICE = {
             "Omega-3 fats \u2014 the EPA and DHA found in oily fish \u2014 are the other. They\u2019re anti-inflammatory, support mood and the brain through the foggier stretches of perimenopause, and most women simply don\u2019t eat enough oily fish to get a useful dose from food alone."
           ],
           action:"One thing to do: aim for oily fish a couple of times a week, and consider testing your vitamin D rather than guessing. If you supplement D, choose a D3 with K2.",
-          bookRef:'Supplements / The Core Few', productSlot:'/recommends/vitamin-d3-k2', source:'book+web' }
+          bookRef:'Supplements / The Core Few', productSlot:'/recommends/vitamin-d3-k2', source:'book+web' },
+        { id:'dl-supp-creatine', category:'supplements', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Creatine isn\u2019t just for bodybuilders \u2014 or just for men",
+          body:[
+            "Creatine has an image problem. Decades of association with gym bros and bulking has left most women assuming it\u2019s irrelevant to them, or that it\u2019ll make them puffy and big. Neither is true, and the research on women has caught up impressively in the last few years.",
+            "It\u2019s simply a compound your muscles \u2014 and your brain \u2014 use for quick energy, and your own levels appear to dip as estrogen falls. Supplementing supports muscle strength and recovery (especially alongside resistance training), bone, and increasingly there\u2019s evidence for brain energy, mood and mental fatigue, which matter through perimenopause. It won\u2019t make you bulky, and at sensible doses it rarely causes bloating.",
+            "The honest caveats: it works with strength training, not instead of it, and some of the brain claims are still early. But for a cheap, exceptionally well-studied, safe supplement, the case for women is genuinely strong."
+          ],
+          action:"One thing to consider: 3\u20135 grams a day of creatine monohydrate, taken consistently (timing doesn\u2019t much matter), paired with a couple of strength sessions a week. Skip the old \u201Cloading\u201D phase.",
+          bookRef:'Supplements / The Core Few', productSlot:'/recommends/creatine', source:'book+web' },
+        { id:'dl-supp-ashwagandha', category:'supplements', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The herb with real evidence for stress and sleep",
+          body:[
+            "The supplement aisle is full of bold promises, most of them thin. Ashwagandha is one of the few with reasonable evidence behind a specific, useful claim: it can lower cortisol and improve sleep quality, particularly in people running on chronic stress.",
+            "That makes it a sensible thing to consider for the \u201Ctired but wired\u201D pattern \u2014 the flattened morning, the wired evening, the 3 a.m. alertness \u2014 where calming the stress response is exactly the goal. Studies tend to show benefits to sleep onset and quality over several weeks of consistent use.",
+            "It\u2019s worth being honest about what it isn\u2019t: it\u2019s often marketed for hot flushes, where the evidence doesn\u2019t really support it. Treat it as stress-and-sleep support, give it a fair trial, and judge by whether your sleep and your stress resilience actually improve."
+          ],
+          action:"One thing to try if stress and sleep are the issue: a quality ashwagandha for a few weeks, with a clear stop date. Keep it if your sleep and calm improve; drop it if they don\u2019t.",
+          bookRef:'Supplements / What Actually Helps', productSlot:'/recommends/ashwagandha', source:'book+web' },
+        { id:'dl-supp-quality', category:'supplements', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"With supplements, the label matters more than the headline",
+          body:[
+            "It\u2019s easy to buy a supplement on the strength of a confident claim and never think about what\u2019s actually in the bottle. But supplements are loosely regulated, and two products with the same name on the front can differ enormously in form, dose and purity.",
+            "Two habits protect you. First, favour products that are third-party tested, so an independent lab has confirmed the contents match the label. Second, pay attention to form \u2014 magnesium glycinate behaves very differently from cheap magnesium oxide, for instance \u2014 because the right form is often what separates \u201Cworks\u201D from \u201Cdid nothing.\u201D",
+            "It also helps to know what to skip. Several heavily marketed options \u2014 evening primrose oil and a few popular herbs among them \u2014 don\u2019t have strong evidence behind the claims made for them. Spending less on those leaves more for the few that earn their place."
+          ],
+          action:"One thing to do before your next purchase: check for third-party testing and the specific form, and give anything new a fair trial with a stop date rather than taking it forever on faith.",
+          bookRef:'Supplements / What Actually Helps', productSlot:null, source:'book+web' }
       ]
     },
     byType: {
