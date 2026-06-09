@@ -974,7 +974,17 @@ window.HB_ADVICE = {
             "You don\u2019t need to adopt a label or overhaul everything overnight. Nudging your plates in this direction \u2014 more plants and good fats, less ultra-processed \u2014 quietly helps several problems at once."
           ],
           action:"One thing to try: build one more meal this week around vegetables, a good fat (olive oil, oily fish) and some protein. Direction toward anti-inflammatory eating, not perfection.",
-          bookRef:'Food / The Anti-Inflammatory Pattern', productSlot:null, source:'book' }
+          bookRef:'Food / The Anti-Inflammatory Pattern', productSlot:null, source:'book' },
+        { id:'dl-nutrition-soy', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Is soy bad for your hormones? The honest answer",
+          body:[
+            "Soy has spent years on a list of foods women are quietly warned to fear \u2014 the worry being that, because it contains plant compounds called phytoestrogens, it must act like estrogen in the body and stir up trouble. It\u2019s one of the more persistent food myths in women\u2019s health.",
+            "The reality is gentler. Phytoestrogens are weak, plant-derived compounds that are not the same as your own estrogen and are far less potent. For most women, moderate amounts of whole soy foods \u2014 edamame, tofu, tempeh, soy milk \u2014 are safe, and the broader evidence leans toward neutral-to-helpful, including for mild menopausal symptoms in some women.",
+            "As with most things, form and amount matter more than the headline: whole soy foods in normal amounts are a world away from heavily processed soy isolates eaten in excess. If you tolerate it, it\u2019s a perfectly good protein source."
+          ],
+          action:"One thing to let go of: the blanket fear of soy. Whole soy foods \u2014 edamame, tofu, tempeh \u2014 in normal amounts are fine for most women, and a useful protein option if you enjoy them.",
+          bookRef:'Food / Phytoestrogens', productSlot:null, source:'book+web' }
       ],
       mindset: [
         { id:'dl-mindset-dismissed', category:'mindset', severity:'info',
@@ -1220,7 +1230,27 @@ window.HB_ADVICE = {
             "It also matters because the pill can hide conditions \u2014 PCOS, endometriosis, irregular cycles \u2014 that re-emerge once it\u2019s stopped. What surfaces afterward is useful information about your underlying hormonal health, not a new problem the pill caused."
           ],
           action:"One thing to do if you\u2019ve recently stopped: start tracking, and give your cycle a few months to settle. If periods haven\u2019t returned after about three months, that\u2019s worth a doctor\u2019s conversation.",
-          bookRef:'Cycle / Contraception & Your Cycle', productSlot:null, source:'book' }
+          bookRef:'Cycle / Contraception & Your Cycle', productSlot:null, source:'book' },
+        { id:'dl-cycle-fibroids', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Fibroids are common, estrogen-driven, and not a one-way street",
+          body:[
+            "Fibroids \u2014 benign growths in or on the womb \u2014 are remarkably common, affecting a large share of women by midlife, yet many have never had them explained. They\u2019re not cancer, and many cause no trouble at all, but when they do, heavy or prolonged bleeding and pelvic pressure are the usual signs.",
+            "They\u2019re sensitive to estrogen, which is partly why they tend to grow through the higher-estrogen years and often shrink after menopause. The same eating pattern that supports estrogen clearance \u2014 higher fibre, plenty of fruit and vegetables, less alcohol, less red meat \u2014 is associated with lower fibroid risk and may help slow growth.",
+            "What\u2019s worth knowing most is that symptomatic fibroids have a far wider menu of options than women are often told. Medication, non-surgical procedures, and uterus-preserving surgery all exist \u2014 a hysterectomy should rarely be the first thing offered."
+          ],
+          action:"One thing to do if heavy bleeding or pressure is affecting you: raise fibroids specifically with a doctor and ask about the full range of options \u2014 not just surgery. Support estrogen clearance with fibre meanwhile.",
+          bookRef:'Conditions / Fibroids', productSlot:null, source:'book' },
+        { id:'dl-cycle-pcos', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"PCOS is common, often missed, and very responsive to the right support",
+          body:[
+            "Polycystic ovary syndrome is one of the most common hormonal conditions in women, and one of the most under- and misdiagnosed. The classic picture is irregular or absent periods alongside signs of higher androgens \u2014 jawline acne, unwanted hair, weight that settles centrally \u2014 though it doesn\u2019t look identical in everyone.",
+            "Underneath it, for most women, sits insulin resistance: the body\u2019s cells respond poorly to insulin, which drives the hormonal cascade. That\u2019s actually hopeful, because insulin sensitivity is one of the most responsive things to everyday change \u2014 steady blood sugar, protein and fibre, strength training, and good sleep all push in the right direction.",
+            "If this pattern sounds familiar, it\u2019s worth a proper assessment rather than self-diagnosis \u2014 but knowing the link to insulin reframes it from a mysterious diagnosis into something with clear, daily levers."
+          ],
+          action:"One thing to do if irregular cycles come with acne, central weight or unwanted hair: ask a doctor about PCOS, and meanwhile work on blood-sugar stability \u2014 protein and fibre at meals, strength training, steady sleep.",
+          bookRef:'Conditions / PCOS', productSlot:null, source:'book' }
       ],
       menopause: [
         { id:'dl-meno-progesterone-first', category:'menopause', severity:'info',
@@ -1548,7 +1578,37 @@ window.HB_ADVICE = {
             "Naming the threshold helps. Pain you can manage with the odd painkiller and a hot water bottle is one thing; pain that controls your month is a reason to push for answers, not to grit your teeth through."
           ],
           action:"One thing to do if pain regularly disrupts your life: track it (when, how severe, what it stops you doing) and take that record to a doctor. Ask directly whether endometriosis should be considered.",
-          bookRef:'Cycle / When Pain Isn\u2019t Normal', productSlot:null, source:'book' }
+          bookRef:'Cycle / When Pain Isn\u2019t Normal', productSlot:null, source:'book' },
+        { id:'dl-body-breast', category:'body', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Knowing your breasts\u2019 normal is the point of checking",
+          body:[
+            "Breasts change across the month \u2014 often fuller, lumpier or more tender in the luteal phase before your period, then settling once bleeding starts. That cyclical pattern is normal, and it\u2019s exactly why \u201Cknowing your normal\u201D matters more than hunting for a single perfect technique.",
+            "Hormonal shifts of perimenopause can change the texture too, sometimes making breasts feel more lumpy or sore in new ways. The aim of getting familiar with how yours usually feel isn\u2019t anxiety \u2014 it\u2019s so that a genuine change stands out clearly against your own baseline.",
+            "A change worth getting checked promptly includes a new distinct lump that doesn\u2019t come and go with your cycle, skin or nipple changes, or one-sided discharge. Most such changes turn out to be benign \u2014 but they\u2019re for a clinician to assess, not you to second-guess."
+          ],
+          action:"One thing to build: a loose habit of noticing how your breasts normally feel across your cycle. A new lump that doesn\u2019t change with your period, or skin/nipple changes, is worth getting checked promptly.",
+          bookRef:'Body / Breast Awareness', productSlot:null, source:'book' },
+        { id:'dl-body-frozen-shoulder', category:'body', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"A stiff, painful shoulder in midlife isn\u2019t always an injury",
+          body:[
+            "It can arrive without any obvious cause: a shoulder that grows stiff and painful, hard to lift or rotate, sometimes badly enough to disturb sleep. Many women assume they must have hurt it somehow \u2014 but frozen shoulder, as it\u2019s known, is increasingly recognised as linked to the menopause transition.",
+            "It mainly affects women between about 40 and 60, and the timing isn\u2019t coincidence. Estrogen helps keep the tissues around joints supple and manages inflammation; as it falls and fluctuates, the lining of the shoulder joint can thicken and stiffen. It\u2019s part of the same broader picture as the aches and reduced flexibility many women notice in this decade.",
+            "Knowing the link matters because it changes the conversation \u2014 from \u201Cwhat did I do to it?\u201D to recognising it as part of a hormonal shift, which opens up the right kinds of help."
+          ],
+          action:"One thing to do if a shoulder stiffens up without clear cause in midlife: don\u2019t just wait it out \u2014 see a physio or doctor, and mention you\u2019re perimenopausal, as the link is now well recognised.",
+          bookRef:'Postmenopause / Muscle & Joints', productSlot:null, source:'book+web' },
+        { id:'dl-body-postmeno-bleeding', category:'body', severity:'caution',
+          eyebrow:'Worth a prompt check',
+          headline:"Any bleeding after menopause needs checking \u2014 always",
+          body:[
+            "This one is short, simple and important. Once you are postmenopausal \u2014 a full twelve months past your last period \u2014 any vaginal bleeding at all, even light spotting, should be checked by a doctor promptly. Not eventually. Promptly.",
+            "The reassuring part: most causes turn out to be benign \u2014 often thinning of the vaginal or womb lining from low estrogen, which is very treatable. So this isn\u2019t a reason to panic.",
+            "But postmenopausal bleeding is the one symptom that should never simply be watched and waited on, because it\u2019s also how more serious problems can first announce themselves \u2014 and they\u2019re highly treatable when caught early. Getting it checked is how you rule things out, not a sign that something is wrong."
+          ],
+          action:"One thing to act on, not file away: if you bleed at all after a full year without periods, book a doctor\u2019s appointment promptly. Usually benign \u2014 but always worth ruling out without delay.",
+          bookRef:'Postmenopause / When to See a Doctor', productSlot:null, source:'book' }
       ]
     },
     byType: {
