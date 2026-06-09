@@ -794,7 +794,87 @@ window.HB_ADVICE = {
             "Protein changes the shape of that curve. It slows how quickly glucose enters your blood, keeps you genuinely full for longer, and \u2014 this matters more every year past your mid-thirties \u2014 it defends the muscle that falling estrogen no longer protects for you. Most women eat far too little of it in the morning: a dab of yogurt, a single egg, or nothing at all."
           ],
           action:"One thing to try tomorrow: aim for roughly 25\u201330 grams of protein at your first meal. That\u2019s two or three eggs, a full cup of Greek yogurt with seeds, or a protein shake if mornings are rushed. Notice how 3 p.m. feels by the end of the week.",
-          bookRef:'Food / The Four Foundations', productSlot:null, source:'book+web' }
+          bookRef:'Food / The Four Foundations', productSlot:null, source:'book+web' },
+        { id:'dl-nutrition-fibre', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Your gut helps decide how much estrogen stays in you",
+          body:[
+            "Almost no one is told this: your gut is one of the main places your body manages estrogen. Once your liver has packaged up old estrogen to be removed, it travels to the gut to leave the body for good. That last step matters more than most women ever hear.",
+            "If your gut is sluggish or the bacterial balance is off, some of that packaged estrogen gets unwrapped and sent back into circulation instead of out. There\u2019s even a name for the community of gut bacteria that handles this \u2014 the estrobolome. When it\u2019s not working well, recirculating estrogen can feed heavier periods, worse PMS, and the estrogen-progesterone tug-of-war of perimenopause.",
+            "The single biggest lever here is unglamorous: fibre. Most women eat 12\u201315 grams a day; the amount that actually supports hormone clearance is closer to 30\u201335. Fermented foods help too, and daily, comfortable bowel movements are part of how you clear hormones \u2014 not a side issue."
+          ],
+          action:"One thing to try this week: add one genuinely high-fibre food to each meal \u2014 a spoon of ground flaxseed in breakfast, beans or lentils at lunch, an extra vegetable at dinner. Small, repeated, cumulative.",
+          bookRef:'Food / Fibre & Estrogen Clearance', productSlot:null, source:'book' },
+        { id:'dl-nutrition-fats', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Why cutting fat too hard can quietly stall your hormones",
+          body:[
+            "A whole generation of women learned that fat was the enemy \u2014 low-fat yogurt, skimmed everything, dressing on the side. It was framed as the responsible choice. What was almost never mentioned is the hormonal bill that comes with eating too little fat for too long.",
+            "Your sex hormones are literally built from cholesterol and fat. They are the raw material. When dietary fat drops too low, the body has less of what it needs to make and balance those hormones \u2014 and the effects show up as flatter mood, lower libido, and a sense that your body has gone quiet.",
+            "This isn\u2019t licence to drown everything in oil. It\u2019s permission to stop fearing the right fats: olive oil, oily fish, nuts, seeds, avocado, eggs. The omega-3 fats in particular are anti-inflammatory and support the same pathways that ease PMS and perimenopausal symptoms."
+          ],
+          action:"One thing to try: add a real source of healthy fat to one meal today \u2014 half an avocado, a handful of walnuts, a drizzle of olive oil, or a portion of salmon. Fat is not the thing to be afraid of.",
+          bookRef:'Food / The Right Fats', productSlot:'/recommends/omega-3', source:'book' },
+        { id:'dl-nutrition-alcohol', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"What that evening glass of wine does after you fall asleep",
+          body:[
+            "A drink in the evening genuinely can feel like it takes the edge off. The catch is what happens in the hours after you\u2019ve fallen asleep. Alcohol is sedating at first, then fragments the second half of the night and strips out the restorative REM sleep \u2014 the exact part already under pressure if you\u2019re waking at 3 a.m.",
+            "There\u2019s a hormonal layer too. Alcohol nudges estrogen up and leans on the same liver that\u2019s meant to be clearing it, so it lingers longer. And the calm it offers is borrowed: many women notice more anxiety \u2014 the \u201Changxiety\u201D \u2014 in the day or two that follow, as brain chemistry rebounds.",
+            "None of this is about a lifetime of abstinence or guilt. It\u2019s about seeing alcohol clearly: not as a sleep aid or a wind-down tool, but as something that, past your late thirties, your body processes more slowly and feels more sharply than it used to."
+          ],
+          action:"One thing to notice: pick two evenings this week without a drink and pay attention to how you sleep and how the next morning feels. Let your own pattern tell you, rather than the habit.",
+          bookRef:'Food / What to Drink, What to Limit', productSlot:null, source:'book+web' },
+        { id:'dl-nutrition-cravings', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Your pre-period cravings aren\u2019t a willpower problem",
+          body:[
+            "In the week or so before your period, the pull toward chocolate, carbs and salt can feel relentless \u2014 and then comes the familiar self-blame about discipline. It isn\u2019t a discipline failure. It\u2019s biology behaving exactly as it\u2019s built to.",
+            "As progesterone falls in the late luteal phase, blood sugar gets a little less stable and serotonin dips. Your brain reaches for the fastest known route back to steady and calm: sugar and quick carbs. The craving is a real signal, not a moral test.",
+            "Which is good news, because signals can be answered intelligently. Steadier blood sugar across the day blunts the spikes that drive the cravings, and magnesium is one of the most consistently helpful nutrients for the cluster of luteal symptoms \u2014 cravings, mood, sleep and cramps included."
+          ],
+          action:"One thing to try this cycle: in your pre-period week, anchor each meal with protein and fibre, and consider a little magnesium in the evening. You\u2019re working with the craving\u2019s cause, not fighting its symptom.",
+          bookRef:'Cycle / The Luteal Phase', productSlot:'/recommends/magnesium', source:'book' },
+        { id:'dl-nutrition-undereating', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Sometimes eating too little is the thing keeping you stuck",
+          body:[
+            "It runs against everything the diet culture taught us, but it\u2019s worth saying plainly: under-eating, for months or years, can quietly work against your hormones rather than for them. The body reads a sustained shortage of food as a threat, and it responds by turning things down to conserve.",
+            "Chronic restriction nudges cortisol up and can slow the conversion of your thyroid hormone into its active form \u2014 so your metabolism dials back even when the lab numbers look \u201Cnormal.\u201D At the same time, too little protein and energy makes it hard to hold onto the muscle that keeps you strong and steady.",
+            "The picture that tends to follow is familiar: tired, cold, flat mood, stalled progress, and a body that won\u2019t budge no matter how little you eat. Eating enough \u2014 enough protein, enough real food \u2014 is sometimes the change that finally lets things move again."
+          ],
+          action:"One thing to ask yourself honestly: are you actually eating enough to support the life you\u2019re living? For many women the fix isn\u2019t eating less \u2014 it\u2019s eating enough, with enough protein.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-nutrition-cruciferous', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The vegetable family that helps your body clear estrogen",
+          body:[
+            "Broccoli, cauliflower, Brussels sprouts, kale and cabbage tend to get filed under \u201Ceat your greens.\u201D But this particular family \u2014 the cruciferous vegetables \u2014 earns a special mention in women\u2019s hormone health for a specific reason.",
+            "They contain a compound the body turns into indole-3-carbinol, and then into something called DIM, which gently steers estrogen down its healthier breakdown pathways. In plain terms: they help your body process and clear estrogen the way it\u2019s meant to, which matters for PMS, for heavier or painful periods, and for the estrogen swings of perimenopause.",
+            "You don\u2019t need to force down piles of plain steamed broccoli. Roasted with olive oil, shredded into a slaw, blitzed into a soup \u2014 the form barely matters. What matters is showing up a few times a week."
+          ],
+          action:"One thing to try: get a cruciferous vegetable onto your plate three times this week. Roast a tray of broccoli or sprouts in olive oil \u2014 easy, and it keeps for a couple of days.",
+          bookRef:'Food / Fibre & Estrogen Clearance', productSlot:null, source:'book' },
+        { id:'dl-nutrition-protein-muscle', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The muscle you can\u2019t see is the one that matters most now",
+          body:[
+            "Protein gets talked about for weight and for fullness, but the deeper reason it matters from your late thirties onward is quieter and more important: muscle. From around this age, women start losing muscle slowly each year, and falling estrogen stops protecting it the way it once did.",
+            "Muscle isn\u2019t about looking a certain way. It\u2019s the tissue that keeps your blood sugar steady, your metabolism awake, your bones loaded and strong, and your future self able to carry shopping and get up off the floor with ease. It is, genuinely, a retirement fund for your body.",
+            "Defending it takes more protein than the old guidelines suggested \u2014 most women in this stage do better aiming for protein across the day rather than one token amount at dinner. Paired with a little resistance training, it\u2019s one of the highest-return things you can do for the next thirty years."
+          ],
+          action:"One thing to try: spread your protein across all three meals rather than loading it at dinner \u2014 aim for a palm-sized portion at each. Creatine is also one of the best-studied, low-cost ways to support strength as you build the habit.",
+          bookRef:'Movement / Why Cardio Is Not Enough', productSlot:'/recommends/creatine', source:'book+web' },
+        { id:'dl-nutrition-direction', category:'nutrition', severity:'positive',
+          eyebrow:'Something to sit with today',
+          headline:"You don\u2019t need a perfect diet. You need a direction.",
+          body:[
+            "If reading about food and hormones leaves you feeling like there\u2019s yet another set of rules to fail at \u2014 pause. The all-or-nothing approach is exactly what burns women out and gets abandoned by week two.",
+            "Here\u2019s the more honest truth from the evidence: the women who do best aren\u2019t the ones with flawless diets. They\u2019re the ones who get a handful of foundations roughly right, most of the time \u2014 steady blood sugar, enough protein, the right fats, enough fibre \u2014 and who handle alcohol and caffeine thoughtfully rather than perfectly.",
+            "Doing the helpful things about eighty percent of the time, for years, quietly outperforms any strict protocol followed perfectly for a fortnight and then dropped. Direction beats perfection. Consistency beats intensity."
+          ],
+          action:"One thing to let go of today: the idea that it has to be perfect to count. Pick one foundation \u2014 protein, fibre, fats, or blood sugar \u2014 and just nudge it in the right direction this week.",
+          bookRef:'Food / The Four Foundations', productSlot:null, source:'book' }
       ],
       mindset: [
         { id:'dl-mindset-dismissed', category:'mindset', severity:'info',
