@@ -782,7 +782,27 @@ window.HB_ADVICE = {
             "There\u2019s often a second trigger underneath it: blood sugar. If dinner was early or light on carbohydrate, your glucose can dip overnight, and your body answers by releasing cortisol to push it back up \u2014 the same surge that snaps you awake with a thudding heart."
           ],
           action:"One thing to try tonight: a small protein-and-fat snack before bed \u2014 a spoonful of nut butter, a few nuts, or a couple of tablespoons of full-fat Greek yogurt \u2014 is often enough to steady overnight glucose. Pair it with a consistent wake-up time, and for many women a little magnesium in the evening.",
-          bookRef:'Sleep', productSlot:'/recommends/magnesium', source:'book+web' }
+          bookRef:'Sleep', productSlot:'/recommends/magnesium', source:'book+web' },
+        { id:'dl-sleep-first-half', category:'sleep', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Going to bed late costs you more than waking early does",
+          body:[
+            "We tend to treat all hours of sleep as equal \u2014 as if seven hours is seven hours, whenever you get them. Your brain doesn\u2019t see it that way. The most physically restorative sleep is loaded into the first half of the night, which means the hours you skip by going to bed late are the most valuable ones you own.",
+            "In that early deep sleep, growth hormone surges to repair skin, muscle and bone, and the brain runs its overnight cleaning cycle, flushing out the by-products that build up during the day. Push your bedtime back by two hours and you don\u2019t just lose two hours \u2014 you lose a disproportionate share of the deepest, most repairing sleep.",
+            "This is also why \u201CI\u2019ll catch up at the weekend\u201D never quite works. You can recover some lost sleep, but the precise architecture \u2014 deep sleep early, dream sleep later \u2014 is hard to replay on demand."
+          ],
+          action:"One thing to try: move your bedtime fifteen minutes earlier this week, not your wake time. The front end of the night is where the repair happens.",
+          bookRef:'Sleep', productSlot:null, source:'book' },
+        { id:'dl-sleep-consistency', category:'sleep', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The most powerful sleep change is also the most boring one",
+          body:[
+            "Sleep advice usually arrives as a long list \u2014 blackout blinds, magnesium, no screens, cooler room, the right pillow. Some of it helps. But the single intervention with the strongest evidence behind it isn\u2019t a product at all, and it\u2019s almost dull: going to bed and waking up at roughly the same time, seven days a week.",
+            "Your body runs on a clock, and that clock craves regularity more than it craves any one perfect night. Wildly different bedtimes and a wall-the-way-to-noon lie-in at weekends leave the clock guessing, which is part of why Sunday nights so often sleep badly.",
+            "The second most powerful lever pairs with the first: daylight on your face within an hour of waking. Morning light is the strongest signal your brain has for setting the whole 24-hour rhythm \u2014 and it\u2019s free."
+          ],
+          action:"One thing to try: pick a wake-up time you can keep every day, including weekends, within about half an hour \u2014 and get outside, even briefly, soon after. Boring, and it works.",
+          bookRef:'Sleep', productSlot:null, source:'book' }
       ],
       nutrition: [
         { id:'dl-nutrition-breakfast', category:'nutrition', severity:'info',
@@ -886,7 +906,247 @@ window.HB_ADVICE = {
             "The antidote isn\u2019t louder confidence or assuming the worst about every symptom. It\u2019s something steadier, and you can practise it: noticing what you feel, taking it seriously, looking for good information, and asking the second question when the first answer doesn\u2019t fit. It\u2019s often quiet \u2014 choosing rest over pushing through, deciding a symptom is worth mentioning even though you suspect you\u2019ll be brushed off."
           ],
           action:"One thing to carry with you: the next time an answer doesn\u2019t fit what you\u2019re living in, don\u2019t swallow it. Write the symptom down, ask one more question, or find someone who will actually listen. The women who do this, consistently, tend to catch things earlier.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-mindset-self-trust', category:'mindset', severity:'positive',
+          eyebrow:'Something to sit with today',
+          headline:"Self-trust is a practice, not a personality you\u2019re born with",
+          body:[
+            "It\u2019s easy to assume some women are just naturally confident about their bodies \u2014 that they came pre-loaded with the certainty to push back, ask again, refuse to be brushed off. Mostly, they didn\u2019t. Self-trust isn\u2019t a trait you either have or lack. It\u2019s a skill, and it\u2019s built one small choice at a time.",
+            "It strengthens every time you honour what your body is telling you instead of overriding it: resting when you\u2019re genuinely depleted instead of pushing through, eating when you\u2019re hungry, noticing that a particular food leaves you flat, mentioning the symptom even though you suspect you\u2019ll be told it\u2019s nothing.",
+            "None of these are dramatic. That\u2019s the point. The quiet, repeated act of taking your own experience seriously is what compounds \u2014 until one day you realise you no longer talk yourself out of what you can plainly feel."
+          ],
+          action:"One small act today: notice one thing your body is telling you \u2014 tired, hungry, tense, off \u2014 and respond to it instead of overriding it. That\u2019s the practice.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-mindset-tell-the-next-woman', category:'mindset', severity:'positive',
+          eyebrow:'Something to sit with today',
+          headline:"The silence around this can end with you",
+          body:[
+            "Think about what it would have meant to understand your own cycle at twenty instead of forty \u2014 or to walk into perimenopause knowing what was coming, rather than quietly fearing you were losing your mind. Most of us were never told. The information simply wasn\u2019t passed down.",
+            "You can\u2019t change what you weren\u2019t told. But you can be the one who tells the next woman \u2014 a daughter, a younger colleague, a friend who\u2019s started saying the same confused things you once did \u2014 so that she doesn\u2019t spend years dismissed and bewildered the way so many before her did.",
+            "There is something quietly powerful in that. The knowledge you\u2019re building for yourself, day by day, doesn\u2019t have to stop with you."
+          ],
+          action:"One thing to consider: the next time a woman near you describes something that sounds familiar, share what you\u2019ve learned. Recognition from one person can change someone\u2019s whole year.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-mindset-not-controlling', category:'mindset', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"Understanding your body isn\u2019t the same as controlling it",
+          body:[
+            "It\u2019s tempting, once you start learning how your hormones work, to expect that knowledge to translate into control \u2014 that if you just track carefully enough and do everything right, your body will fall into line. It won\u2019t, not entirely, and holding that expectation can turn a helpful practice into another source of pressure.",
+            "Some days will be harder for reasons you can\u2019t fully trace. A phase, a poor night, a stretch of stress, or simply being human. Tracking is here to reveal patterns and help you respond with more kindness and better timing \u2014 not to grade your performance.",
+            "The aim is a working relationship with your body, not authority over it. You\u2019re learning its language so you can cooperate with it, not so you can force it to behave."
+          ],
+          action:"One thing to release today: the idea that a hard day means you did something wrong. Note it, be gentle with it, and let the pattern \u2014 not the single day \u2014 be the teacher.",
           bookRef:null, productSlot:null, source:'book' }
+      ],
+      stress: [
+        { id:'dl-stress-tired-wired', category:'stress', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"\u201CTired but wired\u201D is a pattern, not a personality",
+          body:[
+            "Exhausted on waking, foggy by mid-afternoon, then suddenly alert at 11 p.m. when you finally want to sleep. If that\u2019s your daily shape, it isn\u2019t a quirk of your temperament \u2014 it\u2019s a recognisable cortisol pattern, and it has a mechanism.",
+            "Cortisol is meant to follow a clean daily curve: high in the morning to lift you out of bed, tapering down through the day, low at night so you can sleep. Under months of low-grade stress that curve flattens and shifts \u2014 the morning peak goes missing, and the evening level stays stubbornly up. The result is the exact \u201Ctired but wired\u201D feeling so many women describe.",
+            "The reassuring part: this is a rhythm problem, not damage. The same things that lower the background load \u2014 protected sleep, gentler mornings, less late-night stimulation \u2014 help the curve settle back toward where it belongs."
+          ],
+          action:"One thing to try: give the last hour before bed to winding down rather than catching up \u2014 dim lights, no inbox, nothing that spikes you. You\u2019re helping the evening cortisol fall.",
+          bookRef:'Stress / The Adrenals & Cortisol', productSlot:'/recommends/ashwagandha', source:'book+web' },
+        { id:'dl-stress-progesterone-first', category:'stress', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Why stress reaches your hormones through progesterone first",
+          body:[
+            "When life gets relentlessly stressful, many women notice their PMS gets worse, their sleep frays, and anxiety creeps up \u2014 and assume those are separate problems. They\u2019re often the same problem, arriving through one shared doorway: progesterone.",
+            "Progesterone and cortisol are built from a shared raw material. Under sustained stress, the body prioritises making cortisol, and progesterone \u2014 your calming, sleep-supporting hormone \u2014 tends to lose out, especially in the second half of the cycle. Lower progesterone means more anxiety, lighter sleep, and sharper PMS.",
+            "This is why \u201Cjust manage your stress\u201D isn\u2019t a throwaway line for women. Stress isn\u2019t only in your head; it has a direct, traceable route into the hormones that shape how the rest of your month feels."
+          ],
+          action:"One thing to notice: if your worst hormonal weeks line up with your most stressful ones, that\u2019s not a coincidence \u2014 it\u2019s a lever. Protecting the stressful weeks protects the hormones too.",
+          bookRef:'Stress / How Chronic Stress Hijacks Female Hormones', productSlot:null, source:'book' },
+        { id:'dl-stress-background', category:'stress', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The stress you don\u2019t notice is the kind doing the damage",
+          body:[
+            "We picture stress as a crisis \u2014 a deadline, an argument, an emergency. But your body handles those just fine; it spikes, deals with it, and recovers. The kind that quietly wears women down is the opposite: low, constant, and barely noticed.",
+            "The open inbox, the background worry about ageing parents, the scheduling that never quite resolves, the news on your phone at 11 p.m. None of it is life-threatening, so none of it triggers obvious alarm. But it keeps the stress system mildly switched on for years, never fully letting the body drop into its rest-and-repair mode.",
+            "Naming it matters, because you can\u2019t soften a pressure you haven\u2019t noticed. The goal isn\u2019t a stress-free life \u2014 it\u2019s a nervous system that gets to switch off completely, at least sometimes, every day."
+          ],
+          action:"One thing to try today: build in one genuine off-switch \u2014 ten minutes with no screen, no task, no input. Not a reward for finishing everything; a deliberate full stop.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-stress-predator', category:'stress', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Your body can\u2019t tell a deadline from a predator",
+          body:[
+            "The stress response is ancient and beautifully designed \u2014 for a sprint away from danger. Heart rate up, blood sugar mobilised, digestion and repair paused, all in seconds. It\u2019s built to fire briefly and then switch off, handing back to the calm \u201Crest and digest\u201D state where most of life is meant to be lived.",
+            "The trouble is that your body runs the identical programme whether you\u2019re facing an actual threat or simply a full inbox and a difficult message. It can\u2019t tell the difference. So in modern life the alarm fires many times a day and rarely gets the all-clear.",
+            "Which means the most useful skill isn\u2019t avoiding stress \u2014 it\u2019s actively signalling safety to your body so it can stand down. Slow breathing, a walk, a warm shower, unhurried time with people you trust: these are how you tell the system the sprint is over."
+          ],
+          action:"One thing to try: a single round of slow breathing \u2014 in for four, out for six, for a couple of minutes. A longer out-breath is one of the fastest ways to tell your body it\u2019s safe.",
+          bookRef:'Stress / The Two Nervous-System States', productSlot:null, source:'book' },
+        { id:'dl-stress-not-luxury', category:'stress', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Managing stress isn\u2019t self-indulgent \u2014 it\u2019s hormonal infrastructure",
+          body:[
+            "Of all the hormone advice women are given, stress management is the one most easily filed under \u201Cnice if I had the time.\u201D It tends to be the first thing dropped when life gets full. That ranking is exactly backwards.",
+            "Cortisol sits upstream of almost everything else. When it\u2019s chronically high it suppresses thyroid function, knocks progesterone down, worsens insulin sensitivity, and amplifies just about every perimenopausal symptom on the list. Get cortisol into a better rhythm and a surprising number of other things ease at once.",
+            "So the calm walk, the protected sleep, the boundary you set \u2014 these aren\u2019t indulgences you earn after the real work. For your hormones, they are the real work."
+          ],
+          action:"One thing to reframe today: treat one small recovery habit as non-negotiable, the way you would a medication \u2014 not as something you\u2019ll get to if there\u2019s time left over. Magnesium in the evening can support the same wind-down.",
+          bookRef:'Stress / Why It Amplifies Everything', productSlot:'/recommends/magnesium', source:'book' }
+      ],
+      cycle: [
+        { id:'dl-cycle-vital-sign', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Your cycle is a monthly health report \u2014 read it",
+          body:[
+            "Most of us were raised to see a period as something to manage and otherwise ignore. But in 2015 the main body of women\u2019s health doctors formally called the menstrual cycle a vital sign \u2014 as clinically meaningful as your blood pressure or heart rate. That framing still stands, and almost no one acts on it.",
+            "The reason is simple: changes in your cycle\u2019s length, flow or regularity are often the earliest visible sign of something shifting \u2014 thyroid issues, PCOS, perimenopause, stress, under-eating. A cycle that suddenly changes is rarely \u201Cjust one of those things.\u201D It\u2019s information arriving early, while there\u2019s still room to respond.",
+            "Whether or not you ever want children, the cycle is the most reliable monthly readout your body gives you. Tracking it isn\u2019t about fertility \u2014 it\u2019s about noticing your own baseline so you can spot when it moves."
+          ],
+          action:"One thing to start: note the basics each cycle \u2014 first day, length, how the flow and your mood felt. A few months of this turns vague worry into a clear pattern.",
+          bookRef:'Cycle / The Cycle Is a Vital Sign', productSlot:null, source:'book' },
+        { id:'dl-cycle-two-halves', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Why you can feel like two different people in one month",
+          body:[
+            "If some weeks you feel sharp, social and unstoppable, and others you feel like a quieter, more fragile stranger in the same body \u2014 you\u2019re not imagining it, and you\u2019re not inconsistent. You\u2019re cycling, and the two halves of your cycle have genuinely different hormonal weather.",
+            "In the first half, the follicular phase, estrogen climbs. It lifts mood, sharpens the mind, and steadies energy \u2014 which is why most women feel most themselves in the second week. After ovulation comes the luteal phase, when progesterone takes over: calming at first, then dropping sharply in the final days before your period, which is when mood, sleep and patience often dip.",
+            "Seeing this rhythm changes how you read yourself. The \u201Coff\u201D week usually isn\u2019t a personal failing \u2014 it\u2019s a predictable phase, and predictable things can be planned for."
+          ],
+          action:"One thing to try: next time you feel unexpectedly flat or irritable, check where you are in your cycle before you blame yourself. The timing is often the whole explanation.",
+          bookRef:'Cycle / The Two Halves', productSlot:null, source:'book' },
+        { id:'dl-cycle-follicular', category:'cycle', severity:'positive',
+          eyebrow:'Something to learn today',
+          headline:"There\u2019s a week built for taking on the hard things",
+          body:[
+            "In the week or so after your period ends, rising estrogen tends to bring steadier energy, clearer thinking, deeper sleep, and more social confidence. For most women this follicular stretch is the easiest week of the month \u2014 and it\u2019s quietly useful to know that in advance.",
+            "Because if this is when your brain and body are most willing, it\u2019s the natural time to front-load the demanding things: the big presentation, the hard conversation you\u2019ve been putting off, the tougher workouts, the project that needs real focus. You\u2019re working with the hormonal tide instead of against it.",
+            "None of this is rigid \u2014 life rarely lines up neatly with a calendar. But even loosely aiming your hardest tasks at your strongest week can make them feel meaningfully less heavy."
+          ],
+          action:"One thing to try this cycle: when energy lifts after your period, deliberately schedule one demanding thing into that window rather than dreading it on a low week.",
+          bookRef:'Cycle / The Four Phases', productSlot:null, source:'book' },
+        { id:'dl-cycle-luteal', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The week to plan for, not fight your way through",
+          body:[
+            "The luteal phase \u2014 the stretch between ovulation and your period \u2014 is where the trouble tends to gather: lower patience, lighter sleep, cravings, a shorter fuse. The usual response is to grit through it and feel bad about \u201Cslipping.\u201D There\u2019s a kinder, more effective option: plan for it.",
+            "As progesterone falls in these days, your tolerance for the usual stressors drops with it. Caffeine hits harder, alcohol disrupts sleep more, blood sugar swings feel worse, and a packed schedule lands heavier. None of that is weakness \u2014 it\u2019s a lower threshold, on schedule.",
+            "Knowing it\u2019s coming lets you soften the inputs in advance: steadier meals, a little less caffeine and alcohol, gentler workouts, fewer optional commitments. The same week feels very different when you stop fighting it."
+          ],
+          action:"One thing to try: in your pre-period week, ease off caffeine and alcohol, protect your sleep, and consider magnesium in the evening. You\u2019re lowering the load before the threshold drops.",
+          bookRef:'Cycle / The Luteal Phase', productSlot:'/recommends/magnesium', source:'book' },
+        { id:'dl-cycle-not-day-14', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Ovulation isn\u2019t always day 14 \u2014 and that matters",
+          body:[
+            "Generations of women learned the textbook version: ovulation on day 14, a tidy 28-day cycle. It\u2019s a neat diagram, and for many women it\u2019s simply not true. Newer research shows the first half of the cycle varies widely \u2014 sometimes ten days, sometimes thirty \u2014 while the second half is steadier.",
+            "This matters for real life. If you assume day 14 but actually ovulate later, your fertile window is in a different place than the app predicted, and your pre-period symptoms will land on different dates than the calendar suggests. The \u201Caverage\u201D can be quite far from your own.",
+            "The takeaway isn\u2019t to memorise new numbers \u2014 it\u2019s to trust your own pattern over the textbook. Your body keeps a more accurate calendar than any generic average."
+          ],
+          action:"One thing to track: rather than counting to 14, watch for your own ovulation signs over a couple of cycles. Your real timing is more useful than the textbook\u2019s.",
+          bookRef:'Cycle / The Two Halves', productSlot:null, source:'book+web' }
+      ],
+      menopause: [
+        { id:'dl-meno-progesterone-first', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Perimenopause often begins years before your periods change",
+          body:[
+            "Most women expect perimenopause to announce itself with hot flushes and irregular periods in their fifties. So when sleep starts fraying, anxiety creeps in, and PMS worsens in the late thirties or early forties \u2014 with periods still regular \u2014 it rarely gets connected to the transition at all.",
+            "But progesterone, the calming, sleep-supporting hormone, tends to fall earlier and more steeply than estrogen \u2014 sometimes years before anything obvious changes. Losing it first explains a great deal: the new 3 a.m. waking, the anxiety that seems to come from nowhere, the sharper premenstrual weeks.",
+            "Knowing this reframes the whole experience. You may not be \u201Ctoo young\u201D for this, and you\u2019re almost certainly not losing your mind. You may simply be at the quiet beginning of a transition no one warned you starts this early."
+          ],
+          action:"One thing to consider: if sleep, mood and PMS have shifted in your late thirties or forties with periods still regular, perimenopause is worth putting on the list \u2014 not dismissing because you\u2019re \u201Ctoo young.\u201D",
+          bookRef:'Perimenopause / What Is Happening Hormonally', productSlot:null, source:'book' },
+        { id:'dl-meno-turbulence', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Perimenopause isn\u2019t a slow decline \u2014 it\u2019s turbulence",
+          body:[
+            "The common picture of perimenopause is a gentle downward slope \u2014 hormones quietly fading until they\u2019re gone. The reality is far less orderly, and understanding that explains why some weeks feel fine and others feel like the floor moved.",
+            "Estrogen doesn\u2019t decline smoothly. It swings \u2014 sometimes surging higher than anything you knew in your twenties, then crashing to almost nothing. Those swings drive the hot flushes, the migraines, the abrupt mood crashes and the new anxiety. It\u2019s not a fade; it\u2019s weather.",
+            "This is genuinely reassuring news. If your experience is erratic and unpredictable, that doesn\u2019t mean something is going wrong \u2014 erratic is what this stage actually looks like. And turbulence, unlike decline, eventually settles."
+          ],
+          action:"One thing to hold onto: on a sudden bad day, remember it\u2019s likely a swing, not a new baseline. Naming it as turbulence takes some of its power away.",
+          bookRef:'Perimenopause / What Is Happening Hormonally', productSlot:null, source:'book' },
+        { id:'dl-meno-hrt-fear', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The fear around HRT is older than the current evidence",
+          body:[
+            "If you\u2019ve been left with a vague sense that hormone therapy is dangerous, that impression most likely traces back to one early reading of a single study in 2002 \u2014 a reading that frightened a generation of doctors and patients away from it. Twenty years of better evidence have since changed the picture substantially.",
+            "Modern hormone therapy is also not what your mother may have been warned off. Today\u2019s typical approach \u2014 estrogen through the skin rather than as a pill, paired with body-identical progesterone \u2014 carries a more favourable risk profile than the older formulations the scare was built on. Current guidelines support it for most healthy, symptomatic women under 60 who are within ten years of menopause.",
+            "None of this means HRT is right for everyone, and it\u2019s a genuine decision to make with a clinician. But it deserves to be made on today\u2019s evidence \u2014 not on a fear inherited from two decades ago."
+          ],
+          action:"One thing to do if symptoms are affecting your life: go into the conversation informed. Ask specifically about transdermal estrogen and body-identical progesterone, and what the real risks are for someone with your history.",
+          bookRef:'Menopause and HRT', productSlot:null, source:'book+web' },
+        { id:'dl-meno-nothing-can-be-done', category:'menopause', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"If you\u2019ve been told to just wait it out",
+          body:[
+            "\u201CThere\u2019s nothing to be done \u2014 it\u2019s your age.\u201D It\u2019s one of the most common things women hear, and one of the least accurate. Being told to endure it is not the same as there being nothing that helps.",
+            "There is, in fact, a wide menu. Hormone therapy is the most effective option for moderate-to-severe symptoms. For women who can\u2019t or prefer not to use it, low-dose SSRIs and SNRIs, gabapentin for night sweats, and cognitive behavioural therapy all have real evidence \u2014 and a newer medication aimed specifically at hot flushes was approved in 2023. Alongside any of these, the foundations \u2014 sleep, protein, movement, lowered alcohol, stress \u2014 do meaningful work.",
+            "The honest summary is this: a clinician who tells you nothing can be done is not up to date with what the evidence supports. That\u2019s a reason to seek a second opinion, not to give up."
+          ],
+          action:"One thing to remember: \u201Cnothing can be done\u201D is usually a sign to find someone more current, not a verdict on your options. You are allowed to ask again, elsewhere.",
+          bookRef:'Menopause and HRT', productSlot:null, source:'book+web' }
+      ],
+      movement: [
+        { id:'dl-move-cardio-not-enough', category:'movement', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The exercise that worked at 25 isn\u2019t enough now",
+          body:[
+            "A whole generation of women were taught that the best thing they could do for their bodies was cardio \u2014 run, cycle, swim, anything that burned calories for long enough. Many followed it faithfully and still arrived in midlife with thinning bones, shrinking muscle and stubborn fatigue, wondering what they\u2019d done wrong.",
+            "They\u2019d done nothing wrong; the advice was just incomplete. Cardio is genuinely good for your heart, mood and metabolism. But it doesn\u2019t build the two things that matter most as estrogen falls: muscle and bone. For those, you have to ask your muscles to work against real resistance.",
+            "This isn\u2019t about the gym, or looking a certain way. It\u2019s about loading your body enough that it keeps the strength and bone density that protect your independence for the next thirty years."
+          ],
+          action:"One thing to add this week: two short sessions of something that challenges your muscles \u2014 bodyweight, bands, or weights. Creatine is one of the best-studied, low-cost ways to support strength as you start.",
+          bookRef:'Movement / Why Cardio Is Not Enough', productSlot:'/recommends/creatine', source:'book' },
+        { id:'dl-move-muscle-bank', category:'movement', severity:'positive',
+          eyebrow:'Something to learn today',
+          headline:"Strength now is a deposit you can\u2019t make later",
+          body:[
+            "Muscle and bone are easy to take for granted while you have them. But both start declining gradually from around your late thirties, and falling estrogen removes some of the protection you used to get for free. The strength you build \u2014 or don\u2019t \u2014 in this decade quietly sets the floor for the next several.",
+            "It helps to think of it as a deposit. Every session that loads your muscles and bones adds a little to an account you\u2019ll draw on in your sixties, seventies and beyond \u2014 the account that decides whether you can carry the shopping, get up off the floor easily, and stay steady on your feet.",
+            "The encouraging part is how little it takes to start. You don\u2019t need to become an athlete. Consistent, modest resistance work, repeated over years, compounds into something genuinely protective."
+          ],
+          action:"One thing to reframe: a strength session isn\u2019t about today\u2019s appearance \u2014 it\u2019s a small deposit toward staying strong and independent later. Two short sessions a week is a real start.",
+          bookRef:'Movement / Why Cardio Is Not Enough', productSlot:null, source:'book' },
+        { id:'dl-move-after-meal-walk', category:'movement', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The ten-minute walk that quietly steadies your blood sugar",
+          body:[
+            "Not all movement has to be a workout to matter. One of the most useful things you can do for your hormones takes about ten minutes and needs no kit at all: a gentle walk after you eat.",
+            "When you move soon after a meal, your muscles pull glucose out of your blood to use as fuel \u2014 which blunts the spike and the crash that would otherwise follow. Steadier blood sugar across the day means fewer energy dips, fewer cravings, and less of the insulin strain that worsens weight and PCOS over time.",
+            "It\u2019s small, unglamorous, and easy to dismiss \u2014 which is exactly why it\u2019s worth naming. Done most days, after your biggest meal, it adds up to a meaningful metabolic habit for almost no effort."
+          ],
+          action:"One thing to try: take a ten-minute walk after your largest meal today \u2014 even around the block. Notice whether the usual afternoon slump is gentler.",
+          bookRef:'Food / Insulin Sensitivity', productSlot:null, source:'book' }
+      ],
+      supplements: [
+        { id:'dl-supp-foundations-first', category:'supplements', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Supplements work on the edges \u2014 foundations do the heavy lifting",
+          body:[
+            "It\u2019s tempting to hope a bottle will fix what feels off, and the wellness aisle is happy to encourage that. The honest truth is less exciting and more freeing: supplements support the edges of hormonal health. The core work is done by sleep, food, movement and lowered stress.",
+            "That ordering matters because it saves you money and disappointment. A supplement laid on top of poor sleep and too little protein is working against the current. The same supplement, once the foundations are roughly in place, can give a real, if modest, nudge.",
+            "It\u2019s also worth knowing that several popular options \u2014 evening primrose oil and a few well-marketed herbs among them \u2014 don\u2019t have strong evidence behind the claims made for them. Form and evidence matter as much as the name on the label."
+          ],
+          action:"One thing to ask before buying anything: are my foundations \u2014 sleep, protein, movement, stress \u2014 roughly in place first? Supplements reward that order; they don\u2019t replace it.",
+          bookRef:'Supplements / What Actually Helps', productSlot:null, source:'book+web' },
+        { id:'dl-supp-magnesium', category:'supplements', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"If you only learn about one supplement, make it magnesium",
+          body:[
+            "Magnesium does an unusual amount of quiet work in the body \u2014 it\u2019s involved in hundreds of processes, including the ones governing sleep, nervous-system calm, and the overnight cortisol pulse. It\u2019s also one of the nutrients women most commonly fall short on, and stress, alcohol and some medications drain it further.",
+            "That combination is why it shows up again and again for the perimenopausal symptom cluster: lighter sleep, anxiety, PMS, cramps and migraines. It\u2019s not a cure for any of them, but the breadth of its role makes it one of the more justified additions \u2014 and it\u2019s cheap and very safe.",
+            "Form matters more than most people realise. The glycinate form is gentle on the stomach and easy to absorb, and the evening is the natural time to take it, when its calming effect lines up with winding down."
+          ],
+          action:"One thing to consider: magnesium glycinate in the evening, in the commonly used 200\u2013400 mg range, alongside magnesium-rich foods. Give it a few weeks and judge by your sleep and your pre-period week.",
+          bookRef:'Supplements / The Core Few', productSlot:'/recommends/magnesium', source:'book+web' },
+        { id:'dl-supp-vitd-omega', category:'supplements', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Two quietly important ones: vitamin D and omega-3",
+          body:[
+            "Beyond magnesium, two more earn their place for most women \u2014 not because they\u2019re dramatic, but because they fill gaps that widen with age. Vitamin D deficiency is extremely common, and as estrogen falls and bone turnover speeds up, keeping it topped up becomes genuinely important for bones, mood and immunity.",
+            "The honest catch with vitamin D is that \u201Cjust take some\u201D is guesswork \u2014 the right amount depends on your starting level, which is worth testing. Pairing D3 with K2 helps steer calcium into your bones rather than your arteries.",
+            "Omega-3 fats \u2014 the EPA and DHA found in oily fish \u2014 are the other. They\u2019re anti-inflammatory, support mood and the brain through the foggier stretches of perimenopause, and most women simply don\u2019t eat enough oily fish to get a useful dose from food alone."
+          ],
+          action:"One thing to do: aim for oily fish a couple of times a week, and consider testing your vitamin D rather than guessing. If you supplement D, choose a D3 with K2.",
+          bookRef:'Supplements / The Core Few', productSlot:'/recommends/vitamin-d3-k2', source:'book+web' }
       ]
     },
     byType: {}
