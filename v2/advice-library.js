@@ -1149,7 +1149,218 @@ window.HB_ADVICE = {
           bookRef:'Supplements / The Core Few', productSlot:'/recommends/vitamin-d3-k2', source:'book+web' }
       ]
     },
-    byType: {}
+    byType: {
+      'cycle-surfer': [
+        { id:'dl-cs-train-with-cycle', category:'cycle', severity:'positive',
+          eyebrow:'Something to learn today',
+          headline:"Train with your cycle, not against it",
+          body:[
+            "If your workouts feel effortless some weeks and impossible others \u2014 same effort, wildly different result \u2014 your cycle is part of the explanation, and you can use it rather than fight it.",
+            "In the follicular phase, as estrogen rises after your period, strength and recovery tend to be at their best; it\u2019s the natural window to push intensity, lift heavier, or chase a personal best. In the luteal phase, with progesterone higher and energy lower, steadier movement \u2014 walking, mobility, lighter sessions \u2014 often feels better and recovers faster.",
+            "This isn\u2019t about training less. It\u2019s about matching effort to the hormonal tide so the hard sessions land when your body is most able to absorb them, and the gentle ones land when it needs them."
+          ],
+          action:"One thing to try: aim your most demanding workouts at the week or two after your period, and let the pre-period stretch be steadier. Same effort, better return.",
+          bookRef:'Cycle / The Four Phases', productSlot:null, source:'book' },
+        { id:'dl-cs-ovulation-literacy', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Learning to spot your own ovulation is a quiet superpower",
+          body:[
+            "Most of us were taught the mechanics of periods and almost nothing about ovulation \u2014 the single most important event of the cycle, and the one that actually divides your month in two. Learning to notice it changes how well you understand your own body.",
+            "Around your fertile window, cervical mucus usually becomes clearer and more stretchy \u2014 the body\u2019s own signal that ovulation is near. Some women also track waking temperature, which nudges up after ovulation. These signs are more accurate for you than any app prediction built on a textbook average.",
+            "Knowing roughly when you ovulate tells you when your fertile days are, when to expect your period, and when your pre-period symptoms will land. It\u2019s body literacy that serves you whether you\u2019re trying to conceive, avoiding it, or simply understanding yourself."
+          ],
+          action:"One thing to start noticing: changes in cervical mucus across a cycle. Over a month or two, your own ovulation pattern becomes surprisingly clear.",
+          bookRef:'Cycle / The Two Halves', productSlot:null, source:'book' },
+        { id:'dl-cs-period-week', category:'cycle', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"Your period week is a feature, not a flaw",
+          body:[
+            "When bleeding starts, estrogen and progesterone are both at their lowest, and many women feel quieter, more inward, more tired. The usual instinct is to override it and carry on at full speed \u2014 and then feel bad for flagging.",
+            "But this inward pull isn\u2019t a malfunction. It\u2019s a low-hormone phase doing exactly what it does, and it has its own uses: it tends to be a good week for reflecting, planning, and listening to your own thoughts rather than performing. It\u2019s the worst week to schedule a confrontation or a punishing trip, and a fine week to go gently.",
+            "Treating these days as a built-in pause rather than a weakness changes the whole experience. Rest where you can, lean on iron-rich foods, and let yourself work with the phase instead of against it."
+          ],
+          action:"One thing to try: in your period week, protect a little quiet and skip one optional commitment if you can. Magnesium can ease cramps if they\u2019re part of your pattern.",
+          bookRef:'Cycle / The Four Phases', productSlot:'/recommends/magnesium', source:'book' },
+        { id:'dl-cs-luteal-arc', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"PMS isn\u2019t just the last two days",
+          body:[
+            "We tend to think of PMS as something that switches on the day before bleeding. In reality the luteal phase \u2014 the whole back half of your cycle after ovulation \u2014 is an arc, and the shift in how you feel often begins earlier than you\u2019d expect.",
+            "Progesterone rises after ovulation and then falls in the final days, and it\u2019s that falling slope that drives the mood dip, the cravings, the lighter sleep and the shorter fuse. Once you see it as a gradual arc rather than a sudden switch, the timing of your \u201Coff\u201D days stops feeling random.",
+            "This matters because the arc is plannable. If you know roughly when your luteal phase begins, you can soften the back half in advance rather than being blindsided by it each month."
+          ],
+          action:"One thing to try: mark the rough start of your luteal phase this cycle, and lighten the load through it \u2014 rather than waiting for the last two days to feel it.",
+          bookRef:'Cycle / The Luteal Phase', productSlot:null, source:'book' }
+      ],
+      'estrogen-dominant': [
+        { id:'dl-ed-daily-clearance', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Make clearing estrogen a daily habit, not a project",
+          body:[
+            "When estrogen runs high relative to progesterone, the goal isn\u2019t to dramatically slash estrogen \u2014 it\u2019s to help your body clear the excess efficiently, every day. The good news is that the levers are ordinary food and ordinary habits.",
+            "Fibre is the foundation: most women get half of what supports hormone clearance, so building toward 30 grams or so makes a real difference. Cruciferous vegetables a few times a week steer estrogen down its healthier breakdown path, fermented foods support the gut bacteria that handle clearance, and \u2014 unglamorous but true \u2014 daily, comfortable bowel movements are part of how estrogen actually leaves.",
+            "None of this is a cleanse or a protocol. It\u2019s a handful of repeatable defaults that, kept up most days, quietly ease the heavy periods, tenderness and mood swings that estrogen excess tends to drive."
+          ],
+          action:"One thing to add daily: fibre at every meal and a cruciferous vegetable a few times this week. You\u2019re supporting the exit route, not chasing a quick fix.",
+          bookRef:'Food / Fibre & Estrogen Clearance', productSlot:null, source:'book' },
+        { id:'dl-ed-heavy-periods', category:'cycle', severity:'caution',
+          eyebrow:'Worth a gentle check',
+          headline:"Heavy or painful periods are information, not just bad luck",
+          body:[
+            "Many women assume that very heavy or very painful periods are simply their lot \u2014 something to endure quietly with painkillers and dark clothes. Sometimes they\u2019re manageable. But genuinely heavy bleeding is also a signal worth taking seriously, not just tolerating.",
+            "A practical marker: soaking through a pad or tampon every hour for several hours in a row, or passing clots larger than a coin, counts as heavy menstrual bleeding. It\u2019s common with estrogen dominance, and it matters partly because it\u2019s a frequent, overlooked cause of iron deficiency \u2014 which then drives its own fatigue.",
+            "This isn\u2019t a reason to panic; it\u2019s a reason to mention it plainly to a doctor rather than minimising it. There are real options, and \u201Cthat\u2019s just how my periods are\u201D shouldn\u2019t be the end of the conversation."
+          ],
+          action:"One thing to do: if your bleeding regularly hits those markers, raise it specifically with a doctor and ask about checking your iron. Heavy isn\u2019t something you simply have to live with.",
+          bookRef:'Cycle / Heavy Bleeding', productSlot:null, source:'book' },
+        { id:'dl-ed-alcohol-harder', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Why alcohol lands harder when estrogen is already high",
+          body:[
+            "Alcohol affects every woman\u2019s hormones, but if your pattern leans estrogen-dominant, it\u2019s working against you on two fronts at once \u2014 which is worth knowing before the next glass.",
+            "First, alcohol nudges estrogen levels up directly. Second, it leans on your liver, which is one of the organs responsible for clearing estrogen out. So at the very moment you have a bit too much estrogen, alcohol both adds more and slows the exit. It\u2019s a small input with an outsized effect on the symptoms you\u2019re already managing.",
+            "This isn\u2019t a verdict of total abstinence. It\u2019s a clearer-eyed look at the trade: for an estrogen-dominant pattern, cutting back is one of the more directly useful changes available."
+          ],
+          action:"One thing to try: notice whether your tender, heavy, or moody weeks track with the weeks you drink more. For this pattern, less alcohol pays back quickly.",
+          bookRef:'Food / What to Drink, What to Limit', productSlot:null, source:'book' },
+        { id:'dl-ed-balance-not-just-lower', category:'stress', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"It\u2019s not only about lowering estrogen \u2014 it\u2019s the balance",
+          body:[
+            "Estrogen dominance is really a ratio: estrogen high relative to progesterone. That framing matters, because it means part of the answer isn\u2019t just clearing estrogen \u2014 it\u2019s protecting the progesterone side of the scale.",
+            "Progesterone is made mainly after ovulation, and it\u2019s the first thing to suffer under chronic stress, since your body prioritises cortisol from the shared raw material. So the same stress that frays your sleep can quietly tilt the estrogen-progesterone balance further in the wrong direction.",
+            "Which means stress regulation, decent sleep, and supporting healthy ovulation aren\u2019t separate from the estrogen story \u2014 they\u2019re the other half of it. Anti-inflammatory omega-3 fats support the same calmer, more balanced backdrop."
+          ],
+          action:"One thing to remember: protecting your calm and your sleep protects progesterone \u2014 which is half of fixing an estrogen-dominant pattern. Oily fish or an omega-3 supplement supports the anti-inflammatory side.",
+          bookRef:'Stress / How Chronic Stress Hijacks Female Hormones', productSlot:'/recommends/omega-3', source:'book' }
+      ],
+      'progesterone-deficient': [
+        { id:'dl-pd-luteal-protocol', category:'cycle', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"A simple protocol for the week progesterone runs low",
+          body:[
+            "When progesterone is on the low side, the back half of your cycle \u2014 and your sleep within it \u2014 takes the hit. Rather than white-knuckling through it each month, it helps to have a small, repeatable plan for that week.",
+            "Three things do most of the work. Protect sleep deliberately, since this is the phase it frays. Keep blood sugar steady with protein and fibre at each meal, because the swings hit harder now. And ease the inputs that progesterone would normally buffer \u2014 caffeine and alcohol \u2014 which both feel sharper in this stretch.",
+            "Magnesium is the one addition that consistently earns its place here, supporting sleep, mood and cramps across the luteal week. None of it is dramatic; the point is to have a default routine you repeat rather than reinventing it in the moment."
+          ],
+          action:"One thing to set up: a fixed luteal-week routine \u2014 protected sleep, steady meals, less caffeine and alcohol, and magnesium in the evening. Repeat it each cycle.",
+          bookRef:'Cycle / The Luteal Phase', productSlot:'/recommends/magnesium', source:'book' },
+        { id:'dl-pd-stress-steals', category:'stress', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Stress steals from progesterone first",
+          body:[
+            "If your progesterone already runs low, stress isn\u2019t just unpleasant \u2014 it\u2019s pouring water on exactly the wrong fire. The two systems are linked at the source, and the link explains a pattern many women feel but can\u2019t name.",
+            "Progesterone and cortisol are built from a shared raw material. Under sustained stress, the body prioritises cortisol, and progesterone tends to lose out \u2014 which deepens the very deficiency you\u2019re working with. It\u2019s why a stressful stretch so reliably brings worse sleep, more anxiety, and sharper PMS for this pattern.",
+            "So stress regulation isn\u2019t a side project here. For a progesterone-deficient pattern, protecting your calm is one of the most direct ways to protect the hormone itself."
+          ],
+          action:"One thing to prioritise: treat genuine downtime as part of your hormone plan, not a luxury. For this pattern, lowering stress directly protects progesterone.",
+          bookRef:'Stress / How Chronic Stress Hijacks Female Hormones', productSlot:null, source:'book' },
+        { id:'dl-pd-good-sleeper-gone', category:'sleep', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"When the good sleeper you used to be quietly disappears",
+          body:[
+            "Some women carry a lifelong identity as a good sleeper \u2014 head on the pillow, gone in minutes \u2014 and then, seemingly out of nowhere, it stops working. Lighter sleep, more waking, less of the deep rest that used to come free. It can feel disorienting, even a little like a loss of self.",
+            "Progesterone is a large part of the story. It\u2019s mildly sedating and calms the brain through the GABA system, so when it runs low \u2014 in the luteal phase, or more persistently \u2014 sleep naturally becomes lighter and more easily broken. The good sleeper didn\u2019t fail; the hormonal support changed.",
+            "Naming the cause helps, because it points at what actually moves the needle: supporting that calming system rather than just trying harder to sleep."
+          ],
+          action:"One thing to try: build a genuine wind-down before bed and keep your wake time steady. You\u2019re supporting the calming system that lighter progesterone no longer props up on its own.",
+          bookRef:'Sleep / The Sleep-Hormone Two-Way Street', productSlot:null, source:'book' },
+        { id:'dl-pd-name-the-absence', category:'mindset', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"What the calming hormone\u2019s absence actually feels like",
+          body:[
+            "Progesterone rarely gets named in everyday life, so when it runs low the effects get blamed on everything else \u2014 your personality, your stress levels, your supposed inability to cope. New irritability, a low hum of anxiety, a shorter fuse, sleep that won\u2019t hold.",
+            "But progesterone is, in plain terms, the body\u2019s built-in calm. When there isn\u2019t enough of it, that internal buffer thins, and the same life genuinely feels harder to absorb. It isn\u2019t that you\u2019ve become a more anxious person; it\u2019s that you\u2019ve lost some of the chemistry that used to take the edge off.",
+            "That reframe matters. It moves the problem from \u201Csomething is wrong with me\u201D to \u201Csomething is low, and low things can be supported.\u201D"
+          ],
+          action:"One thing to carry: if anxiety or irritability arrived without an obvious cause, consider that it may be hormonal, not a flaw in you. That shift alone can lower the self-blame.",
+          bookRef:null, productSlot:null, source:'book' }
+      ],
+      'perimenopause-transitioner': [
+        { id:'dl-pt-four-priorities', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The four things that matter most in perimenopause",
+          body:[
+            "Perimenopause can feel like a hundred small things going wrong at once, which makes it hard to know where to start. It helps to know that a short list does most of the heavy lifting \u2014 and you already have it.",
+            "Protein rises in importance, since muscle needs defending now more than ever. Sleep stops being something you can be casual about. Stress management moves from optional to essential, because cortisol amplifies almost every other symptom on the list. And alcohol, particularly in the evening, is worth a harder look, given how much it worsens sleep and hot flushes.",
+            "None of these is new advice. What\u2019s new is the stakes: in this decade, getting these four roughly right doesn\u2019t just feel better day to day \u2014 it shapes the long-term health of your bones, heart and brain."
+          ],
+          action:"One thing to choose today: pick whichever of the four \u2014 protein, sleep, stress, alcohol \u2014 is most obviously slipping, and nudge that one this week. Start where the gap is biggest.",
+          bookRef:'Perimenopause / Managing the Transition', productSlot:null, source:'book' },
+        { id:'dl-pt-hrt-conversation', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"How to walk into the HRT conversation prepared",
+          body:[
+            "If your symptoms are affecting your life, hormone therapy is worth a real conversation \u2014 and going in informed changes how that conversation goes. The fear many women carry traces back to one early reading of a 2002 study whose participants were, on average, more than a decade past menopause and using older formulations.",
+            "The modern picture is different. Starting hormone therapy within about ten years of menopause appears to carry a favourable balance of benefit and risk for healthy women \u2014 the so-called timing hypothesis. Today\u2019s typical approach uses estrogen through the skin, which avoids the clot risk of the old oral route, paired with body-identical progesterone.",
+            "You don\u2019t need to become an expert. You need enough to ask clear questions and not be waved away with \u201Cyou\u2019re too young\u201D or \u201Cjust wait it out.\u201D"
+          ],
+          action:"One thing to bring to the appointment: ask specifically about transdermal estrogen and body-identical progesterone, and what the real risks are for someone with your history. Informed questions get better answers.",
+          bookRef:'Menopause and HRT', productSlot:null, source:'book+web' },
+        { id:'dl-pt-brain-fog', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Brain fog in perimenopause isn\u2019t the start of decline",
+          body:[
+            "Losing words mid-sentence, walking into a room and forgetting why, a general sense that your sharp mind has gone cloudy \u2014 perimenopausal brain fog is genuinely frightening, partly because it\u2019s so easy to read as the first sign of something permanent.",
+            "It usually isn\u2019t. Estrogen supports how the brain uses energy, and when it swings unpredictably through perimenopause, cognition wobbles with it. The fog tracks the hormonal turbulence \u2014 it\u2019s a fluctuation, not a one-way descent \u2014 and for many women it eases as things stabilise after menopause.",
+            "That doesn\u2019t make it less real in the moment, but it does change the meaning. This is your brain reacting to changing hormones, not failing."
+          ],
+          action:"One thing that helps the brain through this: the same foundations \u2014 sleep, movement, steady blood sugar \u2014 plus omega-3 fats, which support mood and cognition through the foggier stretches.",
+          bookRef:'Perimenopause / The Symptoms No One Connects', productSlot:'/recommends/omega-3', source:'book+web' },
+        { id:'dl-pt-symptom-map', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Knowing what comes early and what comes late",
+          body:[
+            "Part of what makes perimenopause so disorienting is not knowing where you are in it. Symptoms arrive in a rough order, and simply having the map makes the experience far less frightening.",
+            "Earlier on \u2014 often from the late thirties or early forties \u2014 the quieter signs tend to come first: cycles varying by more than a week, worsening PMS, waking at 3 or 4 a.m., new anxiety, the beginnings of brain fog. The louder, more recognisable symptoms \u2014 hot flushes, night sweats, longer gaps between periods, vaginal dryness \u2014 usually belong to the later stretch.",
+            "Most women move through these in roughly this order, though everyone\u2019s timing differs. The point isn\u2019t to predict yourself precisely; it\u2019s to recognise that there\u2019s a pattern, and you\u2019re somewhere on it \u2014 not lost."
+          ],
+          action:"One thing to do: locate yourself loosely on the early-to-late arc. Knowing roughly where you are turns a frightening mystery into a stage you can prepare for.",
+          bookRef:'Perimenopause / Early vs Late', productSlot:null, source:'book' }
+      ],
+      'postmenopause-renewer': [
+        { id:'dl-pm-protein-strength', category:'movement', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Protein and strength are the foundation of this decade",
+          body:[
+            "After menopause, with estrogen low and steady, the daily symptom storm usually settles \u2014 and the work quietly shifts to the long game. At the centre of it is muscle, which falls faster now without estrogen\u2019s protection, a process called sarcopenia.",
+            "Muscle is far more than strength or shape. It\u2019s the body\u2019s largest site for managing blood sugar, a major contributor to bone strength through the load it places on the skeleton, and increasingly linked to brain health through the signals it sends during exercise. Protecting it supports bone, heart and brain at the same time.",
+            "Two things defend it: enough protein across the day, and resistance training a couple of times a week. This is the single highest-return investment available in the postmenopausal decades, and it\u2019s never too late to begin."
+          ],
+          action:"One thing to build: protein at every meal plus two short strength sessions a week. Creatine is one of the best-studied, low-cost ways to support strength and recovery as you start.",
+          bookRef:'Movement / Why Cardio Is Not Enough', productSlot:'/recommends/creatine', source:'book' },
+        { id:'dl-pm-bone-silent', category:'supplements', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Bone loss is silent \u2014 until it isn\u2019t",
+          body:[
+            "Bone is living tissue, constantly rebuilt, and estrogen is one of its key protectors. When estrogen falls around menopause, that protection lifts and bone loss speeds up sharply \u2014 women can lose 10 to 20 percent of bone density in the years right around the transition.",
+            "It\u2019s called a silent disease because it gives no warning at all until a bone actually breaks \u2014 often a wrist or, more seriously, a hip. That silence is exactly why it\u2019s worth acting before there\u2019s any symptom to react to.",
+            "The protectors are reassuringly within reach. Resistance training is the most powerful non-medical stimulus \u2014 bone strengthens in response to load, and nothing else replicates it. Adequate protein and calcium supply the materials, and vitamin D lets calcium be absorbed."
+          ],
+          action:"One thing to secure: load your bones with resistance work, and make sure the building blocks are there \u2014 protein, calcium, and a vitamin D3 with K2 so calcium goes to bone.",
+          bookRef:'Postmenopause / Bones', productSlot:'/recommends/vitamin-d3-k2', source:'book' },
+        { id:'dl-pm-heart-underestimated', category:'menopause', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The risk women fear least is the one most likely",
+          body:[
+            "Most women fear breast cancer above all. Yet the leading cause of death in women is heart disease \u2014 by a wide margin, more than all cancers combined. That gap between what we fear and what is statistically most likely is one of the costliest blind spots in women\u2019s health.",
+            "Through the reproductive years, estrogen helps keep blood vessels flexible and cholesterol favourable, which is part of why women are relatively protected from heart disease until midlife. After menopause that protection fades: cholesterol patterns shift, blood pressure often climbs, and risk rises to meet and eventually exceed men\u2019s.",
+            "This isn\u2019t cause for alarm \u2014 it\u2019s cause for attention. Heart risk after menopause is largely modifiable, and much of what protects it is already familiar: movement, the right foods, not smoking, managing blood pressure, and strength that supports metabolic health."
+          ],
+          action:"One thing to put on your radar: ask about your blood pressure and cholesterol at your next check-up. After menopause, the heart deserves the attention we usually give elsewhere.",
+          bookRef:'Postmenopause / The Heart', productSlot:null, source:'book' },
+        { id:'dl-pm-genitourinary', category:'menopause', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"The change no one warns you about \u2014 and it\u2019s treatable",
+          body:[
+            "There\u2019s a set of postmenopausal changes that almost no one mentions, so women often suffer them in silence, assuming they\u2019re just part of getting older: vaginal dryness, discomfort with intimacy, and more frequent or urgent trips to the bathroom or urinary infections.",
+            "These tissues are rich in estrogen receptors, so as estrogen falls they become thinner and drier. It\u2019s extremely common, it tends to persist rather than pass, and \u2014 crucially \u2014 it is very treatable. This is not something you simply have to accept.",
+            "Local estrogen, delivered right where it\u2019s needed, is highly effective and works differently from whole-body hormone therapy. The biggest barrier is usually not the treatment \u2014 it\u2019s that no one told women it was worth raising."
+          ],
+          action:"One thing to do if this is you: raise it plainly with a doctor and ask specifically about local (vaginal) estrogen. It\u2019s common, it\u2019s treatable, and you don\u2019t have to live with it.",
+          bookRef:'Postmenopause / Vaginal & Urinary Health', productSlot:null, source:'book' }
+      ]
+    }
   };
 
   // Flatten the Daily Learn pool for a given hormone type (common + per-type).
