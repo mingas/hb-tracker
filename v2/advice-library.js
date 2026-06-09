@@ -924,6 +924,26 @@ window.HB_ADVICE = {
             "So it isn\u2019t that you suddenly can\u2019t handle coffee. It\u2019s that the dose your body tolerates comfortably shifts across the month, and the pre-period stretch is when it\u2019s lowest."
           ],
           action:"One thing to try: in your pre-period week, ease back on caffeine \u2014 a smaller cup, or an earlier cut-off. Notice whether the premenstrual anxiety and poor sleep soften.",
+          bookRef:'Food / What to Drink, What to Limit', productSlot:null, source:'book' },
+        { id:'dl-nutrition-iron', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"If you\u2019re wiped out and your periods are heavy, check your iron",
+          body:[
+            "Bone-deep fatigue, breathlessness on the stairs, a foggy head, hair shedding, feeling cold \u2014 it\u2019s easy to pin all of this on stress or hormones. But there\u2019s a common, very fixable cause that often hides underneath, especially for women with heavy periods: low iron.",
+            "Every heavy period is a real loss of iron, and over months it can quietly drain your stores. Crucially, you can be iron-deficient \u2014 with low ferritin, the storage form \u2014 well before you\u2019re technically anaemic, and feel terrible the whole time. A standard \u201Cnormal\u201D blood count can miss it if ferritin isn\u2019t checked.",
+            "This matters because the fix can be genuinely transformative, and because chasing the wrong cause leaves you stuck. Iron is also something to be deliberate about rather than guess at \u2014 too much is a problem too, so it\u2019s worth testing rather than self-supplementing blindly."
+          ],
+          action:"One thing to do if heavy periods and deep fatigue go together: ask your doctor to check your ferritin specifically, not just a basic blood count. It\u2019s a common miss with a real fix.",
+          bookRef:'Cycle / Heavy Bleeding', productSlot:null, source:'book' },
+        { id:'dl-nutrition-hydration', category:'nutrition', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Dehydration quietly mimics symptoms you\u2019re chasing",
+          body:[
+            "Before assuming a foggy, headachy, low-energy afternoon is hormonal or some deeper problem, it\u2019s worth ruling out the most boring possibility: you might simply be under-hydrated. It\u2019s unglamorous, easy to dismiss, and genuinely common.",
+            "Mild dehydration can produce fatigue, headaches, poor concentration and irritability \u2014 a near-perfect overlap with the very symptoms women spend a lot of energy trying to explain. Coffee and tea, leaned on through a busy day, are mild diuretics, which can tip the balance further.",
+            "This isn\u2019t about forcing litres or chasing a trendy number. It\u2019s about noticing whether \u201Ctired and foggy by mid-afternoon\u201D eases with a glass of water before you reach for a more complicated explanation."
+          ],
+          action:"One thing to test this week: when the afternoon slump hits, drink a glass of water first and wait ten minutes. Sometimes the simplest fix has been hiding under the complicated ones.",
           bookRef:'Food / What to Drink, What to Limit', productSlot:null, source:'book' }
       ],
       mindset: [
@@ -986,6 +1006,36 @@ window.HB_ADVICE = {
             "Recognising it is the first step, because what has no name can\u2019t be shared or eased. The load being invisible doesn\u2019t make it weightless \u2014 and it doesn\u2019t have to be carried alone."
           ],
           action:"One thing to try: pick one piece of the mental load to genuinely hand over \u2014 not the task, the responsibility for remembering it. Naming it out loud is where sharing it begins.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-mindset-libido', category:'mindset', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"A faded libido isn\u2019t a character flaw \u2014 or a verdict on your relationship",
+          body:[
+            "When desire quietly fades, the explanations women reach for are rarely kind: something\u2019s wrong with me, with us, with how I feel about my partner. That self-blame adds a second layer of pain on top of the first, and it\u2019s usually misplaced.",
+            "Libido is genuinely multi-layered. Falling estrogen and testosterone play a direct part, but so do poor sleep, chronic stress, exhaustion, pain or dryness with intimacy, and simply never having a moment when your nervous system feels safe and unhurried. Desire is one of the first things to switch off when the body is depleted \u2014 by design.",
+            "Which means it\u2019s often recoverable, and not by trying to force it. Addressing the underlying load \u2014 sleep, stress, comfort, and where relevant the hormonal side \u2014 tends to do more than willpower ever could."
+          ],
+          action:"One thing to reframe: low desire is usually a signal about your overall load, not a flaw in you or your relationship. Tend the load \u2014 and raise dryness or hormonal causes with a doctor, because both are treatable.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-mindset-body-image', category:'mindset', severity:'info',
+          eyebrow:'Something to sit with today',
+          headline:"Your body is changing its terms, not failing you",
+          body:[
+            "It\u2019s a particular kind of grief when the body you knew how to live in starts behaving differently \u2014 a shape that shifts, a stamina that wavers, a reflection that surprises you. The instinct is to read it as decline, or as something you\u2019ve let happen.",
+            "But a body moving through hormonal change isn\u2019t broken or neglected; it\u2019s renegotiating its terms. The same effort gives different results now, and the goalposts have genuinely moved. Holding your body to the standards of your twenties is a fight you can\u2019t win and didn\u2019t sign up for.",
+            "There\u2019s more room for ease here than it first seems. A body you treat as an ally to support \u2014 fed, moved, rested, spoken to kindly \u2014 tends to give back more than one you treat as a project to fix or a problem to punish."
+          ],
+          action:"One thing to try today: speak to your body the way you\u2019d speak to a friend going through the same change. Support, not punishment, is also the more effective strategy.",
+          bookRef:null, productSlot:null, source:'book' },
+        { id:'dl-mindset-being-heard', category:'mindset', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"How to be taken seriously when you describe what you feel",
+          body:[
+            "Walking out of an appointment feeling unheard is one of the most common and demoralising experiences in women\u2019s health. Often it isn\u2019t that nothing is wrong \u2014 it\u2019s that vague, apologetic descriptions are easy to wave away in a rushed ten minutes.",
+            "A little preparation shifts the odds. Bringing specifics \u2014 how long, how often, how much it\u2019s affecting your work, sleep or relationships \u2014 turns \u201CI\u2019ve been tired\u201D into something a clinician has to engage with. A short symptom log, and naming your top one or two concerns up front, does a surprising amount of work.",
+            "And if you\u2019re still dismissed, that\u2019s information about the clinician, not a verdict on your symptoms. Asking one more question, or seeking another opinion, isn\u2019t being difficult \u2014 it\u2019s what informed people do."
+          ],
+          action:"One thing to do before your next appointment: write your top two concerns and a few specifics \u2014 duration, frequency, impact \u2014 and lead with them. Specific is harder to dismiss than vague.",
           bookRef:null, productSlot:null, source:'book' }
       ],
       stress: [
@@ -1307,6 +1357,78 @@ window.HB_ADVICE = {
           ],
           action:"One thing to do before your next purchase: check for third-party testing and the specific form, and give anything new a fair trial with a stop date rather than taking it forever on faith.",
           bookRef:'Supplements / What Actually Helps', productSlot:null, source:'book+web' }
+      ],
+      body: [
+        { id:'dl-body-joints', category:'body', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"The new aches and stiffness might be hormonal, not just age",
+          body:[
+            "Waking up stiff, joints that ache for no clear reason, a shoulder or hip that\u2019s suddenly cranky \u2014 it\u2019s easy to write these off as \u201Cgetting older\u201D and leave it there. But if they\u2019ve arrived alongside other midlife changes, hormones are very likely part of the story.",
+            "Estrogen is quietly anti-inflammatory, and it helps maintain the collagen in your joints, tendons and ligaments. As it falls and swings through perimenopause, inflammation rises and those tissues lose some support \u2014 which is why a striking majority of women report new joint and muscle pain in this stretch, often with nothing \u201Cwrong\u201D on a scan. There\u2019s even a name for the cluster now: the musculoskeletal syndrome of menopause.",
+            "Naming it matters, because \u201Cjust ageing\u201D invites resignation, while \u201Chormonal and largely manageable\u201D points at what helps: movement, strength, and not accepting persistent pain as simply your lot."
+          ],
+          action:"One thing to try: keep moving the achy joints rather than resting them entirely \u2014 gentle strength and mobility work is the most consistently effective response. Persistent or severe pain is still worth a doctor\u2019s look.",
+          bookRef:'Postmenopause / Muscle & Joints', productSlot:'/recommends/omega-3', source:'book+web' },
+        { id:'dl-body-skin', category:'body', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Why your skin seemed to change almost overnight",
+          body:[
+            "Many women hit a point in midlife where the mirror seems to shift quickly \u2014 skin drier, thinner, less bouncy, fine lines arriving faster than the calendar alone would explain. It can feel oddly sudden, and a little disorienting.",
+            "There\u2019s a real mechanism behind it. Estrogen drives the fibroblasts that make collagen, the protein that keeps skin firm and hydrated. As estrogen falls around menopause, collagen production drops sharply \u2014 women can lose a large share of skin collagen in the first few years after menopause, then more gradually after. The change isn\u2019t in your head, and it isn\u2019t neglect.",
+            "Understanding the cause makes the response less frantic. The basics genuinely help: sun protection, not smoking, enough protein, and resistance training (which supports collagen more broadly) \u2014 and, for some women, this is part of the wider hormone-therapy conversation."
+          ],
+          action:"One thing to prioritise: daily sun protection and enough protein \u2014 the two least glamorous, most reliable supports for skin as collagen production slows.",
+          bookRef:'Postmenopause / Skin & Collagen', productSlot:null, source:'book+web' },
+        { id:'dl-body-hair', category:'body', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Hair changes in midlife: what\u2019s hormonal, and what helps",
+          body:[
+            "Finding more hair in the brush, a thinner ponytail, a part that\u2019s widened \u2014 it\u2019s one of the more quietly distressing midlife changes, and one women often feel they can\u2019t mention. It\u2019s also extremely common, and not simply vanity to care about.",
+            "Shifting estrogen and the changing balance with androgens can alter the hair growth cycle, leaving hair finer and shedding more. But hair is also a sensitive barometer of other things that are common in this stage \u2014 low iron, thyroid changes, stress, and under-eating can all show up first in your hair.",
+            "That\u2019s why hair thinning is worth investigating rather than just mourning: some of the most treatable causes hide behind it. The fix is often less about shampoo and more about what\u2019s happening underneath."
+          ],
+          action:"One thing to do if hair is thinning noticeably: ask your doctor to check iron (ferritin) and thyroid before assuming it\u2019s \u201Cjust hormones.\u201D Those causes are common and treatable.",
+          bookRef:'Perimenopause / The Symptoms No One Connects', productSlot:null, source:'book' },
+        { id:'dl-body-hot-flashes', category:'body', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Hot flushes: what actually helps in the moment",
+          body:[
+            "A hot flush can arrive from nowhere \u2014 a wave of heat, a flush in the face and chest, sometimes a thumping heart \u2014 and the feeling of having no control over your own body is part of what makes them so unsettling.",
+            "They come from estrogen\u2019s effect on the brain\u2019s thermostat: as estrogen swings and falls, that thermostat becomes oversensitive and misreads normal warmth as overheating, triggering the body to dump heat. Knowing it\u2019s a thermostat glitch, not a sign something is wrong, takes some of the fear out of them.",
+            "Practical levers genuinely help: layered clothing you can shed, a cooler room and bedroom, noticing your triggers (often alcohol, caffeine, spicy food, stress), and slow breathing when one starts. For frequent or disruptive flushes, hormone therapy is the most effective treatment, and there are non-hormonal options too."
+          ],
+          action:"One thing to try: track what tends to precede your flushes for a week \u2014 alcohol, caffeine, heat, stress \u2014 and ease the most common one. If they\u2019re disrupting life, they\u2019re worth a medical conversation, not endurance.",
+          bookRef:'Perimenopause / Vasomotor Symptoms', productSlot:null, source:'book+web' },
+        { id:'dl-body-night-sweats', category:'body', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"When night sweats are the thing wrecking your sleep",
+          body:[
+            "Waking drenched, throwing the covers off then pulling them back, sleep broken several times a night \u2014 night sweats are hot flushes that strike while you sleep, and they\u2019re one of the most exhausting parts of the transition precisely because they attack rest itself.",
+            "The same oversensitive brain thermostat is behind them, and the broken sleep then amplifies everything else: mood, anxiety, brain fog, and next-day fatigue all worsen when the night is fragmented. It becomes a loop, which is why they\u2019re worth addressing rather than enduring.",
+            "Some of the most effective help is unglamorous environmental work \u2014 a genuinely cool bedroom, breathable bedding and nightwear, less alcohol in the evening. Where night sweats are frequent and severe, they\u2019re also one of the symptoms hormone therapy improves most reliably."
+          ],
+          action:"One thing to try tonight: drop the bedroom temperature, switch to breathable layers you can shed, and skip the evening drink. If night sweats keep breaking your sleep, raise them specifically with a doctor.",
+          bookRef:'Sleep / Why Sleep Breaks Down in Perimenopause', productSlot:null, source:'book' },
+        { id:'dl-body-migraine', category:'body', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"Headaches that track your cycle have a hormonal trigger",
+          body:[
+            "If your worst headaches or migraines seem to cluster at the same point each month \u2014 often just before your period \u2014 that timing isn\u2019t random. For many women, the trigger is hormonal, and recognising the pattern is the first step to getting ahead of it.",
+            "Migraine can be set off by the sharp drop in estrogen that happens in the late luteal phase, just before bleeding begins. That\u2019s why these \u201Cmenstrual migraines\u201D land so predictably, and why they can worsen during perimenopause when estrogen swings become more extreme.",
+            "Seeing the link changes the approach from reactive to preventive: if you know roughly when the vulnerable window falls, you can be more protective of sleep, hydration, blood sugar and stress around it \u2014 and have a clearer conversation with a doctor about targeted options."
+          ],
+          action:"One thing to do: note where your headaches fall across a couple of cycles. If they cluster pre-period, that\u2019s a hormonal pattern worth managing proactively and raising with a clinician.",
+          bookRef:'Cycle / The Luteal Phase', productSlot:null, source:'book+web' },
+        { id:'dl-body-thyroid-normal', category:'body', severity:'info',
+          eyebrow:'Something to learn today',
+          headline:"When your thyroid labs are \u201Cnormal\u201D but you\u2019re not",
+          body:[
+            "Exhausted, cold, foggy, gaining weight, hair thinning \u2014 you suspect your thyroid, you get tested, and you\u2019re told it\u2019s normal. The relief is real, but so is the confusion when you still feel exactly the same. This is one of the most common dead ends women hit.",
+            "A few things explain it. Standard testing often checks only one marker (TSH) and a wide \u201Cnormal\u201D range, which can miss the fuller picture \u2014 free T4 and T3, reverse T3, and thyroid antibodies tell more of the story. Chronic stress also suppresses the conversion of thyroid hormone into its active form, so you can feel hypothyroid at the cellular level while the basic blood test looks fine.",
+            "None of this means you should diagnose yourself. It means \u201Cyour TSH is normal\u201D isn\u2019t always the end of the conversation \u2014 and you\u2019re allowed to ask for a fuller panel."
+          ],
+          action:"One thing to ask for if symptoms persist despite a \u201Cnormal\u201D result: a fuller thyroid panel \u2014 free T4, free T3, antibodies \u2014 plus ferritin and vitamin D, which both affect how the thyroid works.",
+          bookRef:'Thyroid / The Full Picture', productSlot:null, source:'book' }
       ]
     },
     byType: {
