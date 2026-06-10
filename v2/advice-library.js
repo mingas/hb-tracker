@@ -1858,9 +1858,9 @@ window.HB_ADVICE = {
           eyebrow:'Something to learn today',
           headline:"Brain fog in perimenopause isn\u2019t the start of decline",
           body:[
-            "Losing words mid-sentence, walking into a room and forgetting why, a general sense that your sharp mind has gone cloudy \u2014 perimenopausal brain fog is genuinely frightening, partly because it\u2019s so easy to read as the first sign of something permanent.",
-            "It usually isn\u2019t. Estrogen supports how the brain uses energy, and when it swings unpredictably through perimenopause, cognition wobbles with it. The fog tracks the hormonal turbulence \u2014 it\u2019s a fluctuation, not a one-way descent \u2014 and for many women it eases as things stabilise after menopause.",
-            "That doesn\u2019t make it less real in the moment, but it does change the meaning. This is your brain reacting to changing hormones, not failing."
+            "One of the most frightening parts of perimenopause is the quiet fear behind the fog: that this is the beginning of losing your mind, your competence, your edge \u2014 and that it\u2019s permanent. That fear deserves a direct answer, because it shapes how the whole experience feels.",
+            "Here is the answer: estrogen is deeply involved in how your brain uses energy and forms memory, and as it swings through perimenopause, your thinking swings with it. The fog is your brain adjusting to a moving hormonal supply \u2014 not your brain breaking. For most women it lifts as hormones settle after menopause, and studies that follow women through the transition bear that out.",
+            "Holding that distinction matters on a foggy day. You are not watching an early decline; you are weathering a hormonal phase, and phases pass."
           ],
           action:"One thing that helps the brain through this: the same foundations \u2014 sleep, movement, steady blood sugar \u2014 plus omega-3 fats, which support mood and cognition through the foggier stretches.",
           bookRef:'Perimenopause / The Symptoms No One Connects', productSlot:'/recommends/omega-3', source:'book+web' },
