@@ -1,7 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.2
+ * Daily Tracker — v1.9.3
+ *   v1.9.3 — Cycle predictions appear after the first logged period (default 28-day cycle, refined with data).
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -173,12 +174,18 @@
     for (var i = 1; i < starts.length; i++) {
       lengths.push(daysBetweenKeys(starts[i - 1], starts[i]));
     }
-    // Need at least 2 cycle lengths (>= 3 logged period starts) to predict.
-    if (lengths.length < 2) return markers;
-
-    // 4. Average cycle length (recent up to 6), clamped to a sane range.
-    var recent = lengths.slice(-6);
-    var avg = Math.round(recent.reduce(function(a, b) { return a + b; }, 0) / recent.length);
+    // 4. Cycle length: use the logged average once we have at least one
+    // gap between period starts; otherwise fall back to a typical 28-day
+    // cycle so the fertile window, ovulation and next period appear
+    // immediately after the first logged period (refined as more data comes
+    // in). Clamped to a sane range.
+    var avg;
+    if (lengths.length >= 1) {
+      var recent = lengths.slice(-6);
+      avg = Math.round(recent.reduce(function(a, b) { return a + b; }, 0) / recent.length);
+    } else {
+      avg = 28;
+    }
     if (avg < 21) avg = 21;
     if (avg > 40) avg = 40;
 
@@ -2509,7 +2516,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.9.2',
+    version: '1.9.3',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
