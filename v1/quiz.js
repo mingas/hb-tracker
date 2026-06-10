@@ -328,9 +328,10 @@
     injectQuizIntroStyles();
 
     var steps = [
-      { n: '1', t: 'Answer 12 short questions', d: 'Just pick what fits best. There are no right or wrong answers, and nothing to prepare \u2014 about three minutes.' },
+      { n: '1', t: 'Take the quiz \u00b7 about 3 minutes', d: 'Twelve short questions identify your hormone type. Just pick what fits best \u2014 no right answers, nothing to prepare.' },
       { n: '2', t: 'Get your result instantly', d: 'Your hormone type, your Hormonal Age, and your top three priorities \u2014 mapped from established clinical frameworks (STRAW+10, Rotterdam).' },
-      { n: '3', t: 'See your patterns (optional)', d: 'The quiz is a snapshot; a few evening logs turn it into a moving picture \u2014 within a week you\u2019ll see which days and cycle phases hit hardest, and how sleep and stress move your symptoms.' }
+      { n: '3', t: 'Check in each day \u00b7 about 1 minute', d: 'Mark how you slept, felt and moved on your calendar \u2014 and read one short piece chosen for your day. A rough day gets a gentle, useful note; a calmer day, something new to understand about your body.' },
+      { n: '4', t: 'Watch your patterns appear', d: 'Within a week the calendar turns scattered days into a clear picture \u2014 which cycle phases, nights and habits move how you feel.' }
     ];
     var stepEls = steps.map(function(s) {
       return el('div', { class: 'hb-quiz-intro-step' }, [
@@ -344,11 +345,11 @@
 
     var intro = el('div', { class: 'hb-quiz-onboarding' }, [
       el('p', { class: 'hb-quiz-intro-eyebrow' }, 'Before you begin'),
-      el('h2', { class: 'hb-quiz-intro-lead' }, 'Understand what your body has been telling you'),
-      el('p', { class: 'hb-quiz-intro-sub' }, 'A free quiz, about three minutes. It identifies your hormone type and turns scattered symptoms into one clear, personal place to start \u2014 no jargon, no guesswork.'),
+      el('h2', { class: 'hb-quiz-intro-lead' }, 'Find your hormone type \u2014 then learn your body a little better each day'),
+      el('p', { class: 'hb-quiz-intro-sub' }, 'This is more than a quiz. First, twelve short questions map your hormone type. Then it becomes a daily check-in you\u2019ll actually want to open: mark how you feel, watch your patterns appear on a calendar, and read one short, personal piece about your body each time.'),
       el('p', { class: 'hb-quiz-intro-label' }, 'How it works'),
       el('div', { class: 'hb-quiz-intro-steps' }, stepEls),
-      el('div', { class: 'hb-quiz-intro-trust' }, "🔒  Stays on your phone \u00B7 No servers \u00B7 Even we can't see it"),
+      el('div', { class: 'hb-quiz-intro-trust' }, "🔒  Stays on your phone \u00B7 No signup, no email \u00B7 Even we can't see it"),
       el('button', {
         class: 'hb-quiz-onboarding-cta',
         type: 'button',
@@ -361,7 +362,7 @@
           saveState();
           render();
         }
-      }, ['Start the quiz \u2192'])
+      }, ['Find my hormone type \u2192'])
     ]);
 
     rootEl.appendChild(el('div', { class: 'hb-quiz' }, [intro]));
