@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.6
- *   v1.9.6 — Past cycles show real fertile/ovulation (from logged periods); clearer Period button; advice card below Update.
+ * Daily Tracker — v1.9.7
+ *   v1.9.7 — Mood field (after Energy); energy/symptoms update in place (no scroll jump).
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -336,6 +336,7 @@
     if (existingEntry) {
       state.currentEntry = {
         energy: existingEntry.energy,
+        mood: existingEntry.mood,
         sleep: existingEntry.sleep,
         cycle_day: existingEntry.cycle_day,
         period: existingEntry.period === true,
@@ -344,7 +345,7 @@
       };
     } else {
       state.currentEntry = {
-        energy: null, sleep: null, cycle_day: null, period: false, symptoms: [], notes: ''
+        energy: null, mood: null, sleep: null, cycle_day: null, period: false, symptoms: [], notes: ''
       };
     }
   }
@@ -2011,38 +2012,83 @@
 
   function renderEnergyField() {
     var fieldDef = HB_TRACKER_DATA.fields.energy;
-    var current = state.currentEntry.energy;
 
     var emojiRow = el('div', { class: 'hb-tracker-scale-emoji-row' });
     fieldDef.emoji.forEach(function(e) {
       emojiRow.appendChild(el('span', null, e));
     });
 
-    var buttonsRow = el('div', { class: 'hb-tracker-scale-buttons' });
-    for (var i = fieldDef.min; i <= fieldDef.max; i++) {
-      (function(val) {
-        var isSelected = current === val;
-        buttonsRow.appendChild(el('button', {
-          class: 'hb-tracker-scale-btn' + (isSelected ? ' is-selected' : ''),
-          type: 'button',
-          onclick: function() {
-            state.currentEntry.energy = val;
-            renderTracker();
-          }
-        }, String(val)));
-      })(i);
+    var labelEl = el('p', { class: 'hb-tracker-scale-label' }, '');
+    function setLabel() {
+      var cur = state.currentEntry.energy;
+      labelEl.textContent = (cur != null && fieldDef.labels) ? (fieldDef.labels[cur - fieldDef.min] || '') : '';
     }
 
-    var labelText = '';
-    if (current != null && fieldDef.labels) {
-      labelText = fieldDef.labels[current - fieldDef.min] || '';
+    var buttonsRow = el('div', { class: 'hb-tracker-scale-buttons' });
+    var btns = [];
+    for (var i = fieldDef.min; i <= fieldDef.max; i++) {
+      (function(val) {
+        var b = el('button', {
+          class: 'hb-tracker-scale-btn' + (state.currentEntry.energy === val ? ' is-selected' : ''),
+          type: 'button',
+          onclick: function() {
+            // Targeted update only — no full re-render, so the page does not jump.
+            state.currentEntry.energy = val;
+            btns.forEach(function(x) { x.el.classList.toggle('is-selected', x.val === val); });
+            setLabel();
+          }
+        }, String(val));
+        btns.push({ el: b, val: val });
+        buttonsRow.appendChild(b);
+      })(i);
     }
+    setLabel();
 
     return el('div', { class: 'hb-tracker-field' }, [
       el('p', { class: 'hb-tracker-field-label' }, fieldDef.label),
       el('div', { class: 'hb-tracker-scale' }, [
-        emojiRow, buttonsRow,
-        el('p', { class: 'hb-tracker-scale-label' }, labelText)
+        emojiRow, buttonsRow, labelEl
+      ])
+    ]);
+  }
+
+  function renderMoodField() {
+    var emoji = ['\uD83D\uDE1E', '\uD83D\uDE15', '\uD83D\uDE10', '\uD83D\uDE42', '\uD83D\uDE04']; // sad -> happy
+    var labels = ['Very low', 'Low', 'Okay', 'Good', 'Great'];
+    var min = 1, max = 5;
+
+    var emojiRow = el('div', { class: 'hb-tracker-scale-emoji-row' });
+    emoji.forEach(function(e) { emojiRow.appendChild(el('span', null, e)); });
+
+    var labelEl = el('p', { class: 'hb-tracker-scale-label' }, '');
+    function setLabel() {
+      var cur = state.currentEntry.mood;
+      labelEl.textContent = (cur != null) ? (labels[cur - min] || '') : '';
+    }
+
+    var buttonsRow = el('div', { class: 'hb-tracker-scale-buttons' });
+    var btns = [];
+    for (var i = min; i <= max; i++) {
+      (function(val) {
+        var b = el('button', {
+          class: 'hb-tracker-scale-btn' + (state.currentEntry.mood === val ? ' is-selected' : ''),
+          type: 'button',
+          onclick: function() {
+            state.currentEntry.mood = val;
+            btns.forEach(function(x) { x.el.classList.toggle('is-selected', x.val === val); });
+            setLabel();
+          }
+        }, String(val));
+        btns.push({ el: b, val: val });
+        buttonsRow.appendChild(b);
+      })(i);
+    }
+    setLabel();
+
+    return el('div', { class: 'hb-tracker-field' }, [
+      el('p', { class: 'hb-tracker-field-label' }, 'Mood today'),
+      el('div', { class: 'hb-tracker-scale' }, [
+        emojiRow, buttonsRow, labelEl
       ])
     ]);
   }
@@ -2161,39 +2207,48 @@
     });
 
     var chipsRow = el('div', { class: 'hb-tracker-chips' });
-    sortedSymptoms.forEach(function(opt) {
-      var isSelected = selected.indexOf(opt.value) !== -1;
-      var isEmphasized = emphasized.indexOf(opt.value) !== -1;
-      var reachedMax = selected.length >= max && !isSelected;
+    var counter = el('p', { class: 'hb-tracker-chips-counter' });
+    var chipEls = [];
 
+    function refreshChips() {
+      var sel = state.currentEntry.symptoms || [];
+      chipEls.forEach(function(c) {
+        var isSel = sel.indexOf(c.value) !== -1;
+        c.el.classList.toggle('is-selected', isSel);
+        c.el.classList.toggle('is-disabled', sel.length >= max && !isSel);
+      });
+      counter.innerHTML = 'Selected: <strong>' + sel.length + ' / ' + max + '</strong>';
+    }
+
+    sortedSymptoms.forEach(function(opt) {
+      var isEmphasized = emphasized.indexOf(opt.value) !== -1;
       var classes = 'hb-tracker-chip';
       if (isEmphasized) classes += ' is-emphasized';
-      if (isSelected) classes += ' is-selected';
-      if (reachedMax) classes += ' is-disabled';
 
       var chip = el('button', {
         class: classes,
         type: 'button',
         onclick: function() {
-          if (reachedMax) return;
-          var current = (state.currentEntry.symptoms || []).slice();
-          if (isSelected) {
-            current = current.filter(function(v) { return v !== opt.value; });
-          } else if (current.length < max) {
-            current.push(opt.value);
+          // Targeted update only — no full re-render, so the page does not jump.
+          var sel = (state.currentEntry.symptoms || []).slice();
+          var isSel = sel.indexOf(opt.value) !== -1;
+          if (isSel) {
+            sel = sel.filter(function(v) { return v !== opt.value; });
+          } else if (sel.length < max) {
+            sel.push(opt.value);
+          } else {
+            return; // at max — ignore
           }
-          state.currentEntry.symptoms = current;
-          renderTracker();
+          state.currentEntry.symptoms = sel;
+          refreshChips();
         }
       }, opt.label);
 
+      chipEls.push({ el: chip, value: opt.value });
       chipsRow.appendChild(chip);
     });
 
-    var counter = el('p', {
-      class: 'hb-tracker-chips-counter',
-      html: 'Selected: <strong>' + selected.length + ' / ' + max + '</strong>'
-    });
+    refreshChips();
 
     return el('div', { class: 'hb-tracker-field' }, [
       el('p', { class: 'hb-tracker-field-label is-optional' }, fieldDef.label),
@@ -2266,6 +2321,7 @@
 
     state.entries[target] = {
       energy: state.currentEntry.energy,
+      mood: state.currentEntry.mood,
       sleep: state.currentEntry.sleep,
       cycle_day: state.currentEntry.cycle_day,
       period: state.currentEntry.period === true,
@@ -2392,7 +2448,7 @@
       }, '×')
     ]);
 
-    var fields = [header, renderEnergyField(), renderSleepField()];
+    var fields = [header, renderEnergyField(), renderMoodField(), renderSleepField()];
     var cycleField = renderCycleDayField();
     if (cycleField) fields.push(cycleField);
     var periodFieldPast = renderPeriodField();
@@ -2451,6 +2507,7 @@
         children.push(renderLoggedTodayBanner());
       }
       children.push(renderEnergyField());
+      children.push(renderMoodField());
       children.push(renderSleepField());
       var cycleField = renderCycleDayField();
       if (cycleField) children.push(cycleField);
@@ -2550,7 +2607,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.9.6',
+    version: '1.9.7',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
@@ -2571,7 +2628,7 @@
         var ak = (typeof activeEditKey === 'function') ? activeEditKey() : state.today;
         var ce = state.currentEntry;
         live[ak] = {
-          energy: ce.energy, sleep: ce.sleep, cycle_day: ce.cycle_day,
+          energy: ce.energy, mood: ce.mood, sleep: ce.sleep, cycle_day: ce.cycle_day,
           period: ce.period === true, symptoms: ce.symptoms || [], notes: ce.notes || ''
         };
       }
