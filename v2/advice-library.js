@@ -557,8 +557,8 @@ window.HB_ADVICE = {
 
     'night_sweats': [
       { id:'log-nsweat-1', severity:'info', headline:"Night sweats are hot flushes that strike while you sleep",
-        body:["Waking drenched, throwing the covers off then pulling them back \u2014 night sweats are the same brain-thermostat glitch as daytime hot flushes, just timed for the worst possible moment. As estrogen swings, the brain misreads normal warmth as overheating and dumps heat.",
-          "The real damage isn't the heat \u2014 it's the broken sleep, which then amplifies mood, anxiety and fog the next day. That's exactly why they're worth addressing rather than enduring."],
+        body:["Here's the quick why for what you logged: a night sweat is the same brain-thermostat glitch as a daytime hot flush, just timed for when you're asleep. As estrogen swings, the brain misreads normal warmth as overheating and dumps heat \u2014 and you wake up hot.",
+          "The real damage isn't the heat itself \u2014 it's the broken sleep, which then amplifies mood, anxiety and fog the next day. That's exactly why they're worth addressing rather than enduring."],
         actions:["Keep the bedroom genuinely cool (17-19C) and use breathable layers you can shed"], bookRef:'Perimenopause / Vasomotor Symptoms', productSlot:null, source:'book' },
       { id:'log-nsweat-2', severity:'actionable', headline:"Two evening habits make them worse",
         body:["If night sweats are breaking your sleep, two everyday things reliably worsen them: alcohol and a warm bedroom. Both are easy to adjust, and the payoff shows up the same night.",
