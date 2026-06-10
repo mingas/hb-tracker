@@ -125,6 +125,98 @@
     return dateKeyFromDate(d);
   }
 
+  // Whole days from key a to key b (b - a). Positive if b is later.
+  function daysBetweenKeys(a, b) {
+    var pa = a.split('-'), pb = b.split('-');
+    var da = Date.UTC(+pa[0], +pa[1] - 1, +pa[2]);
+    var db = Date.UTC(+pb[0], +pb[1] - 1, +pb[2]);
+    return Math.round((db - da) / 86400000);
+  }
+
+  /* ====================================================================
+     CYCLE PREDICTION ENGINE (#11)
+     Builds a map: dateKey -> { period, predPeriod, fertile, ovulation }.
+     - period:     a logged bleed day (entry.period === true)
+     - predPeriod: a predicted future period day
+     - fertile:    estimated fertile window (~6 days)
+     - ovulation:  estimated ovulation day (~14 days before next period)
+     Predictions appear only after >= 2 full cycles are logged (>= 3 period
+     starts), so we never show guesses from too little data. Estimates only —
+     never presented as contraception.
+     ==================================================================== */
+  function computeCycleMarkers(entries, todayKey) {
+    var markers = {};
+    if (!entries) return markers;
+
+    // 1. Logged bleed days, sorted chronologically.
+    var bleedDays = Object.keys(entries)
+      .filter(function(k) { return entries[k] && entries[k].period === true; })
+      .sort();
+    if (!bleedDays.length) return markers;
+
+    bleedDays.forEach(function(d) { markers[d] = { period: true }; });
+
+    // 2. Group consecutive bleed days into period segments.
+    var segments = [];
+    bleedDays.forEach(function(d) {
+      var last = segments[segments.length - 1];
+      if (last && addDaysToKey(last.end, 1) === d) { last.end = d; }
+      else segments.push({ start: d, end: d });
+    });
+
+    var starts = segments.map(function(s) { return s.start; });
+
+    // 3. Cycle lengths between consecutive period starts.
+    var lengths = [];
+    for (var i = 1; i < starts.length; i++) {
+      lengths.push(daysBetweenKeys(starts[i - 1], starts[i]));
+    }
+    // Need at least 2 cycle lengths (>= 3 logged period starts) to predict.
+    if (lengths.length < 2) return markers;
+
+    // 4. Average cycle length (recent up to 6), clamped to a sane range.
+    var recent = lengths.slice(-6);
+    var avg = Math.round(recent.reduce(function(a, b) { return a + b; }, 0) / recent.length);
+    if (avg < 21) avg = 21;
+    if (avg > 40) avg = 40;
+
+    // Typical period length for predicted-period bars.
+    var perLens = segments.map(function(s) { return daysBetweenKeys(s.start, s.end) + 1; });
+    var perLen = Math.round(perLens.reduce(function(a, b) { return a + b; }, 0) / perLens.length);
+    if (perLen < 2) perLen = 2;
+    if (perLen > 8) perLen = 8;
+
+    var lastStart = starts[starts.length - 1];
+
+    function markOvulationAndFertile(periodStartKey) {
+      var ovu = addDaysToKey(periodStartKey, -14);
+      markers[ovu] = markers[ovu] || {};
+      if (!markers[ovu].period) markers[ovu].ovulation = true;
+      for (var fw = -5; fw <= 0; fw++) {
+        var fk = addDaysToKey(ovu, fw);
+        markers[fk] = markers[fk] || {};
+        if (!markers[fk].period) markers[fk].fertile = true;
+      }
+    }
+
+    // 5. Project forward ~3 cycles to cover the visible calendar range.
+    for (var c = 1; c <= 3; c++) {
+      var predStart = addDaysToKey(lastStart, avg * c);
+      for (var p = 0; p < perLen; p++) {
+        var pk = addDaysToKey(predStart, p);
+        if (pk > todayKey && (!markers[pk] || !markers[pk].period)) {
+          markers[pk] = markers[pk] || {};
+          markers[pk].predPeriod = true;
+        }
+      }
+      markOvulationAndFertile(predStart);
+    }
+    // Current cycle's fertile window / ovulation (between last logged start and next predicted).
+    markOvulationAndFertile(addDaysToKey(lastStart, avg));
+
+    return markers;
+  }
+
   function getTodayKey()     { return dateKeyForOffsetDays(0); }
   function getYesterdayKey() { return dateKeyForOffsetDays(-1); }
 
@@ -208,12 +300,13 @@
         energy: existingEntry.energy,
         sleep: existingEntry.sleep,
         cycle_day: existingEntry.cycle_day,
+        period: existingEntry.period === true,
         symptoms: (existingEntry.symptoms || []).slice(),
         notes: existingEntry.notes || ''
       };
     } else {
       state.currentEntry = {
-        energy: null, sleep: null, cycle_day: null, symptoms: [], notes: ''
+        energy: null, sleep: null, cycle_day: null, period: false, symptoms: [], notes: ''
       };
     }
   }
@@ -1343,11 +1436,73 @@
 
   /* HEATMAP CALENDAR */
 
+  /* #11 — cycle layer styles (mobile-responsive) */
+  function injectCycleStyles() {
+    if (document.getElementById('hb-cycle-styles')) return;
+    var s = document.createElement('style');
+    s.id = 'hb-cycle-styles';
+    s.textContent = ''
+      + '.hb-tracker-heatmap-cell{position:relative;overflow:hidden}'
+      + '.hb-cyc-bar{position:absolute;left:3px;right:3px;bottom:3px;height:3px;border-radius:2px;pointer-events:none}'
+      + '.hb-cyc-bar.is-period{background:#E23B4E}'
+      + '.hb-cyc-bar.is-fertile{background:#4A90D9}'
+      + '.hb-cyc-bar.is-pred{background:repeating-linear-gradient(90deg,#E23B4E 0 3px,transparent 3px 6px)}'
+      + '.hb-cyc-ovu{position:absolute;top:3px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:#8B5CF6;box-shadow:0 0 0 1.5px #FFFFFF;pointer-events:none}'
+      // period toggle
+      + '.hb-tracker-period-toggle{display:inline-flex;align-items:center;gap:9px;padding:11px 16px;border:1.5px solid #E8E2D3;border-radius:10px;background:#FFFFFF;font-family:inherit;font-size:14px;font-weight:500;color:#5F5E5A;cursor:pointer;transition:all 150ms}'
+      + '.hb-tracker-period-toggle:hover{border-color:#C9C2AE}'
+      + '.hb-tracker-period-toggle.is-on{border-color:#E23B4E;background:#FDEEF0;color:#A01F30}'
+      + '.hb-tracker-period-dot{width:13px;height:13px;border-radius:50%;border:2px solid #C9C2AE;flex-shrink:0;box-sizing:border-box}'
+      + '.hb-tracker-period-toggle.is-on .hb-tracker-period-dot{background:#E23B4E;border-color:#E23B4E}'
+      // cycle legend
+      + '.hb-cyc-legend{margin:12px 0 0;padding:11px 13px;background:#FCF8F0;border:1px solid #EADFC8;border-radius:10px}'
+      + '.hb-cyc-legend-t{font-family:sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#8B928E;margin:0 0 8px 0}'
+      + '.hb-cyc-legend-items{display:flex;flex-wrap:wrap;gap:8px 16px}'
+      + '.hb-cyc-li{display:flex;align-items:center;gap:6px;font-size:12px;color:#4A4038}'
+      + '.hb-cyc-sw{width:18px;height:5px;border-radius:3px;display:inline-block;flex-shrink:0}'
+      + '.hb-cyc-sw.is-period{background:#E23B4E}'
+      + '.hb-cyc-sw.is-fertile{background:#4A90D9}'
+      + '.hb-cyc-sw.is-pred{background:repeating-linear-gradient(90deg,#E23B4E 0 4px,transparent 4px 7px)}'
+      + '.hb-cyc-sw-dot{width:11px;height:11px;border-radius:50%;background:#8B5CF6;box-shadow:0 0 0 1.5px #FFFFFF,0 0 0 2.5px #8B5CF6;display:inline-block;flex-shrink:0;margin:0 1px}'
+      + '.hb-cyc-disclaimer{font-size:11px;color:#8B928E;margin:8px 0 0 0;line-height:1.4}'
+      // ---- mobile ----
+      + '@media (max-width:478px){'
+      +   '.hb-cyc-bar{height:2.5px;left:2px;right:2px;bottom:2px}'
+      +   '.hb-cyc-ovu{width:5px;height:5px;top:2px}'
+      +   '.hb-cyc-legend-items{gap:7px 12px}'
+      +   '.hb-cyc-li{font-size:11px;gap:5px}'
+      +   '.hb-cyc-sw{width:15px}'
+      +   '.hb-tracker-period-toggle{font-size:13px;padding:10px 14px}'
+      + '}';
+    document.head.appendChild(s);
+  }
+
+  function renderCycleLegend() {
+    function li(sw, label) { return el('span', { class: 'hb-cyc-li' }, [sw, el('span', null, label)]); }
+    var items = el('div', { class: 'hb-cyc-legend-items' }, [
+      li(el('span', { class: 'hb-cyc-sw is-period' }), 'Period'),
+      li(el('span', { class: 'hb-cyc-sw is-pred' }), 'Predicted period'),
+      li(el('span', { class: 'hb-cyc-sw is-fertile' }), 'Fertile window'),
+      li(el('span', { class: 'hb-cyc-sw-dot' }), 'Ovulation')
+    ]);
+    return el('div', { class: 'hb-cyc-legend' }, [
+      el('p', { class: 'hb-cyc-legend-t' }, 'Cycle'),
+      items,
+      el('p', { class: 'hb-cyc-disclaimer' }, '\u2248 Estimated from your logged period dates \u2014 not a method of contraception.')
+    ]);
+  }
+
   function renderHeatmapCalendar() {
     var viewYM = getViewMonthYear();
     var gridCells = getCalendarGrid(viewYM);
 
+    injectCycleStyles();
     var todayKey = state.today;
+    var cycleOn = !!(typeConfig && typeConfig.cycleVisible);
+    var cycleMarkers = cycleOn ? computeCycleMarkers(state.entries, todayKey) : {};
+    var hasPeriodData = cycleOn && Object.keys(state.entries).some(function(k) {
+      return state.entries[k] && state.entries[k].period === true;
+    });
     var today = new Date();
     var todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
 
@@ -1394,7 +1549,16 @@
         } else {
           props.disabled = true;
         }
-        grid.appendChild(el('button', props, String(dayNum)));
+        var kids = [String(dayNum)];
+        var m = cycleMarkers[cellKeyClosure];
+        if (m) {
+          if (m.ovulation) kids.push(el('span', { class: 'hb-cyc-ovu', 'aria-hidden': 'true' }));
+          var barCls = m.period ? 'hb-cyc-bar is-period'
+                     : (m.predPeriod ? 'hb-cyc-bar is-pred'
+                     : (m.fertile ? 'hb-cyc-bar is-fertile' : null));
+          if (barCls) kids.push(el('span', { class: barCls, 'aria-hidden': 'true' }));
+        }
+        grid.appendChild(el('button', props, kids));
       })(cellKey, isClickable);
     });
 
@@ -1419,12 +1583,15 @@
       legendSwatches
     ]);
 
-    return el('div', { class: 'hb-tracker-heatmap-wrap' }, [
+    var heatmapChildren = [
       renderCalendarNavigation(),
       labelsRow,
       grid,
       legend
-    ]);
+    ];
+    if (hasPeriodData) heatmapChildren.push(renderCycleLegend());
+
+    return el('div', { class: 'hb-tracker-heatmap-wrap' }, heatmapChildren);
   }
 
   /* DAY CLICK HANDLER */
@@ -1891,6 +2058,26 @@
     ]);
   }
 
+  // #11 — Period toggle. Powers the cycle layer (predictions from bleed days).
+  function renderPeriodField() {
+    if (!typeConfig.cycleVisible) return null;
+    var on = state.currentEntry.period === true;
+    var btn = el('button', {
+      class: 'hb-tracker-period-toggle' + (on ? ' is-on' : ''),
+      type: 'button',
+      'aria-pressed': on ? 'true' : 'false',
+      onclick: function() { state.currentEntry.period = !on; renderTracker(); }
+    }, [
+      el('span', { class: 'hb-tracker-period-dot', 'aria-hidden': 'true' }),
+      el('span', null, on ? 'On my period today' : 'Not on my period')
+    ]);
+    return el('div', { class: 'hb-tracker-field' }, [
+      el('p', { class: 'hb-tracker-field-label is-optional' }, 'Period'),
+      el('p', { class: 'hb-tracker-field-help' }, 'Tap on the days you bleed \u2014 this is what powers your cycle calendar below.'),
+      btn
+    ]);
+  }
+
   function renderSymptomsField() {
     var fieldDef = HB_TRACKER_DATA.fields.symptoms;
     var selected = state.currentEntry.symptoms || [];
@@ -2023,6 +2210,7 @@
       energy: state.currentEntry.energy,
       sleep: state.currentEntry.sleep,
       cycle_day: state.currentEntry.cycle_day,
+      period: state.currentEntry.period === true,
       symptoms: state.currentEntry.symptoms || [],
       notes: state.currentEntry.notes || '',
       timestamp: new Date().toISOString()
@@ -2149,6 +2337,8 @@
     var fields = [header, renderEnergyField(), renderSleepField()];
     var cycleField = renderCycleDayField();
     if (cycleField) fields.push(cycleField);
+    var periodFieldPast = renderPeriodField();
+    if (periodFieldPast) fields.push(periodFieldPast);
     fields.push(renderSymptomsField());
     fields.push(renderNotesField());
     fields.push(renderSaveButton());
@@ -2202,6 +2392,8 @@
       children.push(renderSleepField());
       var cycleField = renderCycleDayField();
       if (cycleField) children.push(cycleField);
+      var periodFieldToday = renderPeriodField();
+      if (periodFieldToday) children.push(periodFieldToday);
       children.push(renderSymptomsField());
       children.push(renderNotesField());
       children.push(renderSaveButton());
