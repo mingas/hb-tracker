@@ -1465,6 +1465,11 @@
       + '.hb-cyc-sw.is-pred{background:repeating-linear-gradient(90deg,#E23B4E 0 4px,transparent 4px 7px)}'
       + '.hb-cyc-sw-dot{width:11px;height:11px;border-radius:50%;background:#8B5CF6;box-shadow:0 0 0 1.5px #FFFFFF,0 0 0 2.5px #8B5CF6;display:inline-block;flex-shrink:0;margin:0 1px}'
       + '.hb-cyc-disclaimer{font-size:11px;color:#8B928E;margin:8px 0 0 0;line-height:1.4}'
+      + '.hb-cyc-hint{margin:12px 0 0;padding:12px 14px;background:#FCF8F0;border:1px dashed #E0C9B0;border-radius:10px;display:flex;gap:10px;align-items:flex-start}'
+      + '.hb-cyc-hint-icon{font-size:16px;line-height:1.3;flex-shrink:0}'
+      + '.hb-cyc-hint-text{font-size:12.5px;color:#5F5E5A;line-height:1.5;margin:0}'
+      + '.hb-cyc-hint-text strong{color:#1A2A4A}'
+      + '@media (max-width:478px){.hb-cyc-hint{padding:11px 12px}.hb-cyc-hint-text{font-size:12px}}'
       // ---- mobile ----
       + '@media (max-width:478px){'
       +   '.hb-cyc-bar{height:2.5px;left:2px;right:2px;bottom:2px}'
@@ -1475,6 +1480,18 @@
       +   '.hb-tracker-period-toggle{font-size:13px;padding:10px 14px}'
       + '}';
     document.head.appendChild(s);
+  }
+
+  function renderCycleHint() {
+    return el('div', { class: 'hb-cyc-hint' }, [
+      el('span', { class: 'hb-cyc-hint-icon', 'aria-hidden': 'true' }, '\uD83D\uDD34'),
+      el('p', { class: 'hb-cyc-hint-text' }, [
+        el('strong', null, 'Track your cycle here. '),
+        'On the days you bleed, switch on ',
+        el('strong', null, '\u201CPeriod\u201D'),
+        ' in your check-in above. After a couple of cycles, this calendar will mark your period, fertile window and ovulation \u2014 estimated from your dates, not a method of contraception.'
+      ])
+    ]);
   }
 
   function renderCycleLegend() {
@@ -1590,6 +1607,7 @@
       legend
     ];
     if (hasPeriodData) heatmapChildren.push(renderCycleLegend());
+    else if (cycleOn) heatmapChildren.push(renderCycleHint());
 
     return el('div', { class: 'hb-tracker-heatmap-wrap' }, heatmapChildren);
   }
