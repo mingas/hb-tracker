@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.4
- *   v1.9.4 — Unified cycle model: a typed cycle day now anchors the calendar (B1), same as period marks.
+ * Daily Tracker — v1.9.5
+ *   v1.9.5 — Cycle day now drives the anchor (most-recent signal wins) + live calendar preview on edit.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -167,40 +167,34 @@
     });
     var periodStarts = segments.map(function(s) { return s.start; });
 
-    // 3. A typed "cycle day" also implies a start: cycle_day = X on date D means
-    // the cycle began (X - 1) days before D. This lets the calendar move when the
-    // user just types a cycle day, even without marking any bleed days.
-    var cdStarts = [];
-    Object.keys(entries).forEach(function(k) {
-      var cd = entries[k] && entries[k].cycle_day;
-      if (typeof cd === 'number' && cd >= 1 && cd <= 60) {
-        cdStarts.push(addDaysToKey(k, -(cd - 1)));
+    // 3. Current-cycle anchor = the most recent cycle signal. Walking newest ->
+    // oldest, a typed cycle day wins over a period mark on the same date (it is
+    // the user's explicit "I am on day X" statement); otherwise the most recent
+    // period segment start anchors the cycle. This lets a typed cycle day move
+    // the calendar even when period days are also logged.
+    var allDates = Object.keys(entries).sort();
+    var anchor = null;
+    for (var ai = allDates.length - 1; ai >= 0 && anchor === null; ai--) {
+      var ad = allDates[ai], ae = entries[ad];
+      if (!ae) continue;
+      if (typeof ae.cycle_day === 'number' && ae.cycle_day >= 1 && ae.cycle_day <= 60) {
+        anchor = addDaysToKey(ad, -(ae.cycle_day - 1));
+      } else if (ae.period === true) {
+        var seg = null;
+        for (var sj = 0; sj < segments.length; sj++) {
+          if (segments[sj].start <= ad && ad <= segments[sj].end) { seg = segments[sj]; break; }
+        }
+        anchor = seg ? seg.start : ad;
       }
-    });
-
-    // 4. Unified cycle starts. Period marks are authoritative; a cycle-day start
-    // is added only when it isn't within ~4 days of an existing start (i.e. it's
-    // a different cycle, not a noisy duplicate of the same one).
-    var merged = periodStarts.slice();
-    cdStarts.forEach(function(c) {
-      var near = merged.some(function(p) { return Math.abs(daysBetweenKeys(p, c)) <= 4; });
-      if (!near) merged.push(c);
-    });
-    merged.sort();
-    var starts = [];
-    merged.forEach(function(a) {
-      if (!starts.length || daysBetweenKeys(starts[starts.length - 1], a) > 4) starts.push(a);
-    });
-    if (!starts.length) return markers; // no period marks and no cycle day -> nothing to predict
-
-    // 5. Cycle lengths between consecutive starts.
-    var lengths = [];
-    for (var i = 1; i < starts.length; i++) {
-      lengths.push(daysBetweenKeys(starts[i - 1], starts[i]));
     }
-    // Cycle length: use the logged average once we have at least one gap between
-    // starts; otherwise fall back to a typical 28-day cycle so the fertile window,
-    // ovulation and next period appear immediately (refined as more data comes in).
+    if (!anchor) return markers; // no period marks and no cycle day -> nothing to predict
+
+    // 4. Cycle length from gaps between period starts (recent up to 6); otherwise
+    // a typical 28-day cycle so predictions appear immediately. Clamped.
+    var lengths = [];
+    for (var i = 1; i < periodStarts.length; i++) {
+      lengths.push(daysBetweenKeys(periodStarts[i - 1], periodStarts[i]));
+    }
     var avg;
     if (lengths.length >= 1) {
       var recent = lengths.slice(-6);
@@ -211,7 +205,7 @@
     if (avg < 21) avg = 21;
     if (avg > 40) avg = 40;
 
-    // 6. Typical period length for predicted-period bars (from real segments),
+    // 5. Typical period length for predicted-period bars (from real segments),
     // else a sensible 4-day default for cycle-day-only users.
     var perLen = 4;
     if (segments.length) {
@@ -221,7 +215,7 @@
     if (perLen < 2) perLen = 2;
     if (perLen > 8) perLen = 8;
 
-    var lastStart = starts[starts.length - 1];
+    var lastStart = anchor;
 
     function markOvulationAndFertile(periodStartKey) {
       var ovu = addDaysToKey(periodStartKey, -14);
@@ -2101,7 +2095,8 @@
             state.currentEntry.cycle_day = n;
           }
         }
-      }
+      },
+      onchange: function() { renderTracker(); }
     });
 
     return el('div', { class: 'hb-tracker-field' }, [
@@ -2542,7 +2537,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.9.4',
+    version: '1.9.5',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
@@ -2554,7 +2549,20 @@
       var cfg = typeConfig;
       var visible = !!(cfg && cfg.cycleVisible);
       if (!visible) return { visible: false, hasPeriodData: false, markers: {} };
-      var markers = computeCycleMarkers(state.entries, state.today);
+      // Overlay the in-progress (unsaved) entry for the day being edited so the
+      // calendar previews edits live — e.g. typing a cycle day moves the
+      // predictions without having to press Update first.
+      var live = {};
+      Object.keys(state.entries).forEach(function(k) { live[k] = state.entries[k]; });
+      if (state.currentEntry) {
+        var ak = (typeof activeEditKey === 'function') ? activeEditKey() : state.today;
+        var ce = state.currentEntry;
+        live[ak] = {
+          energy: ce.energy, sleep: ce.sleep, cycle_day: ce.cycle_day,
+          period: ce.period === true, symptoms: ce.symptoms || [], notes: ce.notes || ''
+        };
+      }
+      var markers = computeCycleMarkers(live, state.today);
       // "has data" = any cycle markers at all — logged period days OR predictions
       // derived from a typed cycle day. Drives legend (vs the empty-state hint).
       var hasPeriodData = Object.keys(markers).length > 0;
