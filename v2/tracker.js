@@ -1,7 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.1
+ * Daily Tracker — v1.9.2
+ *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
  *            Day-of-week labels (M T W T F S S) were rendered as <span>
@@ -2508,11 +2509,24 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.7.5',
+    version: '1.9.2',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
     getAllEntries: function() { return state.entries; },
+    // Cycle layer data for the external (mobile) calendar renderer.
+    // Heavy logic (avg cycle length, predictions, fertile window, ovulation)
+    // lives here so there is one source of truth.
+    getCycleMarkers: function() {
+      var cfg = typeConfig;
+      var visible = !!(cfg && cfg.cycleVisible);
+      if (!visible) return { visible: false, hasPeriodData: false, markers: {} };
+      var markers = computeCycleMarkers(state.entries, state.today);
+      var hasPeriodData = Object.keys(state.entries).some(function(k) {
+        return state.entries[k] && state.entries[k].period === true;
+      });
+      return { visible: true, hasPeriodData: hasPeriodData, markers: markers };
+    },
     // Exposed for testing
     _applyReturningUserMode: applyReturningUserMode,
     _applyAboutFAQCollapse: applyAboutFAQCollapse,
