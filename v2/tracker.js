@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.9
- *   v1.9.9 — Period two-button picker (no dot, no jump); past-day form above calendar; symptom set updated.
+ * Daily Tracker — v1.9.10
+ *   v1.9.10 — Fix: Save button now works after setting energy via targeted update (checks live state).
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -2341,8 +2341,6 @@
     var isPast = target !== state.today;
     var existingEntry = state.entries[target];
     var isUpdate = !!existingEntry;
-    var hasEnergy = state.currentEntry.energy != null;
-    var canSave = hasEnergy;
 
     var btnLabel;
     if (state.saveJustSucceeded) btnLabel = 'Saved ✓';
@@ -2352,9 +2350,11 @@
     var btn = el('button', {
       class: 'hb-tracker-save-btn' + (state.saveJustSucceeded ? ' is-success' : ''),
       type: 'button',
-      disabled: !canSave,
+      disabled: state.currentEntry.energy == null,
       onclick: function() {
-        if (!canSave) return;
+        // Check live state, not a captured value — energy may have been set via a
+        // targeted (no re-render) update after this button was first rendered.
+        if (state.currentEntry.energy == null) return;
         save(isUpdate);
       }
     }, btnLabel);
@@ -2656,7 +2656,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.9.9',
+    version: '1.9.10',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
