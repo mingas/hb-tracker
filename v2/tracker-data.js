@@ -44,7 +44,10 @@ window.HB_TRACKER_DATA = {
     { value: 'bloating',          label: 'Bloating' },
     { value: 'headaches',         label: 'Headaches' },
     { value: 'irregular_cycles',  label: 'Irregular cycles' },
-    { value: 'ovulation_cramps',  label: 'Ovulation cramps' }
+    { value: 'ovulation_cramps',  label: 'Ovulation cramps' },
+    { value: 'night_sweats',      label: 'Night sweats' },
+    { value: 'nausea',            label: 'Nausea' },
+    { value: 'cramps',            label: 'Cramps' }
   ],
 
   // Per-hormone-type configurations
@@ -52,35 +55,35 @@ window.HB_TRACKER_DATA = {
     'cycle-surfer': {
       welcomeMessage: "Let's check in with your cycle today.",
       emphasizedSymptoms: ['mood_swings', 'energy_crashes', 'cravings', 'breast_tenderness'],
-      relevantSymptoms: ['mood_swings', 'energy_crashes', 'cravings', 'breast_tenderness', 'acne', 'ovulation_cramps', 'bloating', 'anxiety'],
+      relevantSymptoms: ['mood_swings', 'energy_crashes', 'cravings', 'breast_tenderness', 'cramps', 'ovulation_cramps', 'bloating', 'nausea', 'acne', 'anxiety'],
       cycleVisible: true,
       cyclePrompt: 'Cycle day (day 1 = first day of period)'
     },
     'estrogen-dominant': {
       welcomeMessage: 'How are you feeling today?',
-      emphasizedSymptoms: ['breast_tenderness', 'cravings', 'mood_swings', 'weight_gain'],
-      relevantSymptoms: ['breast_tenderness', 'cravings', 'mood_swings', 'weight_gain', 'bloating', 'acne', 'headaches', 'anxiety'],
+      emphasizedSymptoms: ['breast_tenderness', 'cravings', 'mood_swings', 'bloating'],
+      relevantSymptoms: ['breast_tenderness', 'cravings', 'mood_swings', 'bloating', 'cramps', 'headaches', 'nausea', 'acne', 'anxiety'],
       cycleVisible: true,
       cyclePrompt: 'Cycle day (day 1 = first day of period)'
     },
     'progesterone-deficient': {
       welcomeMessage: "Let's see where you are today.",
       emphasizedSymptoms: ['anxiety', 'sleep_issues', 'mood_swings', 'energy_crashes'],
-      relevantSymptoms: ['anxiety', 'sleep_issues', 'mood_swings', 'energy_crashes', 'low_libido', 'irregular_cycles', 'breast_tenderness', 'headaches'],
+      relevantSymptoms: ['anxiety', 'sleep_issues', 'mood_swings', 'energy_crashes', 'cramps', 'breast_tenderness', 'headaches', 'low_libido', 'irregular_cycles'],
       cycleVisible: true,
       cyclePrompt: 'Cycle day (leave blank if irregular)'
     },
     'perimenopause-transitioner': {
       welcomeMessage: "Today's transition check-in.",
       emphasizedSymptoms: ['hot_flashes', 'brain_fog', 'mood_swings', 'sleep_issues'],
-      relevantSymptoms: ['hot_flashes', 'brain_fog', 'mood_swings', 'sleep_issues', 'hair_thinning', 'low_libido', 'weight_gain', 'irregular_cycles', 'anxiety'],
+      relevantSymptoms: ['hot_flashes', 'night_sweats', 'brain_fog', 'mood_swings', 'sleep_issues', 'anxiety', 'headaches', 'low_libido', 'irregular_cycles'],
       cycleVisible: true,
       cyclePrompt: 'Cycle day (leave blank if cycles are irregular)'
     },
     'postmenopause-renewer': {
       welcomeMessage: "Today's check-in.",
       emphasizedSymptoms: ['joint_pain', 'heart_palpitations', 'dryness', 'hot_flashes'],
-      relevantSymptoms: ['joint_pain', 'heart_palpitations', 'dryness', 'hot_flashes', 'brain_fog', 'sleep_issues', 'low_libido', 'weight_gain'],
+      relevantSymptoms: ['joint_pain', 'heart_palpitations', 'dryness', 'hot_flashes', 'night_sweats', 'brain_fog', 'sleep_issues', 'low_libido'],
       cycleVisible: false,
       cyclePrompt: ''
     }

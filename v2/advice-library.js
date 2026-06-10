@@ -555,6 +555,55 @@ window.HB_ADVICE = {
         actions:["Brief and mild is normal; severe or persistent, see a doctor"], bookRef:'Ch 4', productSlot:null, source:'book' }
     ],
 
+    'night_sweats': [
+      { id:'log-nsweat-1', severity:'info', headline:"Night sweats are hot flushes that strike while you sleep",
+        body:["Waking drenched, throwing the covers off then pulling them back \u2014 night sweats are the same brain-thermostat glitch as daytime hot flushes, just timed for the worst possible moment. As estrogen swings, the brain misreads normal warmth as overheating and dumps heat.",
+          "The real damage isn't the heat \u2014 it's the broken sleep, which then amplifies mood, anxiety and fog the next day. That's exactly why they're worth addressing rather than enduring."],
+        actions:["Keep the bedroom genuinely cool (17-19C) and use breathable layers you can shed"], bookRef:'Perimenopause / Vasomotor Symptoms', productSlot:null, source:'book' },
+      { id:'log-nsweat-2', severity:'actionable', headline:"Two evening habits make them worse",
+        body:["If night sweats are breaking your sleep, two everyday things reliably worsen them: alcohol and a warm bedroom. Both are easy to adjust, and the payoff shows up the same night.",
+          "An evening drink in particular tends to trigger more sweats and lighter sleep \u2014 a quick experiment of a few alcohol-free evenings will usually tell you how much it's contributing."],
+        actions:["Try a few evenings without alcohol and drop the room temperature"], bookRef:'Sleep / Why Sleep Breaks Down in Perimenopause', productSlot:null, source:'book' },
+      { id:'log-nsweat-3', severity:'info', headline:"If they're wrecking your sleep, there's effective help",
+        body:["Frequent night sweats aren't something you simply have to wait out. They're one of the symptoms that responds most reliably to treatment, so persistent ones are worth a real conversation, not endurance.",
+          "Hormone therapy is the most effective option for moderate-to-severe night sweats, and non-hormonal options exist too. A clinician who offers nothing isn't up to date."],
+        actions:["If they're frequent, raise them specifically with a doctor"], bookRef:'Menopause and HRT', productSlot:null, source:'book' }
+    ],
+
+    'nausea': [
+      { id:'log-nausea-1', severity:'info', headline:"Cyclical nausea often tracks your hormones",
+        body:["Waves of queasiness that seem to come and go with your cycle \u2014 often around your period or mid-cycle \u2014 aren't random. Shifting estrogen and the prostaglandins released around menstruation can both unsettle the stomach.",
+          "Knowing it's hormonal and timed takes some of the worry out of it: it's a passing phase of the cycle, not a sign something is wrong with your gut."],
+        actions:["Note where it falls in your cycle \u2014 the timing is the clue"], bookRef:'Cycle / The Luteal Phase', productSlot:null, source:'book' },
+      { id:'log-nausea-2', severity:'actionable', headline:"Steady blood sugar settles a queasy stomach",
+        body:["Nausea is often worse on an empty stomach or after blood-sugar swings, which is why it can hit hardest mid-morning or when you've skipped a meal.",
+          "Small, regular meals with some protein \u2014 rather than going long stretches without eating \u2014 keep blood sugar steady and tend to ease the queasiness. Ginger (tea or a sweet) has decent evidence for calming nausea too."],
+        actions:["Eat small and regular; try ginger tea when it hits"], bookRef:'Food / Blood Sugar', productSlot:null, source:'book' },
+      { id:'log-nausea-3', severity:'caution',
+        eyebrow:'Worth a gentle check',
+        headline:"Persistent or severe nausea deserves a look",
+        body:["Mild, cyclical nausea that passes is usually just hormonal. But nausea that's severe, constant, or doesn't track your cycle is a different matter and shouldn't simply be logged and ignored.",
+          "If it's frequent, intense, or comes with other new symptoms, it's worth a doctor's conversation to rule out other causes \u2014 not a reason to panic, just a reason to ask."],
+        actions:["If it's severe, constant, or not cycle-linked, see a doctor"], bookRef:'Cycle / When to See a Doctor', productSlot:null, source:'book' }
+    ],
+
+    'cramps': [
+      { id:'log-cramps-1', severity:'info', headline:"Period cramps have a chemical driver \u2014 and a lever",
+        body:["Menstrual cramps come largely from prostaglandins \u2014 compounds that make the womb contract to shed its lining. Higher levels mean stronger cramps, which is why some cycles hurt more than others.",
+          "That's useful, because anti-inflammatory approaches work on exactly that pathway. Heat, gentle movement and an anti-inflammatory pattern of eating all genuinely help, rather than just masking the pain."],
+        actions:["Heat on the lower belly and a short walk often ease cramps faster than lying still"], bookRef:'Cycle / The Period', productSlot:null, source:'book' },
+      { id:'log-cramps-2', severity:'actionable', headline:"Magnesium and movement, not just painkillers",
+        body:["When cramps hit, the reflex is straight to painkillers \u2014 and they have their place. But two gentler levers help many women, especially used ahead of time rather than once the pain peaks.",
+          "Magnesium taken regularly can reduce cramp intensity over cycles, and light movement increases blood flow and eases the spasm. Neither replaces medical care for severe pain, but both work with the cause."],
+        actions:["Consider magnesium across the month; move gently when cramps start"], bookRef:'Supplements / The Core Few', productSlot:'/recommends/magnesium', source:'book' },
+      { id:'log-cramps-3', severity:'caution',
+        eyebrow:'Worth a gentle check',
+        headline:"Cramps that control your month aren't just 'bad luck'",
+        body:["Some cramping is normal. But pain that regularly keeps you off work or out of life, that painkillers barely touch, or that has worsened over time, sits in a different category \u2014 and 'periods are just painful' has left too many women undiagnosed for years.",
+          "Severe, life-disrupting cramps can signal conditions like endometriosis. If that's your pattern, track it and take the record to a doctor; ask directly whether it should be investigated."],
+        actions:["If cramps regularly disrupt your life, track them and ask a doctor about endometriosis"], bookRef:'Cycle / When Pain Isn\u2019t Normal', productSlot:null, source:'book' }
+    ],
+
     'heart_palpitations': [
       { id:'log-palp-1', severity:'info', headline:"Common in perimenopause \u2014 and still worth a mention",
         body:["A fluttering, skipping or pounding heart can be genuinely frightening, and in midlife it usually turns out to be benign \u2014 linked to the estrogen shifts of perimenopause rather than a heart problem.",

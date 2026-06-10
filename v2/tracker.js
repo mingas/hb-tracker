@@ -362,6 +362,8 @@
     style.textContent = ''
       // Hide Webflow hero + quiz root + placeholders for returning users
       + 'body.hb-returning #hq-hero,'
+      + 'body.hb-returning .hb-seo-section,'
+      + 'body.hb-returning .hb-faq-section,'
       + 'body.hb-returning .hb-eyebrow,'
       + 'body.hb-returning .hb-quiz-title,'
       + 'body.hb-returning .hb-quiz-subtitle,'
