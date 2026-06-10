@@ -1,7 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.7.0
+ * Daily Tracker — v1.9.0
+ *   v1.9.0 — Cycle layer + period toggle + past-day editing + cycle hint (fresh SHA to bust CDN/browser cache).
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
  *            Day-of-week labels (M T W T F S S) were rendered as <span>
  *            inside a CSS grid. Spans default to inline-block in grid items,
