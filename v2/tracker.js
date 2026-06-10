@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.8
- *   v1.9.8 — Fix: setting energy now enables Save (no Period needed); robust mobile/PC backup export+import.
+ * Daily Tracker — v1.9.9
+ *   v1.9.9 — Period two-button picker (no dot, no jump); past-day form above calendar; symptom set updated.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -1508,12 +1508,11 @@
       + '.hb-cyc-bar.is-pred{background:repeating-linear-gradient(90deg,#E23B4E 0 3px,transparent 3px 6px)}'
       + '.hb-cyc-ovu{position:absolute;top:3px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:#8B5CF6;box-shadow:0 0 0 1.5px #FFFFFF;pointer-events:none}'
       // period toggle
-      + '.hb-tracker-period-toggle{display:flex;width:100%;align-items:center;justify-content:center;gap:10px;padding:16px 18px;border:2px solid #E8E2D3;border-radius:12px;background:#FFFFFF;font-family:inherit;font-size:15px;font-weight:600;color:#5F5E5A;cursor:pointer;transition:all 150ms;min-height:54px;box-sizing:border-box}'
-      + '.hb-tracker-period-toggle:hover{border-color:#C9C2AE;background:#FCFAF6}'
-      + '.hb-tracker-period-toggle.is-on{border-color:#E23B4E;background:#E23B4E;color:#FFFFFF}'
-      + '.hb-tracker-period-toggle.is-on:hover{background:#D2293C;border-color:#D2293C}'
-      + '.hb-tracker-period-dot{width:18px;height:18px;border-radius:50%;border:2.5px solid #C9C2AE;flex-shrink:0;box-sizing:border-box;transition:all 150ms}'
-      + '.hb-tracker-period-toggle.is-on .hb-tracker-period-dot{background:#FFFFFF;border-color:#FFFFFF}'
+      + '.hb-tracker-period-group{display:flex;gap:8px}'
+      + '.hb-tracker-period-btn{flex:1;padding:14px 12px;border:2px solid #E8E2D3;border-radius:10px;background:#FFFFFF;font-family:inherit;font-size:14px;font-weight:600;color:#7A746A;cursor:pointer;transition:all 150ms;min-height:50px;box-sizing:border-box}'
+      + '.hb-tracker-period-btn:hover{border-color:#C9C2AE;background:#FCFAF6}'
+      + '.hb-tracker-period-btn.is-active{background:#5F5E5A;border-color:#5F5E5A;color:#FFFFFF}'
+      + '.hb-tracker-period-btn.is-yes.is-active{background:#E23B4E;border-color:#E23B4E;color:#FFFFFF}'
       // cycle legend
       + '.hb-cyc-legend{margin:12px 0 0;padding:11px 13px;background:#FCF8F0;border:1px solid #EADFC8;border-radius:10px}'
       + '.hb-cyc-legend-t{font-family:sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#8B928E;margin:0 0 8px 0}'
@@ -1537,7 +1536,7 @@
       +   '.hb-cyc-legend-items{gap:7px 12px}'
       +   '.hb-cyc-li{font-size:11px;gap:5px}'
       +   '.hb-cyc-sw{width:15px}'
-      +   '.hb-tracker-period-toggle{font-size:14px;padding:15px 16px;min-height:52px}'
+      +   '.hb-tracker-period-btn{font-size:13px;padding:13px 8px;min-height:48px}'
       + '}';
     document.head.appendChild(s);
   }
@@ -2176,7 +2175,12 @@
           }
         }
       },
-      onchange: function() { renderTracker(); }
+      onchange: function() {
+        // Refresh calendar preview without re-rendering the form (no page jump).
+        if (typeof window !== 'undefined' && window.HB_CAL_REFRESH) {
+          try { window.HB_CAL_REFRESH(); } catch (e) {}
+        }
+      }
     });
 
     return el('div', { class: 'hb-tracker-field' }, [
@@ -2189,20 +2193,41 @@
   // #11 — Period toggle. Powers the cycle layer (predictions from bleed days).
   function renderPeriodField() {
     if (!typeConfig.cycleVisible) return null;
-    var on = state.currentEntry.period === true;
-    var btn = el('button', {
-      class: 'hb-tracker-period-toggle' + (on ? ' is-on' : ''),
-      type: 'button',
-      'aria-pressed': on ? 'true' : 'false',
-      onclick: function() { state.currentEntry.period = !on; renderTracker(); }
-    }, [
-      el('span', { class: 'hb-tracker-period-dot', 'aria-hidden': 'true' }),
-      el('span', null, on ? 'On my period today' : 'Not on my period')
-    ]);
+
+    var group = el('div', { class: 'hb-tracker-period-group' });
+    var btnNo, btnYes;
+
+    function refresh() {
+      var on = state.currentEntry.period === true;
+      btnNo.classList.toggle('is-active', !on);
+      btnYes.classList.toggle('is-active', on);
+    }
+    function set(val) {
+      // Targeted update only — no full re-render, so the page does not jump.
+      state.currentEntry.period = val;
+      refresh();
+      // Refresh the calendar preview without re-rendering the form.
+      if (typeof window !== 'undefined' && window.HB_CAL_REFRESH) {
+        try { window.HB_CAL_REFRESH(); } catch (e) {}
+      }
+    }
+
+    btnNo = el('button', {
+      class: 'hb-tracker-period-btn', type: 'button',
+      onclick: function() { set(false); }
+    }, 'Not on my period');
+    btnYes = el('button', {
+      class: 'hb-tracker-period-btn is-yes', type: 'button',
+      onclick: function() { set(true); }
+    }, 'On my period');
+    group.appendChild(btnNo);
+    group.appendChild(btnYes);
+    refresh();
+
     return el('div', { class: 'hb-tracker-field' }, [
       el('p', { class: 'hb-tracker-field-label is-optional' }, 'Period'),
-      el('p', { class: 'hb-tracker-field-help' }, 'Tap on the days you bleed \u2014 this is what powers your cycle calendar below.'),
-      btn
+      el('p', { class: 'hb-tracker-field-help' }, 'Tap the days you bleed \u2014 this powers your cycle calendar below.'),
+      group
     ]);
   }
 
@@ -2517,8 +2542,8 @@
 
     if (isViewingPastDay) {
       children.push(renderPastDayHint());
-      children.push(renderHeatmapCalendar());
       children.push(renderPastDayEditor());
+      children.push(renderHeatmapCalendar());
     } else if (isViewingPastMonth) {
       children.push(renderPastMonthHint());
       children.push(renderHeatmapCalendar());
@@ -2631,7 +2656,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.9.8',
+    version: '1.9.9',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
