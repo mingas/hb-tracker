@@ -6,7 +6,7 @@
  * Detects:
  *   1. Day-of-week energy patterns ("Energy lowest on Mondays")
  *   2. Cycle phase symptom patterns ("Mood swings cluster in luteal phase")
- *   3. Sleep → Energy correlation ("Low sleep → 35% lower next-day energy")
+ *   3. Sleep → Energy correlation ("Low sleep → 35% lower same-day energy")
  *   4. Recent trend changes ("Energy improved 28% last week")
  *   5. Symptom frequency ("Mood swings on 70% of days this month")
  *
@@ -218,7 +218,7 @@
   /* =========================================================
      ALGORITHM 3: Sleep → Energy correlation
      Min: 10 entries with both sleep and energy
-     Triggers: low-sleep nights (<6.5h) have ≥25% lower next-day energy
+     Triggers: low-sleep nights (<6.5h) have ≥25% lower same-day energy
      ========================================================= */
   function detectSleepEnergyCorrelation(parsed) {
     var both = parsed.filter(function(p) { return p.sleep != null && p.energy != null; });
@@ -243,7 +243,7 @@
       id: 'sleep_energy',
       icon: '\u{1F634}', // 😴
       headline: 'Short sleep nights leave you drained',
-      body: 'On nights under 6.5h sleep (' + lowSleep.length + ' logs), your next-day energy averages ' + lowMean.toFixed(1) + '/5. On 7+ hour nights (' + goodSleep.length + ' logs), it averages ' + goodMean.toFixed(1) + '/5 — about ' + diffPct + '% higher. Protecting sleep is a high-leverage move.',
+      body: 'On nights under 6.5h sleep (' + lowSleep.length + ' logs), your energy averages ' + lowMean.toFixed(1) + '/5. On 7+ hour nights (' + goodSleep.length + ' logs), it averages ' + goodMean.toFixed(1) + '/5 — about ' + diffPct + '% higher. Protecting sleep is a high-leverage move.',
       severity: 'actionable'
     };
   }
@@ -273,7 +273,7 @@
         id: 'trend_improving',
         icon: '\u{1F4C8}', // 📈
         headline: 'Your energy is improving',
-        body: 'Last 7 days averaged ' + recentMean.toFixed(1) + '/5 vs ' + priorMean.toFixed(1) + '/5 the week before — about ' + changePct + '% higher. Whatever you changed is working; keep it going.',
+        body: 'Your last 7 logs averaged ' + recentMean.toFixed(1) + '/5 vs ' + priorMean.toFixed(1) + '/5 the 7 before that — about ' + changePct + '% higher. Whatever you changed is working; keep it going.',
         severity: 'positive'
       };
     } else {
@@ -281,7 +281,7 @@
         id: 'trend_declining',
         icon: '\u{1F4C9}', // 📉
         headline: 'Your energy has dipped recently',
-        body: 'Last 7 days averaged ' + recentMean.toFixed(1) + '/5 vs ' + priorMean.toFixed(1) + '/5 the week before — about ' + Math.abs(changePct) + '% lower. Worth checking what changed in sleep, stress, or routine.',
+        body: 'Your last 7 logs averaged ' + recentMean.toFixed(1) + '/5 vs ' + priorMean.toFixed(1) + '/5 the 7 before that — about ' + Math.abs(changePct) + '% lower. Worth checking what changed in sleep, stress, or routine.',
         severity: 'caution'
       };
     }

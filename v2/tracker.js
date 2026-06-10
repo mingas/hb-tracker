@@ -60,6 +60,7 @@
   var STORAGE_KEY_LAST_CARD = 'hb_last_log_card';
   var STORAGE_KEY_RECENT   = 'hb_advice_recent';
   var RECENT_MAX           = 12;
+  var BOOK_URL             = '/hormone-blueprint';  // women's book page (The Hormone Blueprint)
   var ROOT_ID             = 'hb-tracker-root';
   var DATE_CHECK_INTERVAL_MS = 60000;
   var MAX_BACKWARD_OFFSET = -12;
@@ -360,6 +361,7 @@
     style.id = 'hb-returning-styles';
     style.textContent = ''
       // Hide Webflow hero + quiz root + placeholders for returning users
+      + 'body.hb-returning #hq-hero,'
       + 'body.hb-returning .hb-eyebrow,'
       + 'body.hb-returning .hb-quiz-title,'
       + 'body.hb-returning .hb-quiz-subtitle,'
@@ -450,7 +452,6 @@
   function renderCompactBar() {
     var typeName = getHormoneTypeDisplay(state.hormoneType);
     var emojiChar = getHormoneTypeEmoji(state.hormoneType);
-    console.log('[HB v1.7.0] state.hormoneType=' + JSON.stringify(state.hormoneType) + ' emoji=' + JSON.stringify(emojiChar) + ' codepoints=' + (emojiChar ? Array.from(emojiChar).map(function(c){return 'U+'+c.codePointAt(0).toString(16).toUpperCase();}).join(',') : 'none'));
     var emojiSpan = el('span', { class: 'hb-compact-bar-emoji', 'aria-hidden': 'true' }, emojiChar);
     var labelSpan = el('span', { class: 'hb-compact-bar-label' }, 'Hormone Type');
     var typeSpan = el('span', { class: 'hb-compact-bar-type' }, typeName);
@@ -944,8 +945,6 @@
     }
 
     if (items.length <= 2) return false;
-
-    console.log('[HB v1.7.0] FAQ: ' + items.length + ' Q/A items, hiding ' + (items.length - 2));
 
     var hidden = items.slice(2);
     var allHidden = hidden.slice();
@@ -1566,6 +1565,14 @@
     }
     var chip = renderRecommendChip(c.productSlot);
     if (chip) kids.push(chip);
+    // Book reference: turns each card into a contextual chapter recommendation (The Hormone Blueprint)
+    if (c.bookRef) {
+      kids.push(el('a', {
+        class: 'hb-advice-book',
+        href: BOOK_URL,
+        rel: 'noopener'
+      }, '\uD83D\uDCD6 In the book: ' + c.bookRef));
+    }
     return el('div', { class: 'hb-advice-card is-' + sev }, kids);
   }
 
@@ -1587,6 +1594,8 @@
       + '.hb-advice-action{font-size:13px;color:#4A4038;line-height:1.55;margin:2px 0}'
       + '.hb-advice-chip{display:inline-block;margin-top:12px;padding:7px 14px;background:#1A2A4A;color:#FFFFFF;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;letter-spacing:0.2px}'
       + '.hb-advice-chip:hover{background:#243a63}'
+      + '.hb-advice-book{display:block;margin-top:12px;font-size:12px;color:#5F5E5A;text-decoration:none;line-height:1.4}'
+      + '.hb-advice-book:hover{color:#1A2A4A}'
       + '.hb-tracker-insight-why{font-size:13px;color:#4A4038;line-height:1.6;margin:8px 0 0 0}'
       + '.hb-tracker-insight-action{font-size:13px;color:#1A2A4A;line-height:1.55;margin:6px 0 0 0;font-weight:500}'
       /* ---- tablet ---- */
