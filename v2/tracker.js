@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.3
- *   v1.9.3 — Cycle predictions appear after the first logged period (default 28-day cycle, refined with data).
+ * Daily Tracker — v1.9.4
+ *   v1.9.4 — Unified cycle model: a typed cycle day now anchors the calendar (B1), same as period marks.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -155,30 +155,52 @@
     var bleedDays = Object.keys(entries)
       .filter(function(k) { return entries[k] && entries[k].period === true; })
       .sort();
-    if (!bleedDays.length) return markers;
-
     bleedDays.forEach(function(d) { markers[d] = { period: true }; });
 
-    // 2. Group consecutive bleed days into period segments.
+    // 2. Group consecutive bleed days into period segments. The first day of
+    // each segment is a confirmed cycle start.
     var segments = [];
     bleedDays.forEach(function(d) {
       var last = segments[segments.length - 1];
       if (last && addDaysToKey(last.end, 1) === d) { last.end = d; }
       else segments.push({ start: d, end: d });
     });
+    var periodStarts = segments.map(function(s) { return s.start; });
 
-    var starts = segments.map(function(s) { return s.start; });
+    // 3. A typed "cycle day" also implies a start: cycle_day = X on date D means
+    // the cycle began (X - 1) days before D. This lets the calendar move when the
+    // user just types a cycle day, even without marking any bleed days.
+    var cdStarts = [];
+    Object.keys(entries).forEach(function(k) {
+      var cd = entries[k] && entries[k].cycle_day;
+      if (typeof cd === 'number' && cd >= 1 && cd <= 60) {
+        cdStarts.push(addDaysToKey(k, -(cd - 1)));
+      }
+    });
 
-    // 3. Cycle lengths between consecutive period starts.
+    // 4. Unified cycle starts. Period marks are authoritative; a cycle-day start
+    // is added only when it isn't within ~4 days of an existing start (i.e. it's
+    // a different cycle, not a noisy duplicate of the same one).
+    var merged = periodStarts.slice();
+    cdStarts.forEach(function(c) {
+      var near = merged.some(function(p) { return Math.abs(daysBetweenKeys(p, c)) <= 4; });
+      if (!near) merged.push(c);
+    });
+    merged.sort();
+    var starts = [];
+    merged.forEach(function(a) {
+      if (!starts.length || daysBetweenKeys(starts[starts.length - 1], a) > 4) starts.push(a);
+    });
+    if (!starts.length) return markers; // no period marks and no cycle day -> nothing to predict
+
+    // 5. Cycle lengths between consecutive starts.
     var lengths = [];
     for (var i = 1; i < starts.length; i++) {
       lengths.push(daysBetweenKeys(starts[i - 1], starts[i]));
     }
-    // 4. Cycle length: use the logged average once we have at least one
-    // gap between period starts; otherwise fall back to a typical 28-day
-    // cycle so the fertile window, ovulation and next period appear
-    // immediately after the first logged period (refined as more data comes
-    // in). Clamped to a sane range.
+    // Cycle length: use the logged average once we have at least one gap between
+    // starts; otherwise fall back to a typical 28-day cycle so the fertile window,
+    // ovulation and next period appear immediately (refined as more data comes in).
     var avg;
     if (lengths.length >= 1) {
       var recent = lengths.slice(-6);
@@ -189,9 +211,13 @@
     if (avg < 21) avg = 21;
     if (avg > 40) avg = 40;
 
-    // Typical period length for predicted-period bars.
-    var perLens = segments.map(function(s) { return daysBetweenKeys(s.start, s.end) + 1; });
-    var perLen = Math.round(perLens.reduce(function(a, b) { return a + b; }, 0) / perLens.length);
+    // 6. Typical period length for predicted-period bars (from real segments),
+    // else a sensible 4-day default for cycle-day-only users.
+    var perLen = 4;
+    if (segments.length) {
+      var perLens = segments.map(function(s) { return daysBetweenKeys(s.start, s.end) + 1; });
+      perLen = Math.round(perLens.reduce(function(a, b) { return a + b; }, 0) / perLens.length);
+    }
     if (perLen < 2) perLen = 2;
     if (perLen > 8) perLen = 8;
 
@@ -2516,7 +2542,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.9.3',
+    version: '1.9.4',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
@@ -2529,9 +2555,9 @@
       var visible = !!(cfg && cfg.cycleVisible);
       if (!visible) return { visible: false, hasPeriodData: false, markers: {} };
       var markers = computeCycleMarkers(state.entries, state.today);
-      var hasPeriodData = Object.keys(state.entries).some(function(k) {
-        return state.entries[k] && state.entries[k].period === true;
-      });
+      // "has data" = any cycle markers at all — logged period days OR predictions
+      // derived from a typed cycle day. Drives legend (vs the empty-state hint).
+      var hasPeriodData = Object.keys(markers).length > 0;
       return { visible: true, hasPeriodData: hasPeriodData, markers: markers };
     },
     // Exposed for testing
