@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.0
- *   v1.9.0 — Cycle layer + period toggle + past-day editing + cycle hint (fresh SHA to bust CDN/browser cache).
+ * Daily Tracker — v1.9.1
+ *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
  *            Day-of-week labels (M T W T F S S) were rendered as <span>
  *            inside a CSS grid. Spans default to inline-block in grid items,
@@ -2375,6 +2375,12 @@
   /* MAIN TRACKER RENDER (v1.6.1 — compact bar at top + form-first in TODAY mode) */
 
   function renderTracker() {
+    // Preserve scroll position across re-renders so field clicks (energy,
+    // symptoms, period toggle) don't jump the page — especially when editing
+    // a past day, where the editor sits well down the page.
+    var _scrollY = (typeof window !== 'undefined')
+      ? (window.pageYOffset || (document.documentElement && document.documentElement.scrollTop) || 0)
+      : 0;
     clearRoot();
 
     var hasLoggedToday = !!state.entries[state.today];
@@ -2428,6 +2434,13 @@
     children.push(renderPrivacyFooter());
 
     rootEl.appendChild(el('div', { class: 'hb-tracker' }, children));
+
+    // Restore scroll so the page stays put after a field-change re-render.
+    // (handleDayClick runs its own scrollIntoView in a later tick, so this
+    // does not interfere with jumping to a selected past day.)
+    if (_scrollY > 0 && typeof window !== 'undefined' && window.scrollTo) {
+      window.scrollTo(0, _scrollY);
+    }
   }
 
   /* INIT */
