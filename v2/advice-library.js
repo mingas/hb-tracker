@@ -639,51 +639,51 @@ window.HB_ADVICE = {
      ========================================================= */
   patternAdvice: {
     'day_of_week': [
-      { why:"A weekly energy dip usually tracks routine, not hormones, a heavier workday, a standing late night, weekend recovery, or a regular evening drink.",
+      { why:"A dip that lands on the same day each week is almost always about routine, not hormones. A heavier workday, a standing late night, weekend recovery, or a regular evening drink \u2014 something fixed in your week is leaving its mark. The good news is that fixed things are exactly the kind you can adjust.",
         action:"Look at what's fixed on that day, sleep, alcohol, workload, and adjust one thing.", bookRef:'Ch 16 / Ch 15', productSlot:null, source:'book' },
-      { why:"Weekly dips are usually behavioural, not hormonal, Sunday-night dread, a hard gym day, or Friday drinks echoing into Saturday.",
+      { why:"Weekly dips tend to be behavioural rather than hormonal \u2014 Sunday-night dread, a hard gym day, or Friday drinks echoing into Saturday. Once you can name the recurring cause, it stops feeling like your body randomly letting you down and starts looking like a habit you can tweak.",
         action:"Pick the one fixed thing on that day and tweak it before assuming it's your body.", bookRef:'Ch 16', productSlot:null, source:'book' },
-      { why:"Your body keeps the score of your week. A recurring low day often points to a recurring habit, late nights, skipped meals, or a draining commitment.",
+      { why:"Your body quietly keeps the score of your week. A low day that keeps recurring usually points to a recurring habit behind it \u2014 late nights, skipped meals, or a draining commitment that lands at the same point each time. Spotting the repeat is what lets you interrupt it.",
         action:"Protect sleep and meals specifically around that day.", bookRef:'Ch 16 / Ch 15', productSlot:null, source:'book' }
     ],
     'cycle_phase': [
-      { why:"A symptom clustering in one phase is your hormones running on schedule. In the luteal phase especially, progesterone's fall predicts mood, sleep and craving shifts in the final days.",
+      { why:"A symptom that clusters in one phase isn't random \u2014 it's your hormones running on schedule. In the luteal phase especially, the fall in progesterone in the final days predicts the shifts in mood, sleep and cravings you're seeing. Once you can see it coming, it stops ambushing you.",
         action:"Plan for it: protect sleep, ease caffeine and alcohol, and lower workout intensity in that phase.", bookRef:'Ch 2 - The Four Phases', productSlot:'/recommends/magnesium', source:'book' },
-      { why:"Symptoms that cluster in one phase turn a 'bad week' into a predictable, plannable one. Naming the phase is half the relief.",
+      { why:"Symptoms that cluster in one phase quietly turn a 'bad week' into a predictable, plannable one \u2014 and naming the phase is honestly half the relief. Knowing it's the luteal dip, not you falling apart, changes how you treat yourself through it.",
         action:"Pre-empt it: lighter plans, better sleep, less alcohol in that phase.", bookRef:'Ch 2', productSlot:null, source:'book' },
-      { why:"Most cyclical symptoms peak in the luteal phase as progesterone falls. The same support, sleep, magnesium, steady blood sugar, helps across the board.",
+      { why:"Most cyclical symptoms peak in the luteal phase as progesterone falls, which is why the same handful of supports \u2014 sleep, magnesium, steady blood sugar \u2014 tend to help across the board rather than needing a different fix for each symptom. One routine covers a lot.",
         action:"Build a simple luteal-week routine you repeat each cycle.", bookRef:'Ch 2 / Ch 17', productSlot:'/recommends/magnesium', source:'book' }
     ],
     'sleep_energy': [
-      { why:"Short sleep raises cortisol and lowers next-day insulin sensitivity, and in women this shows up fast. Sleep is the lever that decides whether the others work.",
+      { why:"Your data is showing what the science predicts: short sleep raises cortisol and lowers next-day insulin sensitivity, and in women this shows up fast. Sleep is the lever that quietly decides whether all your other efforts \u2014 food, movement, stress \u2014 actually work. It's the foundation the rest is built on.",
         action:"Consistent bed and wake times plus morning daylight are the highest-evidence levers; magnesium glycinate in the evening helps some.", bookRef:'Ch 15', productSlot:'/recommends/magnesium', source:'book' },
-      { why:"Sleep sits upstream of almost everything, mood, cravings, focus and energy all run downstream of last night. It's the highest-leverage place to start.",
+      { why:"Sleep sits upstream of almost everything \u2014 your mood, cravings, focus and energy all run downstream of last night. That's why it's the highest-leverage place to start: fixing it tends to lift several other things at once, while patching them individually rarely sticks if sleep is still short.",
         action:"Fix the bedtime before adding anything else.", bookRef:'Ch 15', productSlot:null, source:'book' },
-      { why:"Broken sleep blunts next-day energy more than short-but-solid sleep. Continuity is the lever, not just hours in bed.",
+      { why:"Your pattern suggests broken sleep is blunting your energy more than short-but-solid sleep would. Continuity \u2014 unbroken cycles of deep and dream sleep \u2014 is the real lever here, not just total hours in bed. Protecting against the wake-ups can matter more than going to bed earlier.",
         action:"Cool, dark room and a screen-free last hour to protect continuity.", bookRef:'Ch 15', productSlot:'/recommends/magnesium', source:'book' }
     ],
     'trend_improving': [
-      { why:"A rising trend means something you changed is working, and the body rewards consistency, not intensity. Naming what changed makes it repeatable.",
+      { why:"A rising trend is real evidence that something you changed is working \u2014 and the body rewards consistency far more than intensity. The most useful thing you can do now is figure out what shifted, so it becomes something you can deliberately repeat rather than a happy accident.",
         action:"Note what shifted recently in sleep, food or movement, and keep it going.", bookRef:'Ch 21', productSlot:null, source:'book' },
-      { why:"Improvement compounds quietly. The temptation now is to add five new things; the smarter move is to keep doing the one that's working.",
+      { why:"Improvement tends to compound quietly, a little at a time. The temptation when you see it is to pile on five new things at once \u2014 but the smarter move is to keep doing the one that's clearly working and let it keep building.",
         action:"Resist piling on, protect the current routine.", bookRef:'Ch 21', productSlot:null, source:'book' },
-      { why:"An upward trend is proof your inputs are working. The body responds over weeks, not in dramatic single days.",
+      { why:"An upward trend is proof your inputs are landing. It's worth remembering the body responds over weeks, not in dramatic single days \u2014 so this steady climb matters more than any one great or off day. Find the change that mattered most and guard it.",
         action:"Identify the one change that mattered most and guard it.", bookRef:'Ch 21', productSlot:null, source:'book' }
     ],
     'trend_declining': [
-      { why:"A dip across a week usually traces to something upstream, sleep slipping, stress climbing, or a routine change, rather than anything random.",
+      { why:"A dip across a week almost always traces to something upstream \u2014 sleep slipping, stress climbing, or a change in routine \u2014 rather than anything random or wrong with you. That's reassuring, because upstream causes are findable, and usually fixable, once you go looking.",
         action:"Check the basics first: sleep continuity, evening alcohol, and stress load over the last week.", bookRef:'Ch 21 / Ch 16', productSlot:null, source:'book' },
-      { why:"A downtrend is information, not failure. It usually follows a busy or disrupted stretch, with the body asking for the basics back.",
+      { why:"A downtrend is information, not failure. It usually follows a busy or disrupted stretch \u2014 your body's way of asking for the basics back rather than a sign you've lost progress. Treat it as a nudge to return to foundations, not a verdict.",
         action:"Return to foundations: sleep, a meal rhythm, and a daily walk.", bookRef:'Ch 21', productSlot:null, source:'book' },
-      { why:"Dips rarely come from nowhere. Look one step upstream, at what changed in the days before the slide.",
+      { why:"Dips rarely come from nowhere. The most useful move is to look one step upstream, at what changed in the days before the slide started \u2014 that's almost always where the real cause is hiding, not in the low days themselves.",
         action:"Audit last week's sleep and stress before changing anything big.", bookRef:'Ch 16', productSlot:null, source:'book' }
     ],
     'symptom_frequency': [
-      { why:"A symptom on most days is worth understanding rather than just enduring, it usually maps to one of the hormonal patterns your type is prone to.",
+      { why:"A symptom showing up on most days is worth understanding rather than just enduring \u2014 at that frequency, it's usually mapping to one of the specific hormonal patterns your type is prone to, not random bad luck. Naming the driver is what turns 'just how I am' into something you can actually act on.",
         action:"Your hormone-type chapter in The Hormone Blueprint covers this directly; if it persists, it's worth a doctor's conversation.", bookRef:'Ch 4', productSlot:null, source:'book' },
-      { why:"A symptom that shows up most days has crossed from noise into signal. It's worth finding the driver rather than absorbing it indefinitely.",
+      { why:"A symptom that turns up most days has crossed the line from background noise into a real signal. At that point it's worth finding the driver rather than quietly absorbing it indefinitely \u2014 and the timing of when it's worst is often the biggest clue.",
         action:"Track when it's worst, that timing is what a doctor can actually use.", bookRef:'Ch 4 / Ch 5', productSlot:null, source:'book' },
-      { why:"Frequent symptoms are the body repeating itself until you listen. Most map to a known hormonal pattern with real, specific levers.",
+      { why:"Frequent symptoms are the body repeating itself until you listen. Most of them map to a known hormonal pattern with real, specific levers behind it \u2014 which means a persistent symptom is usually a solvable puzzle, not a permanent fixture.",
         action:"Read your hormone-type chapter for the likely driver and the next step.", bookRef:'Ch 4', productSlot:null, source:'book' }
     ]
   },
