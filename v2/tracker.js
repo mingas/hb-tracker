@@ -117,6 +117,14 @@
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   }
 
+  // Date math on a YYYY-MM-DD key (for streak recomputation across edited past days).
+  function addDaysToKey(key, delta) {
+    var p = key.split('-');
+    var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+    d.setDate(d.getDate() + delta);
+    return dateKeyFromDate(d);
+  }
+
   function getTodayKey()     { return dateKeyForOffsetDays(0); }
   function getYesterdayKey() { return dateKeyForOffsetDays(-1); }
 
@@ -193,8 +201,8 @@
 
   /* MIDNIGHT DETECTION */
 
-  function buildCurrentEntryForToday() {
-    var existingEntry = state.entries[state.today];
+  function buildCurrentEntry(dayKey) {
+    var existingEntry = state.entries[dayKey];
     if (existingEntry) {
       state.currentEntry = {
         energy: existingEntry.energy,
@@ -208,6 +216,16 @@
         energy: null, sleep: null, cycle_day: null, symptoms: [], notes: ''
       };
     }
+  }
+
+  function buildCurrentEntryForToday() {
+    buildCurrentEntry(state.today);
+  }
+
+  // The day the form is currently editing: a selected past day, or today.
+  function activeEditKey() {
+    return (state.selectedDayKey && state.selectedDayKey !== state.today)
+      ? state.selectedDayKey : state.today;
   }
 
   function checkDateChange() {
@@ -349,6 +367,42 @@
       return state.streak.current;
     }
     return null;
+  }
+
+  // Recompute streak from ALL entries. Used after editing/filling a past day,
+  // where the simple incremental update can't know the new consecutive run.
+  // current = consecutive logged days ending at today (or yesterday if today
+  // isn't logged yet). best = longest run ever, never shrunk below stored best.
+  function recomputeStreak() {
+    var keys = Object.keys(state.entries);
+    if (!keys.length) {
+      state.streak.current = 0;
+      state.streak.best = state.streak.best || 0;
+      state.streak.last_log_date = null;
+      saveStreak();
+      return;
+    }
+    keys.sort(); // YYYY-MM-DD sorts chronologically
+    // longest consecutive run anywhere
+    var best = 0, run = 0, prev = null;
+    keys.forEach(function(k) {
+      if (prev !== null && addDaysToKey(prev, 1) === k) run += 1; else run = 1;
+      if (run > best) best = run;
+      prev = k;
+    });
+    // current run ending at today or yesterday
+    var endKey = state.entries[state.today] ? state.today
+               : (state.entries[getYesterdayKey()] ? getYesterdayKey() : null);
+    var current = 0;
+    if (endKey) {
+      current = 1;
+      var d = endKey;
+      while (state.entries[addDaysToKey(d, -1)]) { current += 1; d = addDaysToKey(d, -1); }
+    }
+    state.streak.current = current;
+    state.streak.best = Math.max(best, current, state.streak.best || 0);
+    state.streak.last_log_date = keys[keys.length - 1];
+    saveStreak();
   }
 
   /* ========================================
@@ -1211,7 +1265,7 @@
 
   function renderPastDayHint() {
     return el('p', { class: 'hb-tracker-pastview-hint' }, [
-      'Viewing a past day. Tap ',
+      'Fill in or edit this day, then save. Tap ',
       el('strong', null, '×'),
       ' to close, or ',
       el('strong', null, 'Return'),
@@ -1227,7 +1281,7 @@
     return el('p', { class: 'hb-tracker-pastview-hint' }, [
       'Viewing ',
       el('strong', null, monthYear),
-      '. Click a day for details, or ',
+      '. Tap any day to fill it in or edit it, or ',
       el('strong', null, 'Today'),
       ' to return.'
     ]);
@@ -1386,6 +1440,8 @@
         state.selectedDayKey = dateKey;
       }
     }
+    state.saveJustSucceeded = false;
+    buildCurrentEntry(activeEditKey());
     renderTracker();
 
     if (state.selectedDayKey && state.selectedDayKey !== state.today) {
@@ -1932,15 +1988,17 @@
   /* SAVE BUTTON */
 
   function renderSaveButton() {
-    var existingEntry = state.entries[state.today];
+    var target = activeEditKey();
+    var isPast = target !== state.today;
+    var existingEntry = state.entries[target];
     var isUpdate = !!existingEntry;
     var hasEnergy = state.currentEntry.energy != null;
     var canSave = hasEnergy;
 
     var btnLabel;
     if (state.saveJustSucceeded) btnLabel = 'Saved ✓';
-    else if (isUpdate) btnLabel = "Update today's entry";
-    else btnLabel = "Save today's entry";
+    else if (isPast) btnLabel = isUpdate ? 'Update this day' : 'Save this day';
+    else btnLabel = isUpdate ? "Update today's entry" : "Save today's entry";
 
     var btn = el('button', {
       class: 'hb-tracker-save-btn' + (state.saveJustSucceeded ? ' is-success' : ''),
@@ -1958,7 +2016,10 @@
   /* SAVE FLOW */
 
   function save(isUpdate) {
-    state.entries[state.today] = {
+    var target = activeEditKey();
+    var isToday = (target === state.today);
+
+    state.entries[target] = {
       energy: state.currentEntry.energy,
       sleep: state.currentEntry.sleep,
       cycle_day: state.currentEntry.cycle_day,
@@ -1968,47 +2029,55 @@
     };
     saveEntries();
 
-    // v2 advice layer: context-first (bad day -> teaching), else a Daily Learn
-    // article (good/neutral day), with per-id rotation + anti-repeat cooldown.
-    try {
-      if (window.HB_ADVICE && typeof window.HB_ADVICE.pickCard === 'function') {
-        state.lastLogCard = window.HB_ADVICE.pickCard(
-          state.entries[state.today], state.entries, state.adviceRotation, state.adviceRecent, state.hormoneType
-        );
-        var picked = state.lastLogCard;
-        if (picked && picked.key && picked.layer !== 'safety') {
-          // count this showing (drives least-shown selection across the library)
-          state.adviceRotation[picked.key] = (state.adviceRotation[picked.key] || 0) + 1;
-          saveRotation();
-        }
-        if (picked && picked.layer === 'daily' && picked.key) {
-          // add to the cooldown window so it won't repeat until the pool cycles
-          state.adviceRecent.push(picked.key);
-          if (state.adviceRecent.length > RECENT_MAX) {
-            state.adviceRecent = state.adviceRecent.slice(state.adviceRecent.length - RECENT_MAX);
+    // Advice card only applies to TODAY's log. Editing a past day must not
+    // change the advice shown for today.
+    if (isToday) {
+      // v2 advice layer: context-first (bad day -> teaching), else a Daily Learn
+      // article (good/neutral day), with per-id rotation + anti-repeat cooldown.
+      try {
+        if (window.HB_ADVICE && typeof window.HB_ADVICE.pickCard === 'function') {
+          state.lastLogCard = window.HB_ADVICE.pickCard(
+            state.entries[state.today], state.entries, state.adviceRotation, state.adviceRecent, state.hormoneType
+          );
+          var picked = state.lastLogCard;
+          if (picked && picked.key && picked.layer !== 'safety') {
+            state.adviceRotation[picked.key] = (state.adviceRotation[picked.key] || 0) + 1;
+            saveRotation();
           }
-          saveAdviceRecent();
+          if (picked && picked.layer === 'daily' && picked.key) {
+            state.adviceRecent.push(picked.key);
+            if (state.adviceRecent.length > RECENT_MAX) {
+              state.adviceRecent = state.adviceRecent.slice(state.adviceRecent.length - RECENT_MAX);
+            }
+            saveAdviceRecent();
+          }
+        } else if (window.HB_ADVICE && typeof window.HB_ADVICE.pickPerLogCard === 'function') {
+          state.lastLogCard = window.HB_ADVICE.pickPerLogCard(state.entries[state.today], state.entries, state.adviceRotation);
+          if (state.lastLogCard && state.lastLogCard.layer === 'perLog' && state.lastLogCard.key) {
+            state.adviceRotation[state.lastLogCard.key] = (state.adviceRotation[state.lastLogCard.key] || 0) + 1;
+            saveRotation();
+          }
         }
-      } else if (window.HB_ADVICE && typeof window.HB_ADVICE.pickPerLogCard === 'function') {
-        // fallback for older library without pickCard
-        state.lastLogCard = window.HB_ADVICE.pickPerLogCard(state.entries[state.today], state.entries, state.adviceRotation);
-        if (state.lastLogCard && state.lastLogCard.layer === 'perLog' && state.lastLogCard.key) {
-          state.adviceRotation[state.lastLogCard.key] = (state.adviceRotation[state.lastLogCard.key] || 0) + 1;
-          saveRotation();
-        }
-      }
-    } catch (e) { state.lastLogCard = null; }
-    saveLastLogCard();
+      } catch (e) { state.lastLogCard = null; }
+      saveLastLogCard();
+    }
 
+    // Streak: recompute from all entries (correct after filling/editing past days).
+    var prevCurrent = state.streak.current || 0;
+    recomputeStreak();
+
+    // Milestone toast only on a brand-new TODAY log that crosses a milestone.
     var milestone = null;
-    if (!isUpdate) {
-      milestone = maybeUpdateStreakOnNewLog();
-      trackEvent('log_complete', {
-        hormone_type: state.hormoneType,
-        streak: state.streak.current
-      });
+    if (isToday && !isUpdate) {
+      var milestones = [1, 3, 7, 14, 30, 60, 90];
+      if (milestones.indexOf(state.streak.current) !== -1 && state.streak.current !== prevCurrent) {
+        milestone = state.streak.current;
+      }
+      trackEvent('log_complete', { hormone_type: state.hormoneType, streak: state.streak.current });
+    } else if (isUpdate) {
+      trackEvent('log_update', { hormone_type: state.hormoneType, past_day: !isToday });
     } else {
-      trackEvent('log_update', { hormone_type: state.hormoneType });
+      trackEvent('log_past_day', { hormone_type: state.hormoneType });
     }
 
     if (milestone) trackEvent('streak_milestone', { days: milestone });
@@ -2020,6 +2089,78 @@
       state.saveJustSucceeded = false;
       renderTracker();
     }, 2200);
+  }
+
+  /* PAST-DAY EDITOR (#9 — fill or edit any past day) */
+
+  function exitPastDay(toToday) {
+    state.selectedDayKey = null;
+    if (toToday) state.viewMonthOffset = 0;
+    state.saveJustSucceeded = false;
+    buildCurrentEntry(state.today);
+    renderTracker();
+  }
+
+  function renderDeleteDayLink(key) {
+    return el('div', { class: 'hb-tracker-pastday-delete-row', style: 'text-align:center;margin-top:8px' }, [
+      el('button', {
+        class: 'hb-tracker-pastday-delete',
+        type: 'button',
+        style: 'background:none;border:none;color:#B23E1E;font-size:12px;text-decoration:underline;cursor:pointer;padding:6px 4px;font-family:inherit',
+        onclick: function() {
+          var ok = (typeof window.confirm === 'function')
+            ? window.confirm('Delete this day\u2019s log? This can\u2019t be undone.')
+            : true;
+          if (!ok) return;
+          delete state.entries[key];
+          saveEntries();
+          recomputeStreak();
+          trackEvent('log_delete_day', { hormone_type: state.hormoneType });
+          exitPastDay(false);
+        }
+      }, 'Delete this day\u2019s log')
+    ]);
+  }
+
+  function renderPastDayEditor() {
+    var key = state.selectedDayKey;
+    var existing = state.entries[key];
+    var dateStr = formatDateFromKey(key);
+
+    var header = el('div', { class: 'hb-tracker-selected-day-header' }, [
+      el('div', null, [
+        el('p', { class: 'hb-tracker-selected-day-eyebrow' }, existing ? 'Editing this day' : 'Add this day'),
+        el('h3', { class: 'hb-tracker-selected-day-date' }, dateStr)
+      ]),
+      el('button', {
+        class: 'hb-tracker-selected-day-close',
+        type: 'button',
+        'aria-label': 'Close, stay on this month',
+        title: 'Close (stay on this month)',
+        onclick: function() {
+          state.selectedDayKey = null;
+          state.saveJustSucceeded = false;
+          buildCurrentEntry(state.today);
+          renderTracker();
+        }
+      }, '×')
+    ]);
+
+    var fields = [header, renderEnergyField(), renderSleepField()];
+    var cycleField = renderCycleDayField();
+    if (cycleField) fields.push(cycleField);
+    fields.push(renderSymptomsField());
+    fields.push(renderNotesField());
+    fields.push(renderSaveButton());
+    if (existing) fields.push(renderDeleteDayLink(key));
+    fields.push(el('button', {
+      class: 'hb-tracker-selected-day-return',
+      type: 'button',
+      'aria-label': 'Return to today',
+      onclick: function() { exitPastDay(true); }
+    }, '← Return to today'));
+
+    return el('div', { class: 'hb-tracker-selected-day hb-tracker-pastday-editor' }, fields);
   }
 
   /* MAIN TRACKER RENDER (v1.6.1 — compact bar at top + form-first in TODAY mode) */
@@ -2043,8 +2184,7 @@
     if (isViewingPastDay) {
       children.push(renderPastDayHint());
       children.push(renderHeatmapCalendar());
-      var selectedPanel = renderSelectedDayPanel();
-      if (selectedPanel) children.push(selectedPanel);
+      children.push(renderPastDayEditor());
     } else if (isViewingPastMonth) {
       children.push(renderPastMonthHint());
       children.push(renderHeatmapCalendar());
