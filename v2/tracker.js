@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.5
- *   v1.9.5 — Cycle day now drives the anchor (most-recent signal wins) + live calendar preview on edit.
+ * Daily Tracker — v1.9.6
+ *   v1.9.6 — Past cycles show real fertile/ovulation (from logged periods); clearer Period button; advice card below Update.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -226,6 +226,15 @@
         markers[fk] = markers[fk] || {};
         if (!markers[fk].period) markers[fk].fertile = true;
       }
+    }
+
+    // Historical cycles: the REAL fertile window / ovulation of each completed
+    // cycle, computed from the actual logged period dates (ovulation ~14 days
+    // before the next period start). Lets navigating back show how cycles
+    // actually went — these are facts derived from your real period dates, not
+    // forward guesses.
+    for (var h = 1; h < periodStarts.length; h++) {
+      markOvulationAndFertile(periodStarts[h]);
     }
 
     // 5. Project forward ~3 cycles to cover the visible calendar range.
@@ -1478,11 +1487,12 @@
       + '.hb-cyc-bar.is-pred{background:repeating-linear-gradient(90deg,#E23B4E 0 3px,transparent 3px 6px)}'
       + '.hb-cyc-ovu{position:absolute;top:3px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:#8B5CF6;box-shadow:0 0 0 1.5px #FFFFFF;pointer-events:none}'
       // period toggle
-      + '.hb-tracker-period-toggle{display:inline-flex;align-items:center;gap:9px;padding:11px 16px;border:1.5px solid #E8E2D3;border-radius:10px;background:#FFFFFF;font-family:inherit;font-size:14px;font-weight:500;color:#5F5E5A;cursor:pointer;transition:all 150ms}'
-      + '.hb-tracker-period-toggle:hover{border-color:#C9C2AE}'
-      + '.hb-tracker-period-toggle.is-on{border-color:#E23B4E;background:#FDEEF0;color:#A01F30}'
-      + '.hb-tracker-period-dot{width:13px;height:13px;border-radius:50%;border:2px solid #C9C2AE;flex-shrink:0;box-sizing:border-box}'
-      + '.hb-tracker-period-toggle.is-on .hb-tracker-period-dot{background:#E23B4E;border-color:#E23B4E}'
+      + '.hb-tracker-period-toggle{display:flex;width:100%;align-items:center;justify-content:center;gap:10px;padding:16px 18px;border:2px solid #E8E2D3;border-radius:12px;background:#FFFFFF;font-family:inherit;font-size:15px;font-weight:600;color:#5F5E5A;cursor:pointer;transition:all 150ms;min-height:54px;box-sizing:border-box}'
+      + '.hb-tracker-period-toggle:hover{border-color:#C9C2AE;background:#FCFAF6}'
+      + '.hb-tracker-period-toggle.is-on{border-color:#E23B4E;background:#E23B4E;color:#FFFFFF}'
+      + '.hb-tracker-period-toggle.is-on:hover{background:#D2293C;border-color:#D2293C}'
+      + '.hb-tracker-period-dot{width:18px;height:18px;border-radius:50%;border:2.5px solid #C9C2AE;flex-shrink:0;box-sizing:border-box;transition:all 150ms}'
+      + '.hb-tracker-period-toggle.is-on .hb-tracker-period-dot{background:#FFFFFF;border-color:#FFFFFF}'
       // cycle legend
       + '.hb-cyc-legend{margin:12px 0 0;padding:11px 13px;background:#FCF8F0;border:1px solid #EADFC8;border-radius:10px}'
       + '.hb-cyc-legend-t{font-family:sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#8B928E;margin:0 0 8px 0}'
@@ -1506,7 +1516,7 @@
       +   '.hb-cyc-legend-items{gap:7px 12px}'
       +   '.hb-cyc-li{font-size:11px;gap:5px}'
       +   '.hb-cyc-sw{width:15px}'
-      +   '.hb-tracker-period-toggle{font-size:13px;padding:10px 14px}'
+      +   '.hb-tracker-period-toggle{font-size:14px;padding:15px 16px;min-height:52px}'
       + '}';
     document.head.appendChild(s);
   }
@@ -2439,8 +2449,6 @@
       // TODAY MODE — FORM FIRST (v1.6.0)
       if (hasLoggedToday) {
         children.push(renderLoggedTodayBanner());
-        var adviceCardEl = renderAdviceCard(state.lastLogCard);
-        if (adviceCardEl) children.push(adviceCardEl);
       }
       children.push(renderEnergyField());
       children.push(renderSleepField());
@@ -2451,6 +2459,11 @@
       children.push(renderSymptomsField());
       children.push(renderNotesField());
       children.push(renderSaveButton());
+      // "A note on today's log" now sits below the Update button for a clearer flow.
+      if (hasLoggedToday) {
+        var adviceCardEl = renderAdviceCard(state.lastLogCard);
+        if (adviceCardEl) children.push(adviceCardEl);
+      }
       children.push(renderDivider());
       children.push(renderHistorySectionEyebrow());
       children.push(renderHeatmapCalendar());
@@ -2537,7 +2550,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.9.5',
+    version: '1.9.6',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
