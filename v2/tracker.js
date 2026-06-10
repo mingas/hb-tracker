@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.7
- *   v1.9.7 — Mood field (after Energy); energy/symptoms update in place (no scroll jump).
+ * Daily Tracker — v1.9.8
+ *   v1.9.8 — Fix: setting energy now enables Save (no Period needed); robust mobile/PC backup export+import.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -708,19 +708,39 @@
     try {
       var payload = buildExportPayload();
       var json = JSON.stringify(payload, null, 2);
-      var blob = new Blob([json], { type: 'application/json' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
       var d = new Date();
       var pad = function(n) { return n < 10 ? '0' + n : String(n); };
       var dateStr = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
-      a.href = url;
-      a.download = 'hb-tracker-backup-' + dateStr + '.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-      trackEvent('data_export', { entries_count: Object.keys(payload.entries).length });
+      var filename = 'hb-tracker-backup-' + dateStr + '.json';
+      var blob = new Blob([json], { type: 'application/json' });
+      var count = Object.keys(payload.entries).length;
+
+      function downloadBlob() {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+        trackEvent('data_export', { entries_count: count, method: 'download' });
+      }
+
+      // Mobile, especially iOS Safari, does not reliably honour <a download> —
+      // it often opens the JSON in the tab instead of saving it. When the Web
+      // Share API can share files (iOS Safari + Android Chrome), use it so the
+      // user can "Save to Files"; otherwise fall back to the download anchor
+      // (desktop browsers, Android).
+      var file = null;
+      try { file = new File([blob], filename, { type: 'application/json' }); } catch (e) { file = null; }
+      if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: filename })
+          .then(function() { trackEvent('data_export', { entries_count: count, method: 'share' }); })
+          .catch(function(err) { if (!err || err.name !== 'AbortError') downloadBlob(); });
+        return;
+      }
+      downloadBlob();
     } catch (e) {
       console.error('HB Tracker: export failed', e);
       if (typeof window.alert === 'function') {
@@ -930,7 +950,7 @@
 
     var fileInput = el('input', {
       type: 'file',
-      accept: 'application/json,.json',
+      accept: '.json,application/json,text/json,text/plain',
       class: 'hb-tracker-settings-file-input',
       id: 'hb-tracker-import-input',
       onchange: function(e) {
@@ -2036,6 +2056,10 @@
             state.currentEntry.energy = val;
             btns.forEach(function(x) { x.el.classList.toggle('is-selected', x.val === val); });
             setLabel();
+            // Energy is the only field required to save; enable the Save button
+            // here since the targeted update does not re-run renderSaveButton.
+            var sb = document.querySelector('.hb-tracker-save-btn');
+            if (sb) sb.disabled = false;
           }
         }, String(val));
         btns.push({ el: b, val: val });
@@ -2607,7 +2631,7 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.9.7',
+    version: '1.9.8',
     mount: init,
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
