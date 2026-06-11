@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.10
- *   v1.9.10 — Fix: Save button now works after setting energy via targeted update (checks live state).
+ * Daily Tracker — v1.9.11
+ *   v1.9.11 — Restore-from-backup link on the quiz intro (openImport exposed) so new users can import without finishing the quiz.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -2656,8 +2656,25 @@
   /* EXPORT GLOBAL */
 
   window.HB_TRACKER = {
-    version: '1.9.10',
+    version: '1.9.11',
     mount: init,
+    openImport: function() {
+      try {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json,text/json,text/plain';
+        input.style.display = 'none';
+        input.addEventListener('change', function(e) {
+          var f = e.target.files && e.target.files[0];
+          if (f) handleImportData(f);
+          if (input.parentNode) input.parentNode.removeChild(input);
+        });
+        document.body.appendChild(input);
+        input.click();
+      } catch (e) {
+        if (typeof window.alert === 'function') window.alert('Could not open the file picker. Please try again.');
+      }
+    },
     getEntry: function(dateKey) { return state.entries[dateKey] || null; },
     getStreak: function() { return state.streak; },
     getAllEntries: function() { return state.entries; },
