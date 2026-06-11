@@ -4,7 +4,7 @@
  * Hormone Type Quiz — UI rendering & flow logic
  *
  * Changelog:
- *   v1.5.0 — "Start Daily Tracker" CTA on result + auto-mount tracker on finish.
+ *   v1.6.0 — "Start Daily Tracker" CTA on result + auto-mount tracker on finish.
  *   v1.6.2 — Auto-scroll quiz into view on each transition (navbar-aware).
  *   v1.3.0 — Welcome Back banner for returning users.
  *
@@ -318,6 +318,8 @@
       + '.hb-quiz-intro-restore{margin:14px 0 2px;text-align:center;font-size:.86rem;color:#8B928E;line-height:1.5;}'
       + '.hb-quiz-intro-restore-link{background:none;border:none;color:#C97B5C;font-size:.86rem;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;font-family:inherit;}'
       + '.hb-quiz-intro-restore-link:hover{color:#A85C3E;}'
+      + '.hb-quiz-intro-back{display:inline-flex;align-items:center;gap:6px;background:#F4ECDD;border:1px solid #EBE0CC;color:#1A2A4A;font-size:.9rem;font-weight:600;cursor:pointer;padding:9px 16px;border-radius:100px;font-family:inherit;margin:0 0 18px;transition:all 150ms;}'
+      + '.hb-quiz-intro-back:hover{background:#FFFFFF;border-color:#1A2A4A;}'
       + '@media(max-width:767px){.hb-quiz-intro-lead{font-size:1.45rem;}}'
       + '@media(max-width:478px){.hb-quiz-intro-lead{font-size:1.3rem;}.hb-quiz-intro-sub{font-size:.94rem;}.hb-quiz-intro-step-num{width:1.5rem;height:1.5rem;font-size:.8rem;}.hb-quiz-intro-trust{font-size:.8rem;}}';
     var st = document.createElement('style');
@@ -346,7 +348,7 @@
       ]);
     });
 
-    var intro = el('div', { class: 'hb-quiz-onboarding' }, [
+    var introChildren = [
       el('p', { class: 'hb-quiz-intro-eyebrow' }, 'Before you begin'),
       el('h2', { class: 'hb-quiz-intro-lead' }, 'Find your hormone type \u2014 then learn your body a little better each day'),
       el('p', { class: 'hb-quiz-intro-sub' }, 'This is more than a quiz. First, twelve short questions map your hormone type. Then it becomes a daily check-in you\u2019ll actually want to open: mark how you feel, watch your patterns appear on a calendar, and read one short, personal piece about your body each time.'),
@@ -380,7 +382,22 @@
           }
         }, 'Restore your backup')
       ])
-    ]);
+    ];
+
+    if (state.result) {
+      introChildren.unshift(el('button', {
+        class: 'hb-quiz-intro-back',
+        type: 'button',
+        onclick: function() {
+          state.screen = 'result';
+          saveState();
+          render();
+          triggerTrackerMount(true);
+        }
+      }, ['\u2190 Back to my daily tracker']));
+    }
+
+    var intro = el('div', { class: 'hb-quiz-onboarding' }, introChildren);
 
     rootEl.appendChild(el('div', { class: 'hb-quiz' }, [intro]));
   }
@@ -896,7 +913,17 @@
 
     loadState();
 
-    if (hasInProgressState()) {
+    var forceIntro = false;
+    try {
+      forceIntro = sessionStorage.getItem('hb_force_intro') === '1';
+      if (forceIntro) sessionStorage.removeItem('hb_force_intro');
+    } catch (e) {}
+
+    if (forceIntro) {
+      // Came from "Retake" in the tracker. Show the intro so they can retake,
+      // but keep the existing result so the intro can offer "Back to my tracker".
+      state.screen = 'onboarding';
+    } else if (hasInProgressState()) {
       state.screen = 'welcome_back';
     } else if (!hasSeenPrivacy()) {
       state.screen = 'onboarding';
