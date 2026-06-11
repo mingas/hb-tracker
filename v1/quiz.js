@@ -315,6 +315,9 @@
       + '.hb-quiz-intro-benefit-t{font-weight:600;color:#1A2A4A;margin:0 0 .12rem;font-size:.95rem;}'
       + '.hb-quiz-intro-benefit-d{color:#5A5048;margin:0;font-size:.88rem;line-height:1.45;}'
       + '.hb-quiz-intro-trust{margin:1.6rem 0 1.3rem;padding:.75rem .9rem;background:rgba(26,42,74,.05);border-radius:10px;color:#1A2A4A;font-size:.84rem;text-align:center;font-weight:600;line-height:1.4;}'
+      + '.hb-quiz-intro-restore{margin:14px 0 2px;text-align:center;font-size:.86rem;color:#8B928E;line-height:1.5;}'
+      + '.hb-quiz-intro-restore-link{background:none;border:none;color:#C97B5C;font-size:.86rem;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;font-family:inherit;}'
+      + '.hb-quiz-intro-restore-link:hover{color:#A85C3E;}'
       + '@media(max-width:767px){.hb-quiz-intro-lead{font-size:1.45rem;}}'
       + '@media(max-width:478px){.hb-quiz-intro-lead{font-size:1.3rem;}.hb-quiz-intro-sub{font-size:.94rem;}.hb-quiz-intro-step-num{width:1.5rem;height:1.5rem;font-size:.8rem;}.hb-quiz-intro-trust{font-size:.8rem;}}';
     var st = document.createElement('style');
@@ -362,7 +365,21 @@
           saveState();
           render();
         }
-      }, ['Find my hormone type \u2192'])
+      }, ['Find my hormone type \u2192']),
+      el('div', { class: 'hb-quiz-intro-restore' }, [
+        el('span', { class: 'hb-quiz-intro-restore-text' }, 'Already tracking on another device or browser? '),
+        el('button', {
+          class: 'hb-quiz-intro-restore-link',
+          type: 'button',
+          onclick: function() {
+            if (window.HB_TRACKER && typeof window.HB_TRACKER.openImport === 'function') {
+              window.HB_TRACKER.openImport();
+            } else if (typeof window.alert === 'function') {
+              window.alert('Still loading \u2014 please try again in a moment.');
+            }
+          }
+        }, 'Restore your backup')
+      ])
     ]);
 
     rootEl.appendChild(el('div', { class: 'hb-quiz' }, [intro]));
