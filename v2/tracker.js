@@ -1,7 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.16
+ * Daily Tracker — v1.9.17
+ *   v1.9.17 — Fix #4: milestone days show streakMilestones (tracker-data) copy in the green 'Logged today' banner. 100% advice text coverage.
  *   v1.9.16 — Milestone cards (HB_ADVICE.milestones, days 1/3/7/14/30/60/90) + one-time red-flags primer (general_redflags). renderAdviceCard now supports string body.
  *   v1.9.15 — Reversible Retake: stash result to hb_quiz_backup, clear it (quiz becomes visible), flag intro, reload. No destructive delete.
  *   v1.9.12 — Download PDF report: month-by-month summary (calendar + energy/mood/sleep/symptom charts), jsPDF loaded on demand.
@@ -97,6 +98,7 @@
     hormoneType: null,
     currentEntry: null,
     saveJustSucceeded: false,
+    justMilestone: null,
     selectedDayKey: null,
     viewMonthOffset: 0,
     lastLogCard: null,
@@ -1421,6 +1423,14 @@
     var desc = state.saveJustSucceeded
       ? 'Your entry is saved. Come back tomorrow to keep building your data.'
       : 'You can update your entry any time today.';
+    // Fix #4: on a milestone day the success banner celebrates the streak,
+    // using the short streakMilestones copy (complements the milestone card).
+    if (state.saveJustSucceeded && state.justMilestone &&
+        HB_TRACKER_DATA.streakMilestones && HB_TRACKER_DATA.streakMilestones[state.justMilestone]) {
+      var sm = HB_TRACKER_DATA.streakMilestones[state.justMilestone];
+      title = sm.title + ' \u2713';
+      desc = sm.message;
+    }
     return el('div', { class: 'hb-tracker-logged-today' }, [
       el('div', { class: 'hb-tracker-logged-icon', html: CHECK_ICON_SVG }),
       el('div', { class: 'hb-tracker-logged-text' }, [
@@ -2472,10 +2482,12 @@
     } catch (e) {}
 
     state.saveJustSucceeded = true;
+    state.justMilestone = milestone;
     renderTracker();
 
     setTimeout(function() {
       state.saveJustSucceeded = false;
+      state.justMilestone = null;
       renderTracker();
     }, 2200);
   }
@@ -3010,7 +3022,7 @@
   }
 
   window.HB_TRACKER = {
-    version: '1.9.16',
+    version: '1.9.17',
     mount: init,
     downloadPdf: downloadPdfReport,
     openImport: function() {
