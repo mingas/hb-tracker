@@ -1,7 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.15
+ * Daily Tracker — v1.9.16
+ *   v1.9.16 — Milestone cards (HB_ADVICE.milestones, days 1/3/7/14/30/60/90) + one-time red-flags primer (general_redflags). renderAdviceCard now supports string body.
  *   v1.9.15 — Reversible Retake: stash result to hb_quiz_backup, clear it (quiz becomes visible), flag intro, reload. No destructive delete.
  *   v1.9.12 — Download PDF report: month-by-month summary (calendar + energy/mood/sleep/symptom charts), jsPDF loaded on demand.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
@@ -1872,6 +1873,8 @@
     // Body: long-form Daily Learn uses body:[paragraphs]; legacy cards use why (string)
     if (Array.isArray(c.body)) {
       c.body.forEach(function(p) { if (p) kids.push(el('p', { class: 'hb-advice-why' }, p)); });
+    } else if (typeof c.body === 'string' && c.body) {
+      kids.push(el('p', { class: 'hb-advice-why' }, c.body));
     } else if (c.why) {
       kids.push(el('p', { class: 'hb-advice-why' }, c.why));
     }
@@ -2449,6 +2452,25 @@
 
     if (milestone) trackEvent('streak_milestone', { days: milestone });
 
+    // Fix #2/#3: on a fresh today-log, a milestone card (HB_ADVICE.milestones, days
+    // 1/3/7/14/30/60/90) takes over the log card; otherwise a one-time red-flags
+    // primer (general_redflags) shows once from day 3+. Milestone wins, so the
+    // primer never collides with the day-3 milestone.
+    try {
+      if (isToday && !isUpdate && window.HB_ADVICE) {
+        var msData = (milestone && window.HB_ADVICE.milestones) ? window.HB_ADVICE.milestones[milestone] : null;
+        var rfSeen = false; try { rfSeen = localStorage.getItem('hb_redflags_seen') === '1'; } catch (e) {}
+        if (msData) {
+          state.lastLogCard = { card: { headline: msData.headline, body: msData.body, eyebrow: 'Milestone', severity: 'positive' }, layer: 'milestone', key: 'ms' + milestone };
+          saveLastLogCard();
+        } else if (!rfSeen && Object.keys(state.entries).length >= 3 && window.HB_ADVICE.safety && window.HB_ADVICE.safety.general_redflags) {
+          state.lastLogCard = { card: window.HB_ADVICE.safety.general_redflags, layer: 'safety', key: 'general_redflags' };
+          try { localStorage.setItem('hb_redflags_seen', '1'); } catch (e) {}
+          saveLastLogCard();
+        }
+      }
+    } catch (e) {}
+
     state.saveJustSucceeded = true;
     renderTracker();
 
@@ -2988,7 +3010,7 @@
   }
 
   window.HB_TRACKER = {
-    version: '1.9.15',
+    version: '1.9.16',
     mount: init,
     downloadPdf: downloadPdfReport,
     openImport: function() {
