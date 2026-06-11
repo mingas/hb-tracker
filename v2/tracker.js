@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.11
- *   v1.9.11 — Restore-from-backup link on the quiz intro (openImport exposed) so new users can import without finishing the quiz.
+ * Daily Tracker — v1.9.12
+ *   v1.9.12 — Download PDF report: month-by-month summary (calendar + energy/mood/sleep/symptom charts), jsPDF loaded on demand.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -987,10 +987,22 @@
       ])
     ]);
 
+    var pdfBtn = el('button', {
+      class: 'hb-tracker-settings-btn hb-tracker-pdf-btn',
+      type: 'button',
+      onclick: downloadPdfReport
+    }, [
+      el('span', { class: 'hb-tracker-settings-btn-icon' }, '\u{1F4C4}'),
+      el('span', { class: 'hb-tracker-settings-btn-label' }, [
+        'Download PDF report',
+        el('div', { class: 'hb-tracker-settings-btn-hint' }, 'Month-by-month summary with calendar and charts')
+      ])
+    ]);
+
     return el('div', { class: 'hb-tracker-settings' }, [
       el('p', { class: 'hb-tracker-settings-title' }, 'Settings'),
-      el('p', { class: 'hb-tracker-settings-subtitle' }, 'Back up, restore, or wipe your tracker data.'),
-      el('div', { class: 'hb-tracker-settings-row' }, [exportBtn, importBtn, deleteBtn]),
+      el('p', { class: 'hb-tracker-settings-subtitle' }, 'Download a report, back up, restore, or wipe your tracker data.'),
+      el('div', { class: 'hb-tracker-settings-row' }, [pdfBtn, exportBtn, importBtn, deleteBtn]),
       fileInput
     ]);
   }
@@ -2655,9 +2667,326 @@
 
   /* EXPORT GLOBAL */
 
+  // ===== Monthly PDF report (jsPDF loaded on demand) =====
+  function buildPdfDoc(JsPDF, data){
+    var ENERGY = [[242,194,168],[237,169,140],[220,154,117],[201,123,92],[184,110,81]];
+    var MOOD   = [[142,155,179],[157,176,196],[184,196,176],[163,204,143],[111,180,126]];
+    var NAVY=[26,42,74], TERRA=[201,123,92], GREEN=[111,180,126], GREY=[139,146,142],
+        LINE=[232,226,211], INK=[90,80,72], PAPER=[252,248,240],
+        PERIOD=[226,59,78], FERTILE=[74,144,217], OVU=[139,92,246], EMPTY=[241,239,232];
+    var MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    function pad(n){ return n<10?'0'+n:''+n; }
+    function pdfBaseline(i, t){
+      if(!t||typeof t!=='string') return 3;
+      var p=t.substr(0,2), S=Math.sin, C=Math.cos, A=Math.abs, M=Math;
+      if(p==='Cy') return 2.75+1.25*S((i%28)/28*6.283-1.571);
+      if(p==='Es') return 3.5-S(i/3)*0.5;
+      if(p==='Pr') return 3.5-A(S(i/4))*0.8;
+      if(p==='Pe') return M.max(1,M.min(5,2.5+S(i*1.7)*1.2+C(i*0.9)*0.8));
+      if(p==='Po') return 2.75+S(i/5)*0.25;
+      return 3;
+    }
+      var entries = data.entries || {};
+      var markers = (data.cycle && data.cycle.markers) || {};
+      var hType   = data.hormoneType || '';
+      var labels  = data.symptomLabels || {};
+      var genOn   = data.generatedOn || new Date();
+
+      var doc = new JsPDF({ unit:'pt', format:'a4', compress:true });
+      var W = doc.internal.pageSize.getWidth();
+      var H = doc.internal.pageSize.getHeight();
+      var M = 42, CW = W - M*2;
+
+      // group entries by month key YYYY-MM
+      var byMonth = {};
+      Object.keys(entries).forEach(function(k){
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
+        var mo = k.slice(0,7);
+        (byMonth[mo] = byMonth[mo] || []).push(k);
+      });
+      var months = Object.keys(byMonth).sort().reverse(); // newest first
+
+      function setFill(c){ doc.setFillColor(c[0],c[1],c[2]); }
+      function setText(c){ doc.setTextColor(c[0],c[1],c[2]); }
+      function setDraw(c){ doc.setDrawColor(c[0],c[1],c[2]); }
+
+      if(!months.length){
+        doc.setFont('helvetica','bold'); doc.setFontSize(20); setText(NAVY);
+        doc.text('Your Hormone Blueprint report', M, 120);
+        doc.setFont('helvetica','normal'); doc.setFontSize(12); setText(INK);
+        doc.text('No entries yet. Log a few days in your tracker, then download again', M, 148);
+        doc.text('to get a full month-by-month report with calendar and charts.', M, 166);
+        return doc;
+      }
+
+      months.forEach(function(mo, idx){
+        if(idx>0) doc.addPage();
+        drawMonth(mo, idx, months.length);
+      });
+      return doc;
+
+      function drawMonth(mo, idx, total){
+        var year = +mo.slice(0,4), month = +mo.slice(5,7)-1;
+        var keys = byMonth[mo].slice().sort();
+        var dim = new Date(year, month+1, 0).getDate();
+
+        // ---- gather month stats ----
+        var eS=0,eN=0,mS=0,mN=0,slS=0,slN=0,periodDays=0, symCount={};
+        var byDay={}; // day -> entry
+        keys.forEach(function(k){
+          var e=entries[k]||{}, day=+k.slice(8,10); byDay[day]=e;
+          if(e.energy>=1&&e.energy<=5){eS+=e.energy;eN++;}
+          if(e.mood>=1&&e.mood<=5){mS+=e.mood;mN++;}
+          if(typeof e.sleep==='number'&&e.sleep>0){slS+=e.sleep;slN++;}
+          if(e.period) periodDays++;
+          (e.symptoms||[]).forEach(function(s){ symCount[s]=(symCount[s]||0)+1; });
+        });
+
+        var y = M + 2;
+
+        // ===== HEADER =====
+        doc.setFont('helvetica','bold'); doc.setFontSize(8.5); setText(TERRA);
+        doc.text('THE HORMONE BLUEPRINT', M, y);
+        doc.setFontSize(7.5); setText(GREY);
+        doc.text('Page '+(idx+1)+' of '+total, W-M, y, {align:'right'});
+        y += 20;
+        doc.setFont('helvetica','bold'); doc.setFontSize(23); setText(NAVY);
+        doc.text(MN[month]+' '+year, M, y);
+        y += 15;
+        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); setText(GREY);
+        var sub = 'Monthly summary'+(hType?'  \u00b7  '+hType:'');
+        doc.text(sub, M, y);
+        y += 12;
+        setDraw(LINE); doc.setLineWidth(1); doc.line(M, y, W-M, y);
+        y += 16;
+
+        // ===== SUMMARY STAT CARDS =====
+        var stats = [
+          ['Avg energy', eN?(eS/eN).toFixed(1):'\u2014', TERRA],
+          ['Avg mood',   mN?(mS/mN).toFixed(1):'\u2014', GREEN],
+          ['Avg sleep',  slN?(slS/slN).toFixed(1)+'h':'\u2014', NAVY],
+          ['Days logged', String(keys.length), NAVY],
+          ['Period days', String(periodDays), PERIOD]
+        ];
+        var gap=10, sw=(CW-gap*(stats.length-1))/stats.length, sh=44;
+        stats.forEach(function(st,i){
+          var sx=M+i*(sw+gap);
+          setFill(PAPER); setDraw(LINE); doc.setLineWidth(1);
+          doc.roundedRect(sx, y, sw, sh, 6, 6, 'FD');
+          doc.setFont('helvetica','bold'); doc.setFontSize(17); setText(st[2]);
+          doc.text(st[1], sx+sw/2, y+22, {align:'center'});
+          doc.setFont('helvetica','normal'); doc.setFontSize(7); setText(GREY);
+          doc.text(st[0].toUpperCase(), sx+sw/2, y+35, {align:'center'});
+        });
+        y += sh + 16;
+
+        // ===== CALENDAR =====
+        doc.setFont('helvetica','bold'); doc.setFontSize(11); setText(NAVY);
+        doc.text('Calendar', M, y);
+        doc.setFont('helvetica','normal'); doc.setFontSize(8); setText(GREY);
+        doc.text('coloured by energy', M+58, y);
+        y += 12;
+
+        var cols=7, cellGap=4, cell=(CW-cellGap*(cols-1))/cols, cellH=38;
+        var offset=(new Date(year,month,1).getDay()+6)%7; // Monday-first
+        var rows=Math.ceil((offset+dim)/7);
+        // weekday header
+        var wd=['M','T','W','T','F','S','S'];
+        doc.setFont('helvetica','bold'); doc.setFontSize(7.5); setText(GREY);
+        for(var c=0;c<7;c++){ doc.text(wd[c], M+c*(cell+cellGap)+cell/2, y+8, {align:'center'}); }
+        y += 13;
+
+        var calTop=y;
+        for(var idx2=0; idx2<rows*7; idx2++){
+          var dayNum=idx2-offset+1;
+          var rr=Math.floor(idx2/7), cc=idx2%7;
+          var cx=M+cc*(cell+cellGap), cy=calTop+rr*(cellH+cellGap);
+          if(dayNum<1||dayNum>dim) continue;
+          var e=byDay[dayNum];
+          var lvl = e&&e.energy>=1&&e.energy<=5 ? e.energy : 0;
+          setFill(lvl?ENERGY[lvl-1]:EMPTY);
+          doc.roundedRect(cx, cy, cell, cellH, 3, 3, 'F');
+          // day number
+          setText(lvl>=3?[255,255,255]:INK);
+          doc.setFont('helvetica','normal'); doc.setFontSize(8);
+          doc.text(String(dayNum), cx+4, cy+11);
+          // cycle markers
+          var key=year+'-'+pad(month+1)+'-'+pad(dayNum), mk=markers[key];
+          if(mk){
+            var barY=cy+cellH-5, barW=cell-8;
+            if(mk.period){ setFill(PERIOD); doc.rect(cx+4, barY, barW, 3, 'F'); }
+            else if(mk.fertile){ setFill(FERTILE); doc.rect(cx+4, barY, barW, 3, 'F'); }
+            else if(mk.predPeriod){ setFill(PERIOD); for(var dx=0;dx<barW;dx+=6){ doc.rect(cx+4+dx, barY, 3, 3, 'F'); } }
+            if(mk.ovulation){ setFill(OVU); doc.circle(cx+cell-6, cy+6, 2.6, 'F'); }
+          }
+        }
+        y = calTop + rows*(cellH+cellGap) + 8;
+
+        // calendar legend
+        doc.setFontSize(7.5);
+        var lx=M;
+        function legendItem(color, label, dashed){
+          setFill(color);
+          if(dashed){ for(var dx=0;dx<14;dx+=6){ doc.rect(lx+dx, y-4, 3, 3, 'F'); } }
+          else doc.rect(lx, y-4, 14, 3, 'F');
+          setText(GREY); doc.text(label, lx+18, y);
+          lx += 18 + doc.getTextWidth(label) + 16;
+        }
+        legendItem(PERIOD,'Period'); legendItem(PERIOD,'Predicted',true); legendItem(FERTILE,'Fertile');
+        setFill(OVU); doc.circle(lx+4, y-3, 2.6,'F'); setText(GREY); doc.text('Ovulation', lx+12, y);
+        y += 18;
+
+        // ===== ENERGY & MOOD TREND =====
+        y = lineChart(y, 'Energy & mood trend', dim, byDay, hType, month, year);
+
+        // ===== SLEEP =====
+        y = sleepChart(y, dim, byDay);
+
+        // ===== TOP SYMPTOMS =====
+        symptomsBlock(y, symCount, keys.length);
+
+        // ===== FOOTER =====
+        doc.setFont('helvetica','normal'); doc.setFontSize(7.5); setText(GREY);
+        doc.text('Note: cycle estimates are based on your logged dates, not a method of contraception.', M, H-26);
+        doc.text('Generated '+MN[genOn.getMonth()]+' '+genOn.getDate()+', '+genOn.getFullYear()
+                 +'  \u00b7  Your data stays in your browser.', M, H-14);
+      }
+
+      // ---------- charts ----------
+      function lineChart(y, title, dim, byDay, hType, month, year){
+        doc.setFont('helvetica','bold'); doc.setFontSize(11); setText(NAVY);
+        doc.text(title, M, y);
+        // legend
+        var lx=M+CW, items=[['Mood',GREEN],['Energy',TERRA],['Typical',GREY]];
+        doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+        for(var i=items.length-1;i>=0;i--){
+          var lab=items[i][0]; var tw=doc.getTextWidth(lab);
+          lx-=tw; setText(GREY); doc.text(lab,lx,y); lx-=6;
+          setFill(items[i][1]); doc.rect(lx-14,y-4,14,3,'F'); lx-=14+12;
+        }
+        y+=8;
+        var cx=M, cy=y, cw=CW, ch=74, pad=6;
+        setFill([255,255,255]); setDraw(LINE); doc.setLineWidth(1);
+        doc.roundedRect(cx,cy,cw,ch,5,5,'FD');
+        // gridlines (1,3,5)
+        setDraw([238,234,222]); doc.setLineWidth(0.5);
+        for(var g=1;g<=5;g+=2){ var gy=cy+ch-pad-((g-1)/4)*(ch-pad*2); doc.line(cx+24,gy,cx+cw-pad,gy);
+          setText(GREY); doc.setFontSize(6.5); doc.text(String(g),cx+12,gy+2,{align:'center'}); }
+        var x0=cx+24, plotW=cw-pad-24, plotBot=cy+ch-pad, plotTop=cy+pad;
+        function px(day){ return x0 + (dim<=1?0:(day-1)/(dim-1))*plotW; }
+        function py(v){ return plotBot - ((v-1)/4)*(plotBot-plotTop); }
+        // typical (dashed grey)
+        setDraw(GREY); doc.setLineWidth(0.8);
+        if(doc.setLineDashPattern) doc.setLineDashPattern([2,2],0);
+        var prevX=null,prevY=null;
+        for(var d=1;d<=dim;d++){ var b=pdfBaseline(d-1,hType); var X=px(d),Y=py(b);
+          if(prevX!=null) doc.line(prevX,prevY,X,Y); prevX=X;prevY=Y; }
+        if(doc.setLineDashPattern) doc.setLineDashPattern([],0);
+        // energy + mood lines
+        function series(field,color){
+          setDraw(color); doc.setLineWidth(1.6); setFill(color);
+          var pX=null,pY=null;
+          for(var d=1;d<=dim;d++){ var e=byDay[d]; var v=e&&e[field]>=1&&e[field]<=5?e[field]:0;
+            if(!v){ continue; } var X=px(d),Y=py(v);
+            if(pX!=null) doc.line(pX,pY,X,Y); doc.circle(X,Y,1.7,'F'); pX=X;pY=Y; }
+        }
+        series('energy',TERRA); series('mood',GREEN);
+        return cy+ch+16;
+      }
+
+      function sleepChart(y, dim, byDay){
+        doc.setFont('helvetica','bold'); doc.setFontSize(11); setText(NAVY);
+        doc.text('Sleep hours', M, y); y+=8;
+        var cx=M, cy=y, cw=CW, ch=58, pad=6;
+        setFill([255,255,255]); setDraw(LINE); doc.setLineWidth(1);
+        doc.roundedRect(cx,cy,cw,ch,5,5,'FD');
+        var x0=cx+22, plotW=cw-pad-22, plotBot=cy+ch-pad, plotTop=cy+pad, maxH=12;
+        setDraw([238,234,222]); doc.setLineWidth(0.5); setText(GREY); doc.setFontSize(6.5);
+        [0,6,12].forEach(function(h){ var gy=plotBot-(h/maxH)*(plotBot-plotTop);
+          doc.line(x0,gy,cx+cw-pad,gy); doc.text(String(h),cx+11,gy+2,{align:'center'}); });
+        var bw=Math.max(2,(plotW/dim)-1.5);
+        setFill([122,164,210]);
+        for(var d=1;d<=dim;d++){ var e=byDay[d]; if(!e||typeof e.sleep!=='number'||e.sleep<=0) continue;
+          var hv=Math.min(maxH,e.sleep); var X=x0+((d-0.5)/dim)*plotW - bw/2;
+          var bh=(hv/maxH)*(plotBot-plotTop); doc.rect(X, plotBot-bh, bw, bh, 'F'); }
+        return cy+ch+16;
+      }
+
+      function symptomsBlock(y, symCount, daysLogged){
+        doc.setFont('helvetica','bold'); doc.setFontSize(11); setText(NAVY);
+        doc.text('Top symptoms', M, y); y+=10;
+        var arr=Object.keys(symCount).map(function(k){return [k,symCount[k]];})
+                  .sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+        if(!arr.length){ doc.setFont('helvetica','italic'); doc.setFontSize(9); setText(GREY);
+          doc.text('No symptoms logged this month.', M, y+6); return; }
+        var maxV=arr[0][1], rowH=14, labW=120, barX=M+labW, barMax=CW-labW-44;
+        arr.forEach(function(it,i){
+          var ry=y+i*rowH;
+          doc.setFont('helvetica','normal'); doc.setFontSize(8.5); setText(INK);
+          var lab=labels[it[0]]||it[0]; doc.text(lab, M, ry+8);
+          setFill([237,230,214]); doc.roundedRect(barX, ry, barMax, 8, 4,4,'F');
+          var w=Math.max(6,(it[1]/maxV)*barMax); setFill(TERRA);
+          doc.roundedRect(barX, ry, w, 8, 4,4,'F');
+          setText(GREY); doc.setFontSize(8);
+          var pct=Math.round(it[1]/daysLogged*100);
+          doc.text(it[1]+' ('+pct+'%)', barX+barMax+6, ry+8);
+        });
+      }
+  }
+
+  function loadJsPdf(cb){
+    if (window.jspdf && window.jspdf.jsPDF) { cb(window.jspdf.jsPDF); return; }
+    var ex = document.getElementById('hb-jspdf-lib');
+    if (ex) {
+      ex.addEventListener('load', function(){ cb(window.jspdf && window.jspdf.jsPDF); });
+      ex.addEventListener('error', function(){ cb(null); });
+      return;
+    }
+    var s = document.createElement('script');
+    s.id = 'hb-jspdf-lib';
+    s.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
+    s.onload = function(){ cb(window.jspdf && window.jspdf.jsPDF); };
+    s.onerror = function(){ cb(null); };
+    document.head.appendChild(s);
+  }
+
+  function downloadPdfReport(){
+    var btn = document.querySelector('.hb-tracker-pdf-btn');
+    var labelEl = btn ? btn.querySelector('.hb-tracker-settings-btn-label') : null;
+    var textNode = labelEl ? labelEl.firstChild : null;
+    var orig = textNode ? textNode.nodeValue : null;
+    if (textNode) textNode.nodeValue = 'Preparing PDF\u2026';
+    if (btn) btn.disabled = true;
+    function done(){ if (btn) btn.disabled = false; if (textNode && orig != null) textNode.nodeValue = orig; }
+    loadJsPdf(function(JsPDF){
+      if (!JsPDF) { done(); if (typeof window.alert === 'function') window.alert('Could not load the PDF tool. Please check your connection and try again.'); return; }
+      try {
+        var labels = {};
+        var allS = (window.HB_TRACKER_DATA && window.HB_TRACKER_DATA.allSymptoms) || [];
+        allS.forEach(function(s){ if (s && s.value) labels[s.value] = s.label || s.value; });
+        var cm = {};
+        try { cm = (typeConfig && typeConfig.cycleVisible) ? computeCycleMarkers(state.entries, state.today) : {}; } catch (e2) { cm = {}; }
+        var doc = buildPdfDoc(JsPDF, {
+          entries: state.entries || {},
+          cycle: { markers: cm },
+          hormoneType: getHormoneTypeDisplay(state.hormoneType),
+          symptomLabels: labels,
+          generatedOn: new Date()
+        });
+        var d = new Date();
+        doc.save('Hormone_Blueprint_Report_' + d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()) + '.pdf');
+        try { trackEvent('pdf_download'); } catch (e3) {}
+      } catch (e) {
+        if (typeof window.alert === 'function') window.alert('Sorry, the PDF report could not be generated. Please try again.');
+      }
+      done();
+    });
+  }
+
   window.HB_TRACKER = {
-    version: '1.9.11',
+    version: '1.9.12',
     mount: init,
+    downloadPdf: downloadPdfReport,
     openImport: function() {
       try {
         var input = document.createElement('input');
