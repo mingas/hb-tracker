@@ -4,7 +4,7 @@
  * Hormone Type Quiz — UI rendering & flow logic
  *
  * Changelog:
- *   v1.6.2 — Retake reveals in-page intro (no reload) + "Back to my daily tracker" (un-collapses quiz container).
+ *   v1.6.3 — Reversible Retake: result is stashed (hb_quiz_backup) so the quiz shows; intro offers "Back to my daily tracker" to restore it. No reload-into-hidden-quiz.
  *   v1.5.0 — "Start Daily Tracker" CTA on result + auto-mount tracker on finish.
  *   v1.6.2 — Auto-scroll quiz into view on each transition (navbar-aware).
  *   v1.3.0 — Welcome Back banner for returning users.
@@ -385,20 +385,20 @@
       ])
     ];
 
-    if (state.result) {
+    var hasBackup = false;
+    try { hasBackup = !!localStorage.getItem('hb_quiz_backup'); } catch (e) {}
+    if (hasBackup) {
       introChildren.unshift(el('button', {
         class: 'hb-quiz-intro-back',
         type: 'button',
         onclick: function() {
-          state.screen = 'result';
-          saveState();
-          render();
           try {
-            if (window.HB_TRACKER && typeof window.HB_TRACKER._applyReturningUserMode === 'function') {
-              window.HB_TRACKER._applyReturningUserMode();
-            }
+            var b = localStorage.getItem('hb_quiz_backup');
+            if (b) localStorage.setItem(STORAGE_KEY, b);
+            localStorage.removeItem('hb_quiz_backup');
           } catch (e) {}
-          triggerTrackerMount(true);
+          try { sessionStorage.removeItem('hb_retake_intro'); } catch (e) {}
+          location.reload();
         }
       }, ['\u2190 Back to my daily tracker']));
     }
@@ -700,6 +700,7 @@
     state.result = result;
     state.screen = 'result';
     saveState();
+    try { localStorage.removeItem('hb_quiz_backup'); } catch (e) {}
 
     trackEvent('quiz_complete', { question_count: 12, intensity_score: result.intensityScore });
     trackEvent('result_view', {
@@ -918,7 +919,28 @@
 
     loadState();
 
-    if (hasInProgressState()) {
+    // Retake flow: tracker stashed the result to 'hb_quiz_backup', cleared the
+    // live result (so the quiz is visible), and set this session flag.
+    var retakeIntro = false;
+    try {
+      retakeIntro = sessionStorage.getItem('hb_retake_intro') === '1';
+      if (retakeIntro) sessionStorage.removeItem('hb_retake_intro');
+    } catch (e) {}
+
+    // Recover an abandoned retake: a backup exists but the user is NOT mid-retake
+    // (fresh load, no result, no in-progress answers) -> restore so it isn't lost.
+    try {
+      var bak = localStorage.getItem('hb_quiz_backup');
+      if (bak && !retakeIntro && !state.result && !hasInProgressState()) {
+        localStorage.setItem(STORAGE_KEY, bak);
+        localStorage.removeItem('hb_quiz_backup');
+        loadState();
+      }
+    } catch (e) {}
+
+    if (retakeIntro) {
+      state.screen = 'onboarding';
+    } else if (hasInProgressState()) {
       state.screen = 'welcome_back';
     } else if (!hasSeenPrivacy()) {
       state.screen = 'onboarding';
@@ -928,26 +950,6 @@
 
     render();
   }
-
-  window.HB_QUIZ = window.HB_QUIZ || {};
-  window.HB_QUIZ.showIntro = function() {
-    try {
-      // The tracker collapses the quiz container for returning users; reveal
-      // ONLY the quiz root + its ancestor chain (never the tracker's FAQ collapse).
-      var node = document.getElementById(ROOT_ID);
-      var walk = node;
-      while (walk && walk.tagName !== 'BODY' && walk.tagName !== 'HTML') {
-        if (walk.classList) walk.classList.remove('hb-collapsed');
-        walk = walk.parentElement;
-      }
-      state.screen = 'onboarding';
-      saveState();
-      render();
-      if (node && typeof node.scrollIntoView === 'function') {
-        node.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    } catch (e) { console.warn('HB Quiz: showIntro failed', e); }
-  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
