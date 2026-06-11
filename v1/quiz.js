@@ -4,7 +4,8 @@
  * Hormone Type Quiz — UI rendering & flow logic
  *
  * Changelog:
- *   v1.6.0 — "Start Daily Tracker" CTA on result + auto-mount tracker on finish.
+ *   v1.6.2 — Retake reveals in-page intro (no reload) + "Back to my daily tracker" (un-collapses quiz container).
+ *   v1.5.0 — "Start Daily Tracker" CTA on result + auto-mount tracker on finish.
  *   v1.6.2 — Auto-scroll quiz into view on each transition (navbar-aware).
  *   v1.3.0 — Welcome Back banner for returning users.
  *
@@ -392,13 +393,17 @@
           state.screen = 'result';
           saveState();
           render();
+          try {
+            if (window.HB_TRACKER && typeof window.HB_TRACKER._applyReturningUserMode === 'function') {
+              window.HB_TRACKER._applyReturningUserMode();
+            }
+          } catch (e) {}
           triggerTrackerMount(true);
         }
       }, ['\u2190 Back to my daily tracker']));
     }
 
     var intro = el('div', { class: 'hb-quiz-onboarding' }, introChildren);
-
     rootEl.appendChild(el('div', { class: 'hb-quiz' }, [intro]));
   }
 
@@ -913,17 +918,7 @@
 
     loadState();
 
-    var forceIntro = false;
-    try {
-      forceIntro = sessionStorage.getItem('hb_force_intro') === '1';
-      if (forceIntro) sessionStorage.removeItem('hb_force_intro');
-    } catch (e) {}
-
-    if (forceIntro) {
-      // Came from "Retake" in the tracker. Show the intro so they can retake,
-      // but keep the existing result so the intro can offer "Back to my tracker".
-      state.screen = 'onboarding';
-    } else if (hasInProgressState()) {
+    if (hasInProgressState()) {
       state.screen = 'welcome_back';
     } else if (!hasSeenPrivacy()) {
       state.screen = 'onboarding';
@@ -933,6 +928,26 @@
 
     render();
   }
+
+  window.HB_QUIZ = window.HB_QUIZ || {};
+  window.HB_QUIZ.showIntro = function() {
+    try {
+      // The tracker collapses the quiz container for returning users; reveal
+      // ONLY the quiz root + its ancestor chain (never the tracker's FAQ collapse).
+      var node = document.getElementById(ROOT_ID);
+      var walk = node;
+      while (walk && walk.tagName !== 'BODY' && walk.tagName !== 'HTML') {
+        if (walk.classList) walk.classList.remove('hb-collapsed');
+        walk = walk.parentElement;
+      }
+      state.screen = 'onboarding';
+      saveState();
+      render();
+      if (node && typeof node.scrollIntoView === 'function') {
+        node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } catch (e) { console.warn('HB Quiz: showIntro failed', e); }
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
