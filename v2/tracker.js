@@ -1,8 +1,8 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.14
- *   v1.9.14 — Retake calls quiz in-page intro (no reload, reversible) when available; falls back to old reload.
+ * Daily Tracker — v1.9.15
+ *   v1.9.15 — Reversible Retake: stash result to hb_quiz_backup, clear it (quiz becomes visible), flag intro, reload. No destructive delete.
  *   v1.9.12 — Download PDF report: month-by-month summary (calendar + energy/mood/sleep/symptom charts), jsPDF loaded on demand.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
@@ -650,16 +650,14 @@
       type: 'button',
       'aria-label': 'Retake the quiz, current result will be replaced',
       onclick: function() {
-        if (window.HB_QUIZ && typeof window.HB_QUIZ.showIntro === 'function') {
-          trackEvent('compact_bar_retake', { hormone_type: state.hormoneType });
-          window.HB_QUIZ.showIntro();
-          return;
-        }
-        var ok = typeof window.confirm === 'function'
-          ? window.confirm('Retake the quiz? Your hormone type will be replaced. Your daily logs are SAFE (stored in this browser).')
-          : true;
-        if (!ok) return;
+        // Reversible retake: stash the result, clear it so the quiz is visible,
+        // flag the intro, reload. The quiz intro offers Back-to-tracker (restore).
+        try {
+          var cur = localStorage.getItem(QUIZ_STORAGE_KEY);
+          if (cur) localStorage.setItem('hb_quiz_backup', cur);
+        } catch (e) {}
         try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
+        try { sessionStorage.setItem('hb_retake_intro', '1'); } catch (e) {}
         trackEvent('compact_bar_retake', { hormone_type: state.hormoneType });
         location.reload();
       }
@@ -2990,7 +2988,7 @@
   }
 
   window.HB_TRACKER = {
-    version: '1.9.14',
+    version: '1.9.15',
     mount: init,
     downloadPdf: downloadPdfReport,
     openImport: function() {
