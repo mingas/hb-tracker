@@ -1,8 +1,9 @@
 /**
  * hb-tracker / v2 / tracker.js
  *
- * Daily Tracker — v1.9.13
- *   v1.9.13 — Retake no longer wipes the result immediately; it lets the quiz intro offer a Back-to-tracker option (paired with quiz.js v1.6.0).
+ * Daily Tracker — v1.9.14
+ *   v1.9.14 — Retake calls quiz in-page intro (no reload, reversible) when available; falls back to old reload.
+ *   v1.9.12 — Download PDF report: month-by-month summary (calendar + energy/mood/sleep/symptom charts), jsPDF loaded on demand.
  *   v1.9.2 — Expose HB_TRACKER.getCycleMarkers() for the external mobile calendar to draw the cycle layer.
  *   v1.9.1 — Scroll-position preserved across re-renders (no page jump on field clicks) + fresh SHA.
  *   v1.7.0 — Calendar alignment fix (visible bug user reported):
@@ -649,11 +650,16 @@
       type: 'button',
       'aria-label': 'Retake the quiz, current result will be replaced',
       onclick: function() {
+        if (window.HB_QUIZ && typeof window.HB_QUIZ.showIntro === 'function') {
+          trackEvent('compact_bar_retake', { hormone_type: state.hormoneType });
+          window.HB_QUIZ.showIntro();
+          return;
+        }
         var ok = typeof window.confirm === 'function'
-          ? window.confirm('Retake the quiz? Your hormone type is only replaced when you finish \u2014 you can go back to your tracker any time. Your daily logs are SAFE (stored in this browser).')
+          ? window.confirm('Retake the quiz? Your hormone type will be replaced. Your daily logs are SAFE (stored in this browser).')
           : true;
         if (!ok) return;
-        try { sessionStorage.setItem('hb_force_intro', '1'); } catch (e) {}
+        try { localStorage.removeItem(QUIZ_STORAGE_KEY); } catch (e) {}
         trackEvent('compact_bar_retake', { hormone_type: state.hormoneType });
         location.reload();
       }
@@ -2984,7 +2990,7 @@
   }
 
   window.HB_TRACKER = {
-    version: '1.9.13',
+    version: '1.9.14',
     mount: init,
     downloadPdf: downloadPdfReport,
     openImport: function() {
