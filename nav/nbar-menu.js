@@ -20,12 +20,14 @@
     ['/free-guide', '7-Day Free Guide'],
     ['/testosterone-tracker', 'Optimisation Tracker'],
     ['/workout-generator', 'Workout Generator'],
+    ['/ask', 'Ask the Question'],
     ['/#book', 'Book']
   ];
   var WOMEN = [
     ['/hormone-quiz', 'Hormone Quiz'],
     ['/perimenopause-blood-test', 'Online Blood Test'],
     ['/workout-generator', 'Workout Generator'],
+    ['/ask', 'Ask the Question'],
     ['/hormone-blueprint', 'Book']
   ];
   // Paths that must NOT be folded into a dropdown (kept as top-level link).
