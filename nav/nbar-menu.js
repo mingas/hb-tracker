@@ -30,6 +30,10 @@
     ['/ask', 'Ask the Question'],
     ['/hormone-blueprint', 'Book']
   ];
+  var NUTRITION = [
+    ['/supplements-guide', 'Supplements'],
+    ['/foods', 'Foods']
+  ];
   // Paths that must NOT be folded into a dropdown (kept as top-level link).
   var KEEP = ['/contact'];
 
@@ -145,6 +149,7 @@
     }
     var top = elc('div', 'nbm-top');
     top.appendChild(buildDropdown('Resources', RES));
+    top.appendChild(buildDropdown('Nutrition', NUTRITION));
     top.appendChild(buildDropdown("Men's Health", MEN));
     top.appendChild(buildDropdown("Women's Health", WOMEN));
     // Ghosts may be nested inside a wrapper (e.g. .nbar-mid), not direct children of .nbar-row.
@@ -193,6 +198,7 @@
     ov.appendChild(cx);
     ov.appendChild(mkLink(brand ? (pathOf(brand) || '/') : '/', 'Home', 'nbm-ov-link'));
     ov.appendChild(buildGroup('Resources', RES));
+    ov.appendChild(buildGroup('Nutrition', NUTRITION));
     ov.appendChild(buildGroup("Men's Health", MEN));
     ov.appendChild(buildGroup("Women's Health", WOMEN));
     if (contact) ov.appendChild(mkLink(pathOf(contact) || '/contact', (contact.textContent || 'Contact').trim(), 'nbm-ov-link'));
