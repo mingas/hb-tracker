@@ -148,6 +148,7 @@
       if (!keep) ghosts[i].classList.add('nbm-hide');
     }
     var top = elc('div', 'nbm-top');
+    top.appendChild(mkLink('/start-here', 'Start Here', 'nbar-ghost nbm-start'));
     top.appendChild(buildDropdown('Resources', RES));
     top.appendChild(buildDropdown('Nutrition', NUTRITION));
     top.appendChild(buildDropdown("Men's Health", MEN));
@@ -197,6 +198,7 @@
     cx.setAttribute('aria-label', 'Close menu');
     ov.appendChild(cx);
     ov.appendChild(mkLink(brand ? (pathOf(brand) || '/') : '/', 'Home', 'nbm-ov-link'));
+    ov.appendChild(mkLink('/start-here', 'Start Here', 'nbm-ov-link'));
     ov.appendChild(buildGroup('Resources', RES));
     ov.appendChild(buildGroup('Nutrition', NUTRITION));
     ov.appendChild(buildGroup("Men's Health", MEN));
@@ -218,10 +220,33 @@
   }
 
   // --- boot --------------------------------------------------------------------
+  // --- brand rename (Testosterone Blueprint -> Hormone Blueprint) ---------------
+  function renameBrand() {
+    var n = document.querySelector('.nbar-name');
+    if (n) {
+      if (n.textContent.indexOf('Hormone Blueprint') === -1) n.textContent = 'The Hormone Blueprint';
+      return;
+    }
+    // fallback: rewrite the brand link's text node(s) if .nbar-name is absent
+    var b = document.querySelector('.nbar-brand');
+    if (b && b.textContent && b.textContent.indexOf('Testosterone Blueprint') !== -1) {
+      var w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT, null, false);
+      var node;
+      while ((node = w.nextNode())) {
+        if (node.nodeValue.indexOf('Testosterone Blueprint') !== -1) {
+          node.nodeValue = node.nodeValue
+            .replace('The Testosterone Blueprint', 'The Hormone Blueprint')
+            .replace('Testosterone Blueprint', 'Hormone Blueprint');
+        }
+      }
+    }
+  }
+
   function init() {
     var row = document.querySelector('.nbar-row');
     if (!row) return false;
     injectCSS();
+    renameBrand();
     initDesktop(row);
     initMobile(row);
     return true;
