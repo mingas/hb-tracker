@@ -10,6 +10,7 @@
 
   // --- Menu model (label, [ [href, text], ... ]) -------------------------------
   var RES = [
+    ['/free-tools', 'Free Tools'],
     ['/resources', 'For Men'],
     ['/womens-hormone-health', 'For Women']
   ];
