@@ -18,6 +18,7 @@
     ['/testosterone-test', 'Testosterone Quiz'],
     ['/andropause-calculator', 'Find Your Real Age'],
     ['/testosterone-blood-test', 'Online Blood Test'],
+    ['/trt', 'All about TRT'],
     ['/free-guide', '7-Day Free Guide'],
     ['/testosterone-tracker', 'Optimisation Tracker'],
     ['/workout-generator', 'Workout Generator'],
@@ -27,6 +28,7 @@
   var WOMEN = [
     ['/hormone-quiz', 'Hormone Quiz'],
     ['/perimenopause-blood-test', 'Online Blood Test'],
+    ['/hrt', 'All about HRT'],
     ['/workout-generator', 'Workout Generator'],
     ['/ask', 'Ask the Question'],
     ['/hormone-blueprint', 'Book']
