@@ -17,6 +17,7 @@
   var MEN = [
     ['/testosterone-test', 'Testosterone Quiz'],
     ['/andropause-calculator', 'Find Your Real Age'],
+    ['/testosterone-levels-by-age', 'Testosterone by Age'],
     ['/testosterone-blood-test', 'Online Blood Test'],
     ['/trt', 'All about TRT'],
     ['/free-guide', '7-Day Free Guide'],
@@ -26,6 +27,7 @@
     ['/#book', 'Book']
   ];
   var WOMEN = [
+    ['/menopause-stage-quiz', 'Menopause Stage Check'],
     ['/hormone-quiz', 'Hormone Quiz'],
     ['/perimenopause-blood-test', 'Online Blood Test'],
     ['/hrt', 'All about HRT'],
@@ -65,7 +67,7 @@
     '.nbm-grp-h .nbm-caret{font-size:.6em}',
     '.nbm-grp.open .nbm-grp-h .nbm-caret{transform:rotate(180deg)}',
     '.nbm-sub{max-height:0;overflow:hidden;transition:max-height .25s ease;display:flex;flex-direction:column}',
-    '.nbm-grp.open .nbm-sub{max-height:520px}',
+    '.nbm-grp.open .nbm-sub{max-height:620px}',
     '.nbm-sub a{color:#cfe;opacity:.92;color:#F4ECDD;text-decoration:none;font-family:Georgia,serif;font-size:17px;padding:11px 6px 11px 20px}',
     '.nbm-sub a:hover{opacity:1}',
     '.nbm-ov-cta{background:#C9302C;color:#fff;text-align:center;padding:16px 28px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:18px;text-transform:uppercase;letter-spacing:1px;font-size:14px}',
