@@ -18,6 +18,7 @@
     ['/testosterone-test', 'Testosterone Quiz'],
     ['/andropause-calculator', 'Find Your Real Age'],
     ['/testosterone-levels-by-age', 'Testosterone by Age'],
+    ['/libido', 'Libido & Sex Drive'],
     ['/testosterone-blood-test', 'Online Blood Test'],
     ['/trt', 'All about TRT'],
     ['/free-guide', '7-Day Free Guide'],
@@ -29,6 +30,7 @@
   var WOMEN = [
     ['/menopause-stage-quiz', 'Menopause Stage Check'],
     ['/hormone-quiz', 'Hormone Quiz'],
+    ['/womens-libido', 'Libido & Sex Drive'],
     ['/perimenopause-blood-test', 'Online Blood Test'],
     ['/hrt', 'All about HRT'],
     ['/workout-generator', 'Workout Generator'],
