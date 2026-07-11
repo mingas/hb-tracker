@@ -11,6 +11,7 @@
   // --- Menu model (label, [ [href, text], ... ]) -------------------------------
   var RES = [
     ['/free-tools', 'Free Tools'],
+    ['/home-hormone-audit', 'Home Hormone Audit'],
     ['/resources', 'For Men'],
     ['/womens-hormone-health', 'For Women']
   ];
