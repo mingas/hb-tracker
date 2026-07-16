@@ -36,6 +36,7 @@
     ['/hrt', 'All about HRT'],
     ['/workout-generator', 'Workout Generator'],
     ['/ask', 'Ask the Question'],
+    ['/hormone-tracker', 'Hormone Tracker'],
     ['/hormone-blueprint', 'Book']
   ];
   var NUTRITION = [
