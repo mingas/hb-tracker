@@ -30,6 +30,7 @@
   ];
   var WOMEN = [
     ['/menopause-stage-quiz', 'Menopause Stage Check'],
+    ['/hot-flash-duration', 'Hot Flash Duration'],
     ['/hrt-checker', 'HRT Checker'],
     ['/hormone-quiz', 'Hormone Quiz'],
     ['/womens-libido', 'Libido & Sex Drive'],
