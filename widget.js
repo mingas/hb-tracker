@@ -111,7 +111,8 @@
         foodCard.querySelector('.hb-t-meta').innerHTML=tags.map(function(t){return '<span class="hb-t-tag">'+t+'</span>';}).join('');
         var cta=foodCard.querySelector('.hb-t-cta'); if(cta) cta.setAttribute('href','/foods/'+f.s);
         var ovl=foodCard.querySelector('.hb-t-cardlink'); if(ovl) ovl.setAttribute('href','/foods/'+f.s);
-        foodCard.classList.remove('skeleton','swapping','soft');
+        foodCard.classList.remove('skeleton','swapping');
+        if(soft) setTimeout(function(){ foodCard.classList.remove('soft'); },600);
         say(f.n);
       }
       setTimeout(apply, first?0:(soft?560:160));
@@ -157,7 +158,8 @@
         insCard.querySelector('.hb-t-text').textContent=q.x||'';
         var cta=insCard.querySelector('.hb-t-cta'); if(cta&&q.u) cta.setAttribute('href',q.u);
         var ovl=insCard.querySelector('.hb-t-cardlink'); if(ovl&&q.u) ovl.setAttribute('href',q.u);
-        insCard.classList.remove('skeleton','swapping','soft');
+        insCard.classList.remove('skeleton','swapping');
+        if(soft) setTimeout(function(){ insCard.classList.remove('soft'); },600);
         say(q.t);
       }, first?0:(soft?560:160));
     }
@@ -206,7 +208,7 @@
     paintFood(true); paintIns(true); paintList('men',true); paintList('women',true); paintDots();
 
     // ---- gentle autoplay: cycles slowly, pauses on hover, stops for good on manual use ----
-    var AUTO_MS=7000, AUTO_DELAY=4500;
+    var AUTO_MS=10000, AUTO_DELAY=5000;
     var reduced=false;
     try{ reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
     var autoTimer=null, autoPaused=false, autoStopped=reduced;
