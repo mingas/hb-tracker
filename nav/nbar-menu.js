@@ -43,7 +43,8 @@
   ];
   var NUTRITION = [
     ['/supplements-guide', 'Supplements'],
-    ['/foods', 'Foods']
+    ['/foods', 'Foods'],
+    ['/recipes', 'Recipes']
   ];
   // Paths that must NOT be folded into a dropdown (kept as top-level link).
   var KEEP = ['/contact'];
