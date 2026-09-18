@@ -19,9 +19,10 @@ var state={goal:"all",meal:"all",time:"all"};
 function css(){
   if(document.getElementById("rh-css"))return;
   var s=document.createElement("style");s.id="rh-css";
-  s.textContent=".rh-chip{border:1px solid #E7E1D4;background:#fff;color:#2b3440;font:inherit;font-size:14px;font-weight:600;padding:8px 15px;border-radius:999px;cursor:pointer;transition:background .15s,border-color .15s,color .15s}"+
-  ".rh-chip:hover{border-color:#C09A4E}"+
-  '.rh-chip[aria-pressed="true"]{background:#12294A;border-color:#12294A;color:#fff}'+
+  s.textContent=".rh-seg{display:inline-flex;background:#F4EDE1;border-radius:12px;padding:4px;gap:2px;flex-wrap:wrap}"+
+  ".rh-chip{border:none;background:transparent;color:#6B6455;font:inherit;font-size:14.5px;font-weight:600;padding:9px 18px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}"+
+  ".rh-chip:hover{color:#12294A}"+
+  '.rh-chip[aria-pressed="true"]{background:#fff;color:#12294A;box-shadow:0 1px 3px rgba(18,41,74,.10)}'+
   ".rh-chip:focus-visible{outline:2px solid #C09A4E;outline-offset:2px}"+
   ".rh-card{background:#fff;border:1px solid #E7E1D4;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit}"+
   ".rh-card:hover{border-color:#C09A4E}"+
@@ -32,7 +33,8 @@ function css(){
   ".rh-tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F2E7CE;color:#7A6430}"+
   ".rh-tag.tm{background:#EDF1F5;color:#41556E}"+
   ".rh-t{font-family:Fraunces,Georgia,serif;font-size:19px;line-height:1.25;font-weight:600;color:#12294A;margin:0 0 7px}"+
-  ".rh-i{font-size:14.5px;line-height:1.55;color:#6B7280;margin:0}";
+  ".rh-i{font-size:14.5px;line-height:1.55;color:#6B7280;margin:0}"+
+  "@media screen and (max-width:767px){.rh-seg{display:flex;width:100%}.rh-chip{flex:1;padding:9px 10px;font-size:13.5px}}";
   document.head.appendChild(s);
 }
 
@@ -41,7 +43,7 @@ function chips(group,opts){
   var l=document.createElement("div");l.className="rh-lab";
   l.textContent=group==="goal"?"What are you working on?":group==="meal"?"Which meal?":"How long have you got?";
   d.appendChild(l);
-  var c=document.createElement("div");c.className="rh-chips";c.setAttribute("data-g",group);
+  var c=document.createElement("div");c.className="rh-seg";c.setAttribute("data-g",group);
   opts.forEach(function(o){
     var b=document.createElement("button");
     b.type="button";b.className="rh-chip";b.setAttribute("data-v",o[0]);
