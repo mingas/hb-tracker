@@ -12,18 +12,21 @@ var R=[
 {s:"chicken-liver-pate",n:"Chicken Liver Pate with Shallots",i:"The most nutrient-dense food on the site, in the only form most people will actually eat it.",m:"Snack",t:25,g:["testosterone","menopause"],p:CDN+"6aad542e4f6a8d4f8367c30e_6aad53fdd41f166282a34705_Chicken%2520Liver%2520Pate%2520with%2520Shallots.jpeg"}
 ];
 var GOALS=[["all","All"],["testosterone","Testosterone"],["menopause","Menopause"],["insulin","Blood sugar"],["sleep","Sleep"]];
-var MEALS=[["all","All"],["Breakfast","Breakfast"],["Lunch","Lunch"],["Dinner","Dinner"],["Snack","Snack"]];
-var TIMES=[["all","Any"],["15","Under 15 min"],["30","Under 30 min"]];
+var MEALS=[["all","All meals"],["Breakfast","Breakfast"],["Lunch","Lunch"],["Dinner","Dinner"],["Snack","Snack"]];
+var TIMES=[["all","Any time"],["15","Under 15 min"],["30","Under 30 min"]];
 var state={goal:"all",meal:"all",time:"all"};
 
 function css(){
   if(document.getElementById("rh-css"))return;
   var s=document.createElement("style");s.id="rh-css";
-  s.textContent=".rh-seg{display:inline-flex;background:#F4EDE1;border-radius:12px;padding:4px;gap:2px;flex-wrap:wrap}"+
-  ".rh-chip{border:none;background:transparent;color:#6B6455;font:inherit;font-size:14.5px;font-weight:600;padding:9px 18px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}"+
+  s.textContent=".rh-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}"+
+  ".rh-seg{display:inline-flex;background:#F4EDE1;border-radius:12px;padding:4px;gap:2px}"+
+  ".rh-chip{border:none;background:transparent;color:#6B6455;font:inherit;font-size:14.5px;font-weight:600;padding:9px 16px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s;white-space:nowrap}"+
   ".rh-chip:hover{color:#12294A}"+
   '.rh-chip[aria-pressed="true"]{background:#fff;color:#12294A;box-shadow:0 1px 3px rgba(18,41,74,.10)}'+
   ".rh-chip:focus-visible{outline:2px solid #C09A4E;outline-offset:2px}"+
+  ".rh-sel{border:1px solid #E7E1D4;background:#fff;color:#2b3440;font:inherit;font-size:14.5px;font-weight:600;padding:11px 14px;border-radius:12px;cursor:pointer}"+
+  ".rh-sel:focus-visible{outline:2px solid #C09A4E;outline-offset:2px}"+
   ".rh-card{background:#fff;border:1px solid #E7E1D4;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit}"+
   ".rh-card:hover{border-color:#C09A4E}"+
   ".rh-card:focus-visible{outline:2px solid #C09A4E;outline-offset:2px}"+
@@ -34,25 +37,32 @@ function css(){
   ".rh-tag.tm{background:#EDF1F5;color:#41556E}"+
   ".rh-t{font-family:Fraunces,Georgia,serif;font-size:19px;line-height:1.25;font-weight:600;color:#12294A;margin:0 0 7px}"+
   ".rh-i{font-size:14.5px;line-height:1.55;color:#6B7280;margin:0}"+
-  "@media screen and (max-width:767px){.rh-seg{display:flex;width:100%}.rh-chip{flex:1;padding:9px 10px;font-size:13.5px}}";
+  "@media screen and (max-width:767px){.rh-bar{gap:8px}.rh-seg{width:100%;overflow-x:auto}.rh-chip{flex:1;padding:9px 11px;font-size:13.5px}.rh-sel{flex:1;min-width:0;font-size:14px;padding:10px 11px}}";
   document.head.appendChild(s);
 }
 
-function chips(group,opts){
-  var d=document.createElement("div");d.className="rh-grp";
-  var l=document.createElement("div");l.className="rh-lab";
-  l.textContent=group==="goal"?"What are you working on?":group==="meal"?"Which meal?":"How long have you got?";
-  d.appendChild(l);
-  var c=document.createElement("div");c.className="rh-seg";c.setAttribute("data-g",group);
-  opts.forEach(function(o){
+function seg(){
+  var c=document.createElement("div");c.className="rh-seg";c.setAttribute("data-g","goal");
+  GOALS.forEach(function(o){
     var b=document.createElement("button");
     b.type="button";b.className="rh-chip";b.setAttribute("data-v",o[0]);
-    b.setAttribute("aria-pressed",state[group]===o[0]?"true":"false");
+    b.setAttribute("aria-pressed",state.goal===o[0]?"true":"false");
     b.textContent=o[1];
     c.appendChild(b);
   });
-  d.appendChild(c);
-  return d;
+  return c;
+}
+
+function sel(group,opts,label){
+  var s=document.createElement("select");
+  s.className="rh-sel";s.setAttribute("data-g",group);s.setAttribute("aria-label",label);
+  opts.forEach(function(o){
+    var op=document.createElement("option");
+    op.value=o[0];op.textContent=o[1];
+    if(state[group]===o[0])op.selected=true;
+    s.appendChild(op);
+  });
+  return s;
 }
 
 function render(){
@@ -93,15 +103,22 @@ function init(){
   if(!f)return;
   css();
   f.innerHTML="";
-  f.appendChild(chips("goal",GOALS));
-  f.appendChild(chips("meal",MEALS));
-  f.appendChild(chips("time",TIMES));
+  var bar=document.createElement("div");bar.className="rh-bar";
+  bar.appendChild(seg());
+  bar.appendChild(sel("meal",MEALS,"Filter by meal"));
+  bar.appendChild(sel("time",TIMES,"Filter by time"));
+  f.appendChild(bar);
   f.addEventListener("click",function(e){
     var b=e.target.closest(".rh-chip");if(!b)return;
-    var wrap=b.parentNode;var g=wrap.getAttribute("data-g");
+    var wrap=b.parentNode;
     Array.prototype.forEach.call(wrap.querySelectorAll(".rh-chip"),function(c){c.setAttribute("aria-pressed","false");});
     b.setAttribute("aria-pressed","true");
-    state[g]=b.getAttribute("data-v");
+    state.goal=b.getAttribute("data-v");
+    render();
+  });
+  f.addEventListener("change",function(e){
+    var s=e.target.closest(".rh-sel");if(!s)return;
+    state[s.getAttribute("data-g")]=s.value;
     render();
   });
   render();
