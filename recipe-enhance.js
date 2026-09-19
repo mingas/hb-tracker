@@ -75,7 +75,7 @@ function css(){
   ".rcp-note{font-size:13.5px;color:#6B7280;margin:10px 0 0}"+
   "@media screen and (max-width:600px){.rcp-nut-r{grid-template-columns:repeat(2,1fr)}.rcp-act{flex:1 1 calc(50% - 5px);justify-content:center}}"+
   "@media print{"+
-    ".navbar,.nav,.nav-bar,nav,footer,.footer,.rcp-acts,.rcp-back,.rcp-note,.w-nav,.w-nav-overlay,.hb-nav,#nbar-menu{display:none!important}"+
+    ".navbar,.nav,.nav-bar,.nbar-wrap,.nbar,nav,footer,.footer,.rcp-acts,.rcp-back,.rcp-note,.w-nav,.w-nav-overlay,.hb-nav,#nbar-menu,.rcp-noprint{display:none!important}"+
     "body{background:#fff!important;padding-top:0!important}"+
     ".rcp-wrap{padding-top:0!important;max-width:100%!important}"+
     ".rcp-hero{max-height:250px;object-fit:cover}"+
@@ -110,6 +110,49 @@ function btn(label, icons){
   b.appendChild(icon(icons));
   b.appendChild(document.createTextNode(label));
   return b;
+}
+
+
+/* ---------------- fixed-header helpers ----------------
+   The site navbar has been renamed before, so nothing here hardcodes a class.
+   navOffset() asks the browser what is actually covering the top of the
+   viewport; markFixed() tags those elements so the print stylesheet can hide
+   them whatever they are called. */
+function navOffset(){
+  var best = 0;
+  try{
+    var els = document.elementsFromPoint(Math.floor(window.innerWidth/2), 5) || [];
+    for(var i=0;i<els.length;i++){
+      var e = els[i];
+      if(e === document.body || e === document.documentElement) continue;
+      var cs = window.getComputedStyle(e);
+      if(cs.position === "fixed" || cs.position === "sticky"){
+        var b = e.getBoundingClientRect().bottom;
+        if(b > best && b < 250) best = b;
+      }
+    }
+  }catch(err){}
+  return best;
+}
+
+function markFixed(){
+  try{
+    var all = document.querySelectorAll("body > *, body > * > *");
+    for(var i=0;i<all.length;i++){
+      if(window.getComputedStyle(all[i]).position === "fixed"){
+        all[i].classList.add("rcp-noprint");
+      }
+    }
+  }catch(err){}
+}
+
+function scrollToAnchor(){
+  var t = document.getElementById("rcp-ing-anchor");
+  if(!t) return;
+  var y = t.getBoundingClientRect().top + (window.pageYOffset || 0) - (navOffset() + 16);
+  if(y < 0) y = 0;
+  try{ window.scrollTo({ top: y, behavior: "smooth" }); }
+  catch(err){ window.scrollTo(0, y); }
 }
 
 /* ------------------------------ cook mode ------------------------------ */
@@ -158,7 +201,13 @@ function build(){
   var img    = wrap.querySelector(".rcp-hero");
   var imgSrc = img ? (img.currentSrc || img.src || "") : "";
 
-  var pills = Array.prototype.map.call(wrap.querySelectorAll(".rcp-pill"), txt);
+  var pillEls = wrap.querySelectorAll(".rcp-pill");
+  /* Time Minutes is a CMS Number field, so the middle pill renders as a bare
+     "15". Binding cannot be changed through the API, so add the unit here. */
+  if(pillEls[1] && /^\d+$/.test(txt(pillEls[1]))){
+    pillEls[1].textContent = txt(pillEls[1]) + " min";
+  }
+  var pills = Array.prototype.map.call(pillEls, txt);
   var meal  = pills[0] || "";
   var mins  = 0;
   if(pills[1]){ var m = pills[1].match(/(\d+)/); if(m) mins = parseInt(m[1],10); }
@@ -194,6 +243,10 @@ function build(){
     jump.href = "#rcp-ing-anchor";
     jump.appendChild(icon(IC_DOWN));
     jump.appendChild(document.createTextNode("Jump to recipe"));
+    /* Webflow intercepts in-page anchor clicks and animates the scroll itself,
+       which ignores scroll-margin-top and leaves the heading under the navbar.
+       Scroll it manually instead. */
+    jump.addEventListener("click", function(e){ e.preventDefault(); scrollToAnchor(); });
     acts.appendChild(jump);
 
     var cook = btn("Cook mode", IC_BULB);
@@ -223,7 +276,9 @@ function build(){
     cook.addEventListener("click", function(){
       setCook(cook.getAttribute("aria-pressed") !== "true", cook, note);
     });
-    prn.addEventListener("click", function(){ window.print(); });
+    prn.addEventListener("click", function(){ markFixed(); window.print(); });
+
+    window.addEventListener("beforeprint", markFixed);
 
     document.addEventListener("visibilitychange", function(){
       if(document.visibilityState === "visible" &&
@@ -320,8 +375,12 @@ function build(){
   }
 
   if(d){
-    if(d.p > 0) data.prepTime = "PT" + d.p + "M";
-    if(d.c > 0) data.cookTime = "PT" + d.c + "M";
+    /* Google's guidance is that prepTime and cookTime are used together.
+       A no-cook recipe gets PT0M rather than an absent key. */
+    if(d.p > 0){
+      data.prepTime = "PT" + d.p + "M";
+      data.cookTime = "PT" + d.c + "M";
+    }
     if(d.cu) data.recipeCuisine = d.cu;
     if(d.kw) data.keywords = d.kw;
     if(d.d && d.d.length){
