@@ -9,7 +9,11 @@ var R=[
 {s:"salmon-broccoli-sprouts",n:"Roast Salmon with Broccoli and Raw Sprouts",i:"Twenty-two minutes, one tray, and the step everyone gets wrong: the sprouts go on raw.",m:"Dinner",t:22,g:["testosterone","menopause","insulin"],p:CDN+"6aad542e4f6a8d4f8367c307_6aad53aa5e00665e284026cf_Roast%2520Salmon%2520with%2520Broccoli%2520and%2520Raw%2520Sprouts.jpeg"},
 {s:"buckwheat-beetroot-bowl",n:"Buckwheat Bowl with Roast Beetroot",i:"Buckwheat is neither wheat nor a grain, and it carries more magnesium than almost anything in the cupboard.",m:"Dinner",t:40,g:["testosterone","menopause","insulin"],p:CDN+"6aad542e4f6a8d4f8367c304_6aad53c3e7dcbe3611219d71_Buckwheat%2520Bowl%2520with%2520Roast%2520Beetroot.jpeg"},
 {s:"yogurt-cherries-walnuts",n:"Greek Yogurt with Cherries and Walnuts",i:"Four minutes, eaten before bed. Slow protein overnight, magnesium, and a little melatonin.",m:"Snack",t:4,g:["menopause","insulin","sleep"],p:CDN+"6aad542e4f6a8d4f8367c2fc_6aad53debe550889fba897ca_Greek%2520Yogurt%2520with%2520Cherries%2520and%2520Walnuts.jpeg"},
-{s:"chicken-liver-pate",n:"Chicken Liver Pate with Shallots",i:"The most nutrient-dense food on the site, in the only form most people will actually eat it.",m:"Snack",t:25,g:["testosterone","menopause"],p:CDN+"6aad542e4f6a8d4f8367c30e_6aad53fdd41f166282a34705_Chicken%2520Liver%2520Pate%2520with%2520Shallots.jpeg"}
+{s:"chicken-liver-pate",n:"Chicken Liver Pate with Shallots",i:"The most nutrient-dense food on the site, in the only form most people will actually eat it.",m:"Snack",t:25,g:["testosterone","menopause"],p:CDN+"6aad542e4f6a8d4f8367c30e_6aad53fdd41f166282a34705_Chicken%2520Liver%2520Pate%2520with%2520Shallots.jpeg"},
+{s:"beef-black-bean-chilli",n:"Beef and Black Bean Chilli",i:"Zinc, haem iron and 31 grams of protein in one pot. It freezes, and it is better on day two.",m:"Dinner",t:45,g:["testosterone","insulin"],p:CDN+"6aaea825a5aee162c44fd7f4_6aaea7a0dcf871bb1300d4a0_.%2520Beef%2520and%2520Black%2520Bean%2520Chilli%2520.jpeg"},
+{s:"kefir-berry-brazil-smoothie",n:"Kefir Smoothie with Berries and Brazil Nuts",i:"Four minutes, one glass, and the two Brazil nuts that cover a full day of selenium.",m:"Breakfast",t:4,g:["menopause","insulin"],p:CDN+"6aaea825a5aee162c44fd7e4_6aaea7b602118b905e03422e_kefir%2520smoothie%2520glass%2520berries%2520brazil%2520nuts.jpeg"},
+{s:"kimchi-fried-rice-eggs",n:"Kimchi Fried Rice with Eggs",i:"Fifteen minutes from yesterday\'s rice. Fermented cabbage, four eggs, and the one step almost everyone skips.",m:"Lunch",t:15,g:["menopause","insulin"],p:CDN+"6aaea825a5aee162c44fd7ed_6aaea7cd6694a15782e82563_Kimchi%2520Fried%2520Rice%2520with%2520Eggs%2520.jpeg"},
+{s:"pumpkin-seed-oat-bites",n:"Pumpkin Seed and Oat Bites",i:"Twelve bites, no oven, and the one mineral with an authorised claim attached to testosterone.",m:"Snack",t:15,g:["testosterone","sleep"],p:CDN+"6aaea825a5aee162c44fd7f1_6aaea7eebea9dd8db5f8b104_Pumpkin%2520Seed%2520and%2520Oat%2520Bites%2520.jpeg"}
 ];
 var GOALS=[["all","All"],["testosterone","Testosterone"],["menopause","Menopause"],["insulin","Blood sugar"],["sleep","Sleep"]];
 var MEALS=[["all","All meals"],["Breakfast","Breakfast"],["Lunch","Lunch"],["Dinner","Dinner"],["Snack","Snack"]];
@@ -76,11 +80,14 @@ function render(){
            (state.time==="all"||r.t<=Number(state.time));
   });
   grid.innerHTML="";
-  out.forEach(function(r){
+  out.forEach(function(r,idx){
     var a=document.createElement("a");
     a.className="rh-card";a.href="/recipes/"+r.s;
     var im=document.createElement("img");
-    im.className="rh-img";im.src=r.p;im.alt=r.n;im.loading="lazy";
+    im.className="rh-img";im.src=r.p;im.alt=r.n;
+    /* first row is above the fold: eager, so it does not delay LCP */
+    im.setAttribute("loading", idx<3 ? "eager" : "lazy");
+    if(idx===0) im.setAttribute("fetchpriority","high");
     a.appendChild(im);
     var b=document.createElement("div");b.className="rh-body";
     var mt=document.createElement("div");mt.className="rh-meta";
@@ -98,10 +105,26 @@ function render(){
   if(empty)empty.style.display=out.length?"none":"";
 }
 
+function schema(){
+  if(document.getElementById("rh-itemlist"))return;
+  var origin=location.origin;
+  var data={"@context":"https://schema.org","@type":"ItemList",
+    "name":"Hormone-health recipes",
+    "numberOfItems":R.length,
+    "itemListElement":R.map(function(r,i){
+      return {"@type":"ListItem","position":i+1,"url":origin+"/recipes/"+r.s,"name":r.n};
+    })};
+  var el=document.createElement("script");
+  el.type="application/ld+json";el.id="rh-itemlist";
+  el.textContent=JSON.stringify(data);
+  document.head.appendChild(el);
+}
+
 function init(){
   var f=document.getElementById("rh-filters");
   if(!f)return;
   css();
+  schema();
   f.innerHTML="";
   var bar=document.createElement("div");bar.className="rh-bar";
   bar.appendChild(seg());

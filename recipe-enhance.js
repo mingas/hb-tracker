@@ -19,7 +19,11 @@ var DATA = {
 "mackerel-avocado-bowl":{p:10,c:0,k:520,pr:32,cb:9,f:38,cu:"British",d:["GlutenFreeDiet","LowLactoseDiet"],kw:"mackerel, avocado, omega-3, no cook lunch, high protein"},
 "yogurt-cherries-walnuts":{p:4,c:0,k:295,pr:18,cb:22,f:14,cu:"British",d:["VegetarianDiet","GlutenFreeDiet"],kw:"greek yogurt, tart cherries, walnuts, melatonin, sleep snack"},
 "buckwheat-beetroot-bowl":{p:5,c:35,k:480,pr:16,cb:58,f:20,cu:"British",d:["VegetarianDiet","GlutenFreeDiet"],kw:"buckwheat, beetroot, magnesium, nitrates, gluten free bowl"},
-"chicken-liver-pate":{p:10,c:15,k:210,pr:14,cb:3,f:16,cu:"French",d:["GlutenFreeDiet"],kw:"chicken liver pate, retinol, zinc, nutrient dense, shallots"}
+"chicken-liver-pate":{p:10,c:15,k:210,pr:14,cb:3,f:16,cu:"French",d:["GlutenFreeDiet"],kw:"chicken liver pate, retinol, zinc, nutrient dense, shallots"},
+"beef-black-bean-chilli":{p:10,c:35,k:495,pr:31,cb:32,f:26,cu:"Mexican",d:["GlutenFreeDiet"],kw:"beef chilli, black beans, zinc, haem iron, high protein dinner, batch cooking"},
+"kefir-berry-brazil-smoothie":{p:4,c:0,k:355,pr:22,cb:29,f:18,cu:"British",d:["VegetarianDiet","GlutenFreeDiet"],kw:"kefir smoothie, brazil nuts, selenium, live cultures, flaxseed, quick breakfast"},
+"kimchi-fried-rice-eggs":{p:5,c:10,k:395,pr:17,cb:36,f:15,cu:"Korean",d:["GlutenFreeDiet"],kw:"kimchi fried rice, fermented food, resistant starch, eggs, quick lunch"},
+"pumpkin-seed-oat-bites":{p:15,c:0,k:145,pr:5,cb:14,f:8,cu:"British",d:["VegetarianDiet","GlutenFreeDiet"],kw:"pumpkin seed bites, no bake oat balls, zinc, magnesium, evening snack"}
 };
 
 var DIET_LABEL = {
@@ -159,8 +163,6 @@ function build(){
   var mins  = 0;
   if(pills[1]){ var m = pills[1].match(/(\d+)/); if(m) mins = parseInt(m[1],10); }
   var serves = pills[2] || "";
-  var servesN = 0;
-  if(serves){ var sm = serves.match(/(\d+)/); if(sm) servesN = parseInt(sm[1],10); }
 
   var bodies = wrap.querySelectorAll(".rcp-body");
   var ingEl  = bodies[0] || null;
@@ -253,7 +255,8 @@ function build(){
     var bits = [];
     if(d.p) bits.push(d.p + " min prep");
     if(d.c) bits.push(d.c + " min cooking");
-    if(servesN) bits.push("serves " + servesN);
+    /* keep the CMS wording, so "Makes 12" does not become "serves 12" */
+    if(serves) bits.push(serves.charAt(0).toLowerCase() + serves.slice(1));
     sub.textContent = bits.join(" · ");
     if(bits.length) box.appendChild(sub);
 
