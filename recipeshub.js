@@ -15,6 +15,10 @@ var R=[
 {s:"kimchi-fried-rice-eggs",n:"Kimchi Fried Rice with Eggs",i:"Fifteen minutes from yesterday\'s rice. Fermented cabbage, four eggs, and the one step almost everyone skips.",m:"Lunch",t:15,g:["menopause","insulin"],p:CDN+"6aaea825a5aee162c44fd7ed_6aaea7cd6694a15782e82563_Kimchi%2520Fried%2520Rice%2520with%2520Eggs%2520.jpeg"},
 {s:"pumpkin-seed-oat-bites",n:"Pumpkin Seed and Oat Bites",i:"Twelve bites, no oven, and the one mineral with an authorised claim attached to testosterone.",m:"Snack",t:15,g:["testosterone","sleep"],p:CDN+"6aaea825a5aee162c44fd7f1_6aaea7eebea9dd8db5f8b104_Pumpkin%2520Seed%2520and%2520Oat%2520Bites%2520.jpeg"}
 ];
+/* Newest first. New recipes are APPENDED to the end of the R literal above,
+   so this reverse puts them at the top of the grid without reordering the source. */
+R.reverse();
+
 var GOALS=[["all","All"],["testosterone","Testosterone"],["menopause","Menopause"],["insulin","Blood sugar"],["sleep","Sleep"]];
 var MEALS=[["all","All meals"],["Breakfast","Breakfast"],["Lunch","Lunch"],["Dinner","Dinner"],["Snack","Snack"]];
 var TIMES=[["all","Any time"],["15","Under 15 min"],["30","Under 30 min"]];
