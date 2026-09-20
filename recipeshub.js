@@ -49,8 +49,11 @@ function readRecipes(){
       });
     });
   });
-  /* Webflow renders oldest first; the reader should meet the newest first. */
-  return out.reverse();
+  /* The Collection List has no sort set, so Webflow renders it newest first —
+     which is the order the reader should meet. Do NOT reverse this: the
+     hardcoded array this replaced was written oldest-first and needed it, and
+     carrying the .reverse() across sank every new recipe to the bottom. */
+  return out;
 }
 
 var R = readRecipes();
