@@ -81,12 +81,21 @@ function css(){
   var s = document.createElement("style"); s.id = "rh-css";
   s.textContent =
   /* hero becomes two columns; heading keeps column one, finder takes column two */
+  /* The hero was a narrow centred column. Adding a second column to it without
+     releasing that width squeezed the heading to a ribbon, so the width cap and
+     the centring are both overridden here — but only where two columns exist. */
   "@media screen and (min-width:961px){"+
-    ".rh-head{display:grid;grid-template-columns:1fr 460px;gap:34px;align-items:start}"+
-    ".rh-head>.rh-h1{grid-column:1;grid-row:1;margin-top:0}"+
-    ".rh-head>.rh-sub{grid-column:1;grid-row:2}"+
-    ".rh-head>#rx-finder{grid-column:2;grid-row:1/span 2}"+
+    ".rh-head{max-width:none!important;width:100%;display:grid;"+
+      "grid-template-columns:minmax(0,1fr) 420px;grid-template-rows:auto 1fr;"+
+      "gap:10px 48px;align-items:start;text-align:left}"+
+    ".rh-head>.rh-h1{grid-column:1;grid-row:1;margin:0;max-width:none;text-align:left}"+
+    ".rh-head>.rh-sub{grid-column:1;grid-row:2;margin:0;max-width:58ch;text-align:left}"+
+    ".rh-head>#rx-finder{grid-column:2;grid-row:1/span 2;align-self:center}"+
   "}"+
+  /* .rh-head is text-align:center on this site, so the panel must reclaim the
+     left edge for itself — otherwise the title, the note and the text typed
+     into the input all sit centred on phones. */
+  "#rx-finder,.rx{text-align:left}"+
   ".rx{position:relative;background:linear-gradient(160deg,#16304F 0%,#12294A 62%,#0E2039 100%);"+
     "border:1px solid #1E3A5C;border-radius:16px;padding:17px 17px 15px;"+
     "box-shadow:0 10px 28px rgba(18,41,74,.18);animation:rxIn .5s ease both}"+
@@ -131,9 +140,15 @@ function css(){
     "font:inherit;font-size:13px;font-weight:600;padding:5px 11px;border-radius:999px;cursor:pointer;transition:.15s}"+
   ".rx-sug:hover{background:#C09A4E;border-color:#C09A4E;color:#12294A}"+
   ".rx-note{font-size:12.5px;line-height:1.5;color:#93A8C2;margin:11px 0 0}"+
-  ".rx-open{display:none;width:100%;border:1px solid #1E3A5C;background:#12294A;color:#fff;"+
-    "font:inherit;font-size:15px;font-weight:600;padding:15px;border-radius:12px;cursor:pointer;"+
+  ".rx-open{display:none;width:100%;border:1px solid #1E3A5C;"+
+    "background:linear-gradient(160deg,#16304F 0%,#12294A 70%,#0E2039 100%);color:#fff;"+
+    "font:inherit;padding:14px 46px 14px 15px;border-radius:12px;cursor:pointer;position:relative;"+
     "text-align:left;box-shadow:0 6px 18px rgba(18,41,74,.16)}"+
+  ".rx-open-t{display:block;font-size:15.5px;font-weight:600;line-height:1.3}"+
+  ".rx-open-s{display:block;font-size:13px;font-weight:500;color:#A9BBD1;margin:3px 0 0;line-height:1.4}"+
+  ".rx-open-c{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:26px;height:26px;"+
+    "border-radius:50%;background:#C09A4E;color:#12294A;font-size:18px;font-weight:700;line-height:26px;"+
+    "text-align:center}"+
   /* the existing filter row, unchanged */
   ".rh-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}"+
   ".rh-seg{display:inline-flex;background:#F4EDE1;border-radius:12px;padding:4px;gap:2px}"+
@@ -172,6 +187,9 @@ function css(){
   "@media screen and (max-width:960px){"+
     ".rx{display:none;padding:14px;margin:14px 0 0}.rx.rx-show{display:block}"+
     ".rx-open{display:block;margin:14px 0 0}.rx-open.rx-hide{display:none}"+
+    /* iOS zooms the whole page in when a focused input is under 16px */
+    "#rx-q{font-size:16px}"+
+    ".rx-ac{max-height:min(50vh,300px)}"+
   "}"+
   "@media screen and (max-width:767px){"+
     ".rh-bar{gap:8px}.rh-seg{width:100%;overflow-x:auto}"+
@@ -190,8 +208,11 @@ function buildFinder(){
 
   var open = document.createElement("button");
   open.type = "button"; open.className = "rx-open"; open.id = "rx-open";
-  open.innerHTML = "🍳 &nbsp;What's in your kitchen? &nbsp;" +
-    '<span style="color:#A9BBD1;font-weight:500">Find recipes you can almost make</span>';
+  /* two stacked lines, not one wrapping sentence — at 390px the old single
+     line broke after the emoji and read as two half-sentences */
+  open.innerHTML = '<span class="rx-open-t">🍳 What\'s in your kitchen?</span>' +
+    '<span class="rx-open-s">Find recipes you can almost make</span>' +
+    '<span class="rx-open-c" aria-hidden="true">+</span>';
 
   finder = document.createElement("div");
   finder.className = "rx";
@@ -428,7 +449,7 @@ function render(){
     var all = state.goal === "all" && state.meal === "all" && state.time === "all";
     count.innerHTML = all
       ? "Showing all <b>" + out.length + "</b> recipes" +
-        (TAGS.length ? ' <span class="rx-out">Add what you have to sort by what you can cook</span>' : "")
+        (TAGS.length ? ' <span class="rx-out">\u00b7 add what you have, above, to sort by what you can cook</span>' : "")
       : "Showing <b>" + out.length + "</b> of " + R.length + " recipes";
     out.forEach(function(r, i){
       var a = card(r, null);
