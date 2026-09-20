@@ -4,26 +4,21 @@ if(window.__rcpEnh) return;
 window.__rcpEnh = true;
 
 /* ---------------------------------------------------------------
-   Per-slug data. Mirrors the Recipes CMS fields that are not
-   rendered in the DOM (prep, cook, calories, macros, cuisine,
-   diet tags). Kept here because CMS field binding is not
-   available through the Webflow Data API.
-   Keys: p prep, c cook, k calories, pr protein, cb carbs,
-         f fat, cu cuisine, d diet tags, kw keywords
+   Recipe values come from a hidden, CMS-bound block on the page
+   (#rcp-data, built 20 Sept). Nothing is hardcoded here any more:
+   adding a recipe is a CMS-only job.
 --------------------------------------------------------------- */
-var DATA = {
-"shakshuka-with-spinach":{p:5,c:20,k:385,pr:22,cb:18,f:26,cu:"Middle Eastern",d:["VegetarianDiet","GlutenFreeDiet"],kw:"shakshuka, eggs, spinach, high protein breakfast, hormone health"},
-"overnight-oats-flaxseed":{p:5,c:0,k:420,pr:21,cb:46,f:16,cu:"British",d:["VegetarianDiet"],kw:"overnight oats, ground flaxseed, lignans, menopause breakfast"},
-"lentil-soup-turmeric-lemon":{p:10,c:35,k:310,pr:18,cb:42,f:8,cu:"Mediterranean",d:["VegetarianDiet","GlutenFreeDiet"],kw:"lentil soup, turmeric, plant protein, blood sugar, batch cooking"},
-"salmon-broccoli-sprouts":{p:10,c:12,k:465,pr:42,cb:12,f:28,cu:"British",d:["GlutenFreeDiet"],kw:"roast salmon, broccoli sprouts, sulforaphane, omega-3, one tray"},
-"mackerel-avocado-bowl":{p:10,c:0,k:520,pr:32,cb:9,f:38,cu:"British",d:["GlutenFreeDiet","LowLactoseDiet"],kw:"mackerel, avocado, omega-3, no cook lunch, high protein"},
-"yogurt-cherries-walnuts":{p:4,c:0,k:295,pr:18,cb:22,f:14,cu:"British",d:["VegetarianDiet","GlutenFreeDiet"],kw:"greek yogurt, tart cherries, walnuts, melatonin, sleep snack"},
-"buckwheat-beetroot-bowl":{p:5,c:35,k:480,pr:16,cb:58,f:20,cu:"British",d:["VegetarianDiet","GlutenFreeDiet"],kw:"buckwheat, beetroot, magnesium, nitrates, gluten free bowl"},
-"chicken-liver-pate":{p:10,c:15,k:210,pr:14,cb:3,f:16,cu:"French",d:["GlutenFreeDiet"],kw:"chicken liver pate, retinol, zinc, nutrient dense, shallots"},
-"beef-black-bean-chilli":{p:10,c:35,k:495,pr:31,cb:32,f:26,cu:"Mexican",d:["GlutenFreeDiet"],kw:"beef chilli, black beans, zinc, haem iron, high protein dinner, batch cooking"},
-"kefir-berry-brazil-smoothie":{p:4,c:0,k:355,pr:22,cb:29,f:18,cu:"British",d:["VegetarianDiet","GlutenFreeDiet"],kw:"kefir smoothie, brazil nuts, selenium, live cultures, flaxseed, quick breakfast"},
-"kimchi-fried-rice-eggs":{p:5,c:10,k:395,pr:17,cb:36,f:15,cu:"Korean",d:["GlutenFreeDiet"],kw:"kimchi fried rice, fermented food, resistant starch, eggs, quick lunch"},
-"pumpkin-seed-oat-bites":{p:15,c:0,k:145,pr:5,cb:14,f:8,cu:"British",d:["VegetarianDiet","GlutenFreeDiet"],kw:"pumpkin seed bites, no bake oat balls, zinc, magnesium, evening snack"}
+var DIET_SCHEMA = {
+  "vegetarian":"VegetarianDiet",
+  "vegan":"VeganDiet",
+  "gluten-free":"GlutenFreeDiet",
+  "gluten free":"GlutenFreeDiet",
+  "low-lactose":"LowLactoseDiet",
+  "low lactose":"LowLactoseDiet",
+  "low-fat":"LowFatDiet",
+  "low-calorie":"LowCalorieDiet",
+  "diabetic":"DiabeticDiet",
+  "diabetic-friendly":"DiabeticDiet"
 };
 
 var DIET_LABEL = {
@@ -38,10 +33,33 @@ var DIET_LABEL = {
 
 function txt(el){ return el ? (el.textContent||"").replace(/\s+/g," ").trim() : ""; }
 
-function slug(){
-  var p = location.pathname.replace(/\/+$/,"");
-  var i = p.lastIndexOf("/");
-  return i > -1 ? p.slice(i+1) : p;
+/* Reads the hidden CMS block. Returns null when it is absent or empty,
+   and every consumer below already copes with null — so a recipe whose
+   numbers have not been filled in simply shows no nutrition box rather
+   than a box full of zeroes. */
+function recipeData(){
+  var box = document.getElementById("rcp-data");
+  if(!box) return null;
+  function val(k){
+    var el = box.querySelector('[data-r="' + k + '"]');
+    return el ? (el.textContent || "").trim() : "";
+  }
+  function num(k){
+    var n = parseInt(val(k).replace(/[^0-9-]/g,""), 10);
+    return isNaN(n) ? 0 : n;
+  }
+  var kcal = num("kcal");
+  if(!kcal) return null;              // no calories filled in, no box
+
+  var diet = val("diet").split(",")
+    .map(function(x){ return x.trim().toLowerCase(); })
+    .filter(Boolean)
+    .map(function(x){ return DIET_SCHEMA[x] || null; })
+    .filter(Boolean);
+
+  return { p:num("prep"), c:num("cook"), k:kcal,
+           pr:num("protein"), cb:num("carbs"), f:num("fat"),
+           cu:val("cuisine"), d:diet, kw:val("kw") };
 }
 
 /* ------------------------------ CSS ------------------------------ */
@@ -195,7 +213,7 @@ function build(){
 
   css();
 
-  var d = DATA[slug()] || null;
+  var d = recipeData();
 
   var intro  = txt(wrap.querySelector(".rcp-intro"));
   var img    = wrap.querySelector(".rcp-hero");
