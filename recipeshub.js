@@ -478,10 +478,16 @@ function render(){
   var ready = sc.filter(function(o){ return !o.missing.length; }).length;
   var near  = sc.filter(function(o){ return o.have > 0; }).length;
 
-  /* A recipe you could cook right now may sit outside the filters, and you
-     would never learn it existed. Say so rather than hiding it silently. */
-  var hiddenReady = R.filter(function(r){
+  /* A recipe that uses what you have may sit outside the filters, and you
+     would never learn it existed. The first version of this asked for a
+     perfect match — every ingredient owned — which almost never happens, so
+     the warning stayed silent exactly when it was needed. Any overlap counts;
+     a perfect match is reported more strongly. */
+  var hidden = R.filter(function(r){
     if(out.indexOf(r) > -1 || !r.ing.length) return false;
+    return r.ing.some(function(t){ return have.indexOf(t) > -1; });
+  });
+  var hiddenReady = hidden.filter(function(r){
     return r.ing.every(function(t){ return have.indexOf(t) > -1; });
   }).length;
 
@@ -490,12 +496,25 @@ function render(){
   if(state.meal !== "all") lead.push(state.meal);
   if(state.time !== "all") lead.push("under " + state.time + " min");
 
+  /* "0 using what you have" was the wording when the filters left nothing —
+     a number where a plain sentence belongs. */
+  var body = near
+    ? (ready ? '<b class="rx-ok">' + ready + "</b> ready to cook, " : "") +
+      near + " using what you have, sorted by how close you are"
+    : "Nothing here uses what you have yet";
+
+  var note = "";
+  if(hiddenReady)
+    note = hiddenReady + (hiddenReady === 1 ? " recipe you" : " recipes you") +
+      " could cook right now " + (hiddenReady === 1 ? "sits" : "sit") + " outside these filters";
+  else if(hidden.length)
+    note = hidden.length + (hidden.length === 1 ? " recipe" : " recipes") +
+      " using your ingredients " + (hidden.length === 1 ? "sits" : "sit") +
+      " outside these filters";
+
   count.innerHTML =
-    (lead.length ? "<b>" + lead.join(" · ") + "</b> — " : "") +
-    (ready ? '<b class="rx-ok">' + ready + "</b> ready to cook, " : "") +
-    near + " using what you have, sorted by how close you are" +
-    (hiddenReady ? ' <span class="rx-out">' + hiddenReady +
-      " more you could cook right now sits outside these filters</span>" : "");
+    (lead.length ? "<b>" + lead.join(" · ") + "</b> — " : "") + body +
+    (note ? ' <span class="rx-out">· ' + note + "</span>" : "");
 
   sc.forEach(function(o, i){
     var a = card(o.r, o);
