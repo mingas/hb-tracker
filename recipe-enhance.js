@@ -91,9 +91,26 @@ function css(){
   ".rcp-body li{cursor:default}"+
   "body.rcp-cooking .rcp-body li{cursor:pointer}"+
   ".rcp-note{font-size:13.5px;color:#6B7280;margin:10px 0 0}"+
+  /* related recipes */
+  ".rcp-rel{margin:34px 0 0;padding:26px 0 0;border-top:1px solid #E7E1D4}"+
+  ".rcp-rel-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin:16px 0 0}"+
+  ".rcp-rel-c{display:flex;flex-direction:column;background:#fff;border:1px solid #E7E1D4;"+
+    "border-radius:14px;overflow:hidden;text-decoration:none;color:inherit;transition:border-color .15s}"+
+  ".rcp-rel-c:hover{border-color:#C09A4E}"+
+  ".rcp-rel-c:focus-visible{outline:2px solid #C09A4E;outline-offset:2px}"+
+  ".rcp-rel-i{width:100%;height:132px;object-fit:cover;display:block;background:#F2E7CE}"+
+  ".rcp-rel-b{padding:13px 14px 15px;flex:1;display:flex;flex-direction:column}"+
+  ".rcp-rel-t{font-family:Fraunces,Georgia,serif;font-size:16.5px;line-height:1.3;font-weight:600;"+
+    "color:#12294A;margin:0 0 6px}"+
+  ".rcp-rel-m{font-size:12.5px;font-weight:600;color:#8A8270;margin:0}"+
+  ".rcp-rel-s{font-size:12.5px;line-height:1.45;color:#6B7280;margin:7px 0 0}"+
+  "@media screen and (max-width:760px){.rcp-rel-g{grid-template-columns:1fr}"+
+    ".rcp-rel-c{flex-direction:row;align-items:stretch}"+
+    ".rcp-rel-i{width:108px;height:auto;min-height:100%;flex:none}"+
+    ".rcp-rel-b{padding:12px 13px}}"+
   "@media screen and (max-width:600px){.rcp-nut-r{grid-template-columns:repeat(2,1fr)}.rcp-act{flex:1 1 calc(50% - 5px);justify-content:center}}"+
   "@media print{"+
-    ".navbar,.nav,.nav-bar,.nbar-wrap,.nbar,nav,footer,.footer,.rcp-acts,.rcp-back,.rcp-note,.w-nav,.w-nav-overlay,.hb-nav,#nbar-menu,.rcp-noprint{display:none!important}"+
+    ".navbar,.nav,.nav-bar,.nbar-wrap,.nbar,nav,footer,.footer,.rcp-acts,.rcp-back,.rcp-note,.w-nav,.w-nav-overlay,.hb-nav,#nbar-menu,.rcp-rel,.rcp-noprint{display:none!important}"+
     "body{background:#fff!important;padding-top:0!important}"+
     ".rcp-wrap{padding-top:0!important;max-width:100%!important}"+
     ".rcp-hero{max-height:250px;object-fit:cover}"+
@@ -199,6 +216,178 @@ function setCook(on, b, note){
   b.setAttribute("aria-pressed", on ? "true" : "false");
   if(note) note.style.display = on ? "" : "none";
   if(on){ requestLock(); } else { releaseLock(); }
+}
+
+/* ------------------------- related recipes -------------------------
+   Every recipe page linked out to the food pages and nothing linked back,
+   so each one had a single inbound internal link — the hub grid. This reads
+   the same hidden CMS block pattern the hub uses and offers three neighbours.
+
+   It does nothing at all when the block is absent, which is what keeps the
+   live pages unchanged until the template ships. */
+
+function readList(){
+  var out = [], seen = {};
+  var blocks = document.querySelectorAll("[data-rcp-list], #rcp-list");
+  Array.prototype.forEach.call(blocks, function(block){
+    Array.prototype.forEach.call(block.querySelectorAll('[data-f="slug"]'), function(slugEl){
+      var rec = slugEl.parentNode;
+      if(!rec) return;
+      function v(k){
+        var el = rec.querySelector('[data-f="' + k + '"]');
+        return el ? (el.textContent || "").trim() : "";
+      }
+      var slug = v("slug");
+      if(!slug || seen[slug]) return;
+      seen[slug] = true;
+      var img = rec.querySelector('[data-f="photo"]');
+      var goals = [];
+      Array.prototype.forEach.call(rec.querySelectorAll("[data-g]"), function(g){
+        var n = g.getAttribute("data-g"); if(n) goals.push(n);
+      });
+      out.push({ s:slug, n:v("name"), m:v("meal"), t:v("time"), g:goals,
+        p: img ? (img.getAttribute("src") || "") : "",
+        a: img ? (img.getAttribute("alt") || v("name")) : v("name"),
+        ing: v("tags").split(",").map(function(x){ return x.trim().toLowerCase(); }).filter(Boolean) });
+    });
+  });
+  return out;
+}
+
+function related(wrap){
+  if(document.getElementById("rcp-rel")) return;
+  var all = readList();
+  if(all.length < 4) return;                 // too few to suggest anything
+
+  var here = (location.pathname.split("/").filter(Boolean).pop() || "").toLowerCase();
+  var me = null, rest = [];
+  all.forEach(function(r){ if(r.s.toLowerCase() === here) me = r; else rest.push(r); });
+  if(!me || !rest.length) return;            // unknown slug, say nothing
+
+  /* An ingredient in a quarter of the collection says nothing about
+     relatedness. Olive oil and garlic are in everything. */
+  var freq = {};
+  all.forEach(function(r){
+    var once = {};
+    r.ing.forEach(function(t){ if(!once[t]){ once[t] = 1; freq[t] = (freq[t]||0) + 1; } });
+  });
+  /* A quarter of the collection is the right threshold once there are enough
+     recipes, but it must not fall below three: in a small collection a quarter
+     is two, which throws away exactly the pairs worth surfacing. At 24 recipes
+     the quarter rule wins, so this floor changes nothing live. */
+  var cap = Math.max(3, all.length / 4);
+
+  function pair(a, b){
+    var mine = {};
+    a.ing.forEach(function(t){ mine[t] = 1; });
+    var goals = {};
+    a.g.forEach(function(x){ goals[x] = 1; });
+    var shared = b.ing.filter(function(t){ return mine[t] && freq[t] < cap; });
+    var g = b.g.filter(function(x){ return goals[x]; }).length;
+    return { r:b, shared:shared,
+             score: shared.length * 3 + g + (a.m === b.m ? 2 : 0) };
+  }
+
+  function rank(a){
+    return all.filter(function(b){ return b.s !== a.s; })
+      .map(function(b){ return pair(a, b); })
+      .filter(function(o){ return o.score > 0; })
+      .sort(function(x, y){
+        if(y.score !== x.score) return y.score - x.score;
+        return x.r.s < y.r.s ? -1 : 1;       // stable, so the order never jitters
+      });
+  }
+
+  var picks = {};
+  all.forEach(function(r){ picks[r.s] = rank(r).slice(0, 3); });
+
+  /* The point of this block is that no recipe is left with only the hub
+     linking to it, and the plain rule does leave a few unusual ones out —
+     nothing shares chicken livers. Every page holds the whole list, so each
+     one runs this identical assignment and reaches the same answer: an
+     unlinked recipe is added to whichever page is its closest match. */
+  var inbound = {};
+  all.forEach(function(r){ inbound[r.s] = 0; });
+  Object.keys(picks).forEach(function(k){
+    picks[k].forEach(function(o){ inbound[o.r.s] = (inbound[o.r.s] || 0) + 1; });
+  });
+
+  all.forEach(function(r){
+    if(inbound[r.s] > 0) return;
+    var best = null;
+    all.forEach(function(host){
+      if(host.s === r.s) return;
+      var o = pair(host, r);
+      if(!best || o.score > best.o.score ||
+         (o.score === best.o.score && host.s < best.host.s)) best = { host:host, o:o };
+    });
+    if(!best) return;
+    var into = picks[best.host.s];
+    if(into.length >= 4) into.pop();          // keep the section to four at most
+    into.push(best.o);
+    inbound[r.s] = 1;
+  });
+
+  var scored = picks[me.s] || [];
+  if(scored.length < 2) return;              // one lonely card is not worth a section
+
+  var sec = document.createElement("div");
+  sec.className = "rcp-sec rcp-rel";
+  sec.id = "rcp-rel";
+
+  var h = document.createElement("h2");
+  h.className = "rcp-h2";
+  h.textContent = "You might also cook";
+  sec.appendChild(h);
+
+  var grid = document.createElement("div");
+  grid.className = "rcp-rel-g";
+
+  scored.forEach(function(o){
+    var r = o.r;
+    var a = document.createElement("a");
+    a.className = "rcp-rel-c";
+    a.href = "/recipes/" + r.s;
+
+    if(r.p){
+      var im = document.createElement("img");
+      im.className = "rcp-rel-i";
+      im.src = r.p; im.alt = r.a;
+      im.setAttribute("loading","lazy");
+      a.appendChild(im);
+    }
+
+    var bd = document.createElement("div");
+    bd.className = "rcp-rel-b";
+
+    var t = document.createElement("p");
+    t.className = "rcp-rel-t";
+    t.textContent = r.n;
+    bd.appendChild(t);
+
+    var meta = [];
+    if(r.m) meta.push(r.m);
+    if(r.t) meta.push(/^\d+$/.test(r.t) ? r.t + " min" : r.t);
+    if(meta.length){
+      var mp = document.createElement("p");
+      mp.className = "rcp-rel-m";
+      mp.textContent = meta.join(" · ");
+      bd.appendChild(mp);
+    }
+
+    if(o.shared.length){
+      var sp = document.createElement("p");
+      sp.className = "rcp-rel-s";
+      sp.textContent = "Also uses " + o.shared.slice(0,3).join(", ");
+      bd.appendChild(sp);
+    }
+
+    a.appendChild(bd);
+    grid.appendChild(a);
+  });
+
+  sec.appendChild(grid);
+  wrap.appendChild(sec);
 }
 
 /* ------------------------------ build ------------------------------ */
@@ -362,6 +551,12 @@ function build(){
 
     metSec.parentNode.insertBefore(box, metSec.nextSibling);
   }
+
+  /* ---- related recipes ---- */
+  /* Deliberately before the schema section, which returns early on a recipe
+     with no ingredient or method list. Wrapped because nothing here is worth
+     breaking the rest of the page for. */
+  try { related(wrap); } catch(e){}
 
   /* ---- schema ---- */
   if(!ingredients.length || !steps.length) return;
