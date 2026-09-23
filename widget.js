@@ -6,6 +6,7 @@
    - Manual per-card shuffle (food, insight) sequential through pool
    - Today's recipe (full-width card) + "Cook it" link on the food card,
      both fed by the hidden CMS list #hb-rcp-src
+   - Foods fed by hidden CMS lists #hb-food-src-a/-b (fallback: HB_WIDGET_DATA.foods)
    - For Men/Women: 5 batches of 6, "Show me another" swaps all 6
    - Skeleton, image fallback, aria-live, GA4 events, defensive hide
    ============================================================ */
@@ -90,6 +91,31 @@
     }
     RCP_CACHE=out; return out;
   }
+  // ---- FOODS: read from the hidden CMS lists (two lists: Webflow caps each at 100) ----
+  var FOOD_CACHE=null, FOOD_EFFECTS={Supports:1,Moderation:1,Limit:1};
+  function readFoods(){
+    if(FOOD_CACHE) return FOOD_CACHE;
+    var out=[], seen={};
+    ['hb-food-src-a','hb-food-src-b'].forEach(function(id){
+      var box=D.getElementById(id); if(!box) return;
+      [].forEach.call(box.querySelectorAll('[data-fd]'),function(it){
+        function g(k){ var el=it.querySelector('[data-f="'+k+'"]'); return el?(el.textContent||'').replace(/\s+/g,' ').trim():''; }
+        var s=g('slug'), n=g('name');
+        if(!s||!n||seen[s]||!/^[a-z0-9-]+$/.test(s)) return;
+        seen[s]=1;
+        var e=g('effect'); if(!FOOD_EFFECTS[e]) e='Supports';
+        var im=it.querySelector('img[data-f="photo"]');
+        var p=im?(im.getAttribute('src')||''):'';
+        if(!/^https:\/\//.test(p)||/placeholder/i.test(p)) p='';
+        out.push({ s:s, n:n, e:e, g:g('group'), p:p });
+      });
+    });
+    // fixed order, independent of how Webflow sorts the lists
+    out.sort(function(a,b){ return a.s<b.s?-1:a.s>b.s?1:0; });
+    FOOD_CACHE=out; return out;
+  }
+  function foodsOrFallback(DATA){ var f=readFoods(); return f.length?f:(DATA.foods||[]); }
+
   function dietLabel(d){
     if(/\bvegan\b/.test(d)) return 'Vegan';
     if(/vegetarian/.test(d)) return 'Vegetarian';
@@ -100,7 +126,7 @@
   function wire(root){
     if(!root) return;
     var DATA=window.HB_WIDGET_DATA||{};
-    var FOODS=DATA.foods||[];
+    var FOODS=foodsOrFallback(DATA);
     var men=DATA.men||[], women=DATA.women||[], insight=DATA.insight||[];
 
     // DEFENSIVE: if core pools are empty, hide the whole block rather than show broken UI
@@ -407,7 +433,7 @@
     var all=[].concat(DATA.men||[],DATA.women||[],DATA.insight||[]);
     var seen={},parts=[],i;
     for(i=0;i<all.length;i++){ var u=all[i].u; if(!u||seen[u])continue; seen[u]=1; parts.push('<a href="'+e(u)+'">'+e(all[i].t)+'</a>'); }
-    var foods=DATA.foods||[];
+    var foods=foodsOrFallback(DATA);
     for(i=0;i<foods.length;i++){ var fu='/foods/'+foods[i].s; if(seen[fu])continue; seen[fu]=1; parts.push('<a href="'+e(fu)+'">'+e(foods[i].n)+'</a>'); }
     var rc=readRecipes();
     for(i=0;i<rc.length;i++){ var ru='/recipes/'+rc[i].s; if(seen[ru])continue; seen[ru]=1; parts.push('<a href="'+e(ru)+'">'+e(rc[i].n)+'</a>'); }
