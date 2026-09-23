@@ -312,20 +312,23 @@ function related(wrap){
     picks[k].forEach(function(o){ inbound[o.r.s] = (inbound[o.r.s] || 0) + 1; });
   });
 
+  /* Hosts are tried from closest match down, and a host that already shows
+     four cards is skipped rather than trimmed. The first version trimmed with
+     pop(), and when two unlinked recipes shared a best host the second pushed
+     the first straight back out — it reported the recipe as placed while the
+     page no longer showed it. Nothing is ever removed here now. */
   all.forEach(function(r){
     if(inbound[r.s] > 0) return;
-    var best = null;
-    all.forEach(function(host){
-      if(host.s === r.s) return;
-      var o = pair(host, r);
-      if(!best || o.score > best.o.score ||
-         (o.score === best.o.score && host.s < best.host.s)) best = { host:host, o:o };
-    });
-    if(!best) return;
-    var into = picks[best.host.s];
-    if(into.length >= 4) into.pop();          // keep the section to four at most
-    into.push(best.o);
-    inbound[r.s] = 1;
+    var hosts = all.filter(function(h){ return h.s !== r.s; })
+      .map(function(h){ return { host:h, o:pair(h, r) }; })
+      .sort(function(x, y){
+        if(y.o.score !== x.o.score) return y.o.score - x.o.score;
+        return x.host.s < y.host.s ? -1 : 1;
+      });
+    for(var i = 0; i < hosts.length; i++){
+      var into = picks[hosts[i].host.s];
+      if(into.length < 4){ into.push(hosts[i].o); inbound[r.s] = 1; return; }
+    }
   });
 
   var scored = picks[me.s] || [];
