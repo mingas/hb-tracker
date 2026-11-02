@@ -44,7 +44,8 @@
   var NUTRITION = [
     ['/supplements-guide', 'Supplements'],
     ['/foods', 'Foods'],
-    ['/recipes', 'Recipes']
+    ['/recipes', 'Recipes'],
+    ['/meal-plan-generator', 'Meal Plan Generator']
   ];
   // Paths that must NOT be folded into a dropdown (kept as top-level link).
   var KEEP = ['/contact'];
